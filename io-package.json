@@ -1,0 +1,176 @@
+{
+  "common": {
+    "name": "nmea",
+    "version": "0.0.1",
+    "news": {
+    },
+    "title": "MQTT Broker/Client",
+    "titleLang": {
+      "en": "MQTT Broker/Client",
+      "de": "MQTT Broker/Client",
+      "ru": "Брокер MQTT/Клиент",
+      "pt": "MQTT Broker/Cliente",
+      "nl": "MQTT-makelaar/klant",
+      "fr": "Courtier MQTT/Client",
+      "it": "Broker/Cliente MQTT",
+      "es": "Agente MQTT/Cliente",
+      "pl": "Broker/klient MQTT",
+      "uk": "Брокер MQTT/Клієнт",
+      "zh-cn": "MQTT经纪人/客户"
+    },
+    "desc": {
+      "en": "This adapter allows to send and receive MQTT messages from ioBroker and to be a broker",
+      "de": "Adapter ermöglicht eine Kommunikation mit dem MQTT broker und kann auch selbst ein broker/server sein",
+      "ru": "Драйвер позволяет подключатся к MQTT брокерам, а также самому выступать в роли брокера",
+      "pt": "Este adaptador permite enviar e receber mensagens MQTT da ioBroker e ser um corretor",
+      "nl": "Met deze adapter kunt u MQTT-berichten van ioBroker verzenden en ontvangen en makelaar worden",
+      "fr": "Cet adaptateur permet d'envoyer et de recevoir des messages MQTT de ioBroker et d'être un courtier",
+      "it": "Questo adattatore consente di inviare e ricevere messaggi MQTT da ioBroker e di essere un broker",
+      "es": "Este adaptador permite enviar y recibir mensajes MQTT de ioBroker y ser un intermediario",
+      "pl": "Ten adapter umożliwia wysyłanie i odbieranie wiadomości MQTT od ioBroker i brokera",
+      "uk": "Цей адаптер дозволяє надсилати та отримувати повідомлення MQTT від ioBroker та бути брокером",
+      "zh-cn": "该适配器允许从ioBroker发送和接收MQTT消息并成为代理"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "licenseInformation": {
+      "license": "MIT",
+      "type": "commercial",
+      "link": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md"
+    },
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "compact": true,
+    "blockly": true,
+    "messagebox": true,
+    "readme": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md",
+    "loglevel": "info",
+    "icon": "nmea.png",
+    "enabled": true,
+    "keywords": [
+      "notification",
+      "MQTT",
+      "message"
+    ],
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.nmea/master/admin/nmea.png",
+    "type": "protocols",
+    "plugins": {
+      "sentry": {
+        "dsn": "https://40b55da1fb50459eab397fe8291e75fe@sentry.iobroker.net/91"
+      }
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=3.0.0"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=5.4.3"
+      }
+    ],
+    "visWidgets": {
+      "vis2Nmea": {
+        "i18n": "component",
+        "name": "vis2Nmea",
+        "url": "nmea/customWidgets.js",
+        "components": [
+          "Nmea",
+          "Instrument"
+        ]
+      }
+    },
+    "tier": 3,
+    "connectionType": "local",
+    "dataSource": "push",
+    "adminUI": {
+      "config": "json"
+    }
+  },
+  "native": {
+    "serialPort": "COM3",
+    "type": "ngt1",
+    "canPort": "can0",
+    "updateAtLeastEveryMs": 60000,
+    "magneticVariation": "magneticVariation.variation",
+    "simulationEnabled": false,
+    "simulate": [],
+    "simulateAddress": 204
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "Information",
+          "de": "Information",
+          "ru": "Информация",
+          "pt": "Em formação",
+          "nl": "Informatie",
+          "fr": "Informations",
+          "it": "Informazione",
+          "es": "Información",
+          "pl": "Informacja",
+          "uk": "Інформація",
+          "zh-cn": "信息"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Connected client for NMEA",
+          "de": "Verbundener Client für NMEA",
+          "ru": "Подключенный клиент для NMEA",
+          "pt": "Cliente conectado para NMEA",
+          "nl": "Geconnecteerd cliënt voor NMEA",
+          "fr": "Client connecté pour NMEA",
+          "it": "Client collegato per NMEA",
+          "es": "Cliente conectado para NMEA",
+          "pl": "Kliencki klient dla NMEA",
+          "uk": "Підключений клієнт для NMEA",
+          "zh-cn": "NMEA的客户"
+        },
+        "type": "boolean",
+        "role": "indicator.reachable",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "test",
+      "type": "channel",
+      "common": {
+        "expert": true,
+        "name": {
+          "en": "Test"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "test.rawString",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Test nmea 2000 commands"
+        },
+        "expert": true,
+        "type": "string",
+        "role": "state",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    }
+  ]
+}

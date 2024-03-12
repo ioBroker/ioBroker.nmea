@@ -1,0 +1,346 @@
+{
+  "type": "tabs",
+  "i18n": true,
+  "items": {
+    "general": {
+      "type": "panel",
+      "label": "General",
+      "items": {
+        "type": {
+          "type": "select",
+          "label": "Hardware type",
+          "noTranslation": true,
+          "options": [
+            {
+              "label": "NGT1",
+              "value": "ngt1"
+            },
+            {
+              "label": "PicanM",
+              "value": "picanm"
+            }
+          ],
+          "sm": 12,
+          "md": 6,
+          "lg": 4
+        },
+        "serialPort": {
+          "label": "Serial port",
+          "newLine": true,
+          "type": "selectSendTo",
+          "command": "list",
+          "manual": true,
+          "noTranslation": true,
+          "sm": 12,
+          "md": 6,
+          "lg": 4,
+          "hidden": "data.type !== 'ngt1'"
+        },
+        "canPort": {
+          "label": "CAN port",
+          "newLine": true,
+          "type": "text",
+          "command": "listCan",
+          "manual": true,
+          "noTranslation": true,
+          "sm": 12,
+          "md": 6,
+          "lg": 4,
+          "hidden": "data.type !== 'picanm'"
+        },
+        "updateAtLeastEveryMs": {
+          "label": "Update states at least every",
+          "help": "ms",
+          "type": "select",
+          "options": [
+            {
+              "label": "always update (not recommended)",
+              "value": 0
+            },
+            {
+              "label": "0,5 seconds",
+              "value": 500
+            },
+            {
+              "label": "1 second",
+              "value": 1000
+            },
+            {
+              "label": "2 seconds",
+              "value": 2000
+            },
+            {
+              "label": "5 seconds",
+              "value": 5000
+            },
+            {
+              "label": "10 seconds",
+              "value": 10000
+            },
+            {
+              "label": "15 seconds",
+              "value": 15000
+            },
+            {
+              "label": "30 seconds",
+              "value": 30000
+            },
+            {
+              "label": "1 minute",
+              "value": 60000
+            },
+            {
+              "label": "2 minutes",
+              "value": 120000
+            },
+            {
+              "label": "5 minutes",
+              "value": 120000
+            },
+            {
+              "label": "10 minutes",
+              "value": 600000
+            },
+            {
+              "label": "15 minutes",
+              "value": 900000
+            },
+            {
+              "label": "30 minutes",
+              "value": 1800000
+            },
+            {
+              "label": "1 hour",
+              "value": 3600000
+            },
+            {
+              "label": "2 hours",
+              "value": 7200000
+            },
+            {
+              "label": "5 hours",
+              "value": 18000000
+            },
+            {
+              "label": "10 hours",
+              "value": 36000000
+            },
+            {
+              "label": "24 hours",
+              "value": 86400000
+            }
+          ],
+          "sm": 12,
+          "md": 6,
+          "lg": 4
+        }
+      }
+    },
+    "simulate": {
+      "type": "panel",
+      "label": "Simulate",
+      "items": {
+        "simulationEnabled": {
+          "label": "Enabled",
+          "type": "checkbox",
+          "default": false,
+          "sm": 12
+        },
+        "combinedEnvironment": {
+          "label": "Combined environment",
+          "help": "Outdated",
+          "type": "checkbox",
+          "default": false,
+          "sm": 12,
+          "md": 6,
+          "lg": 3,
+          "disabled": "!data.simulationEnabled"
+        },
+        "simulateAddress": {
+          "label": "Source address",
+          "type": "number",
+          "min": 1,
+          "max": 252,
+          "default": 204,
+          "sm": 12,
+          "md": 6,
+          "lg": 3,
+          "disabled": "!data.simulationEnabled"
+        },
+        "simulate": {
+          "label": "Simulate",
+          "type": "table",
+          "hidden": "!data.simulationEnabled",
+          "items": [
+            {
+              "attr": "type",
+              "type": "select",
+              "options": [
+                {
+                  "label": "Temperature",
+                  "value": "temperature"
+                },
+                {
+                  "label": "Humidity",
+                  "value": "humidity"
+                },
+                {
+                  "label": "Pressure",
+                  "value": "pressure"
+                }
+              ]
+            },
+            {
+              "attr": "subType",
+              "type": "select",
+              "options": [
+                {
+                  "label": "Sea Temperature",
+                  "value": "Sea Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Outside Temperature",
+                  "value": "Outside Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Inside Temperature",
+                  "value": "Inside Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Engine Room Temperature",
+                  "value": "Engine Room Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Main Cabin Temperature",
+                  "value": "Main Cabin Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Live Well Temperature",
+                  "value": "Live Well Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Bait Well Temperature",
+                  "value": "Bait Well Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Refrigeration Temperature",
+                  "value": "Refrigeration Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Heating System Temperature",
+                  "value": "Heating System Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Dew Point Temperature",
+                  "value": "Dew Point Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Apparent Wind Chill Temperature",
+                  "value": "Apparent Wind Chill Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Theoretical Wind Chill Temperature",
+                  "value": "Theoretical Wind Chill Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Heat Index Temperature",
+                  "value": "Heat Index Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Freezer Temperature",
+                  "value": "Freezer Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Exhaust Gas Temperature",
+                  "value": "Exhaust Gas Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Shaft Seal Temperature",
+                  "value": "Shaft Seal Temperature",
+                  "hidden": "data.type !== 'temperature'"
+                },
+                {
+                  "label": "Outside",
+                  "value": "Outside",
+                  "hidden": "data.type !== 'humidity'"
+                },
+                {
+                  "label": "Inside",
+                  "value": "Inside",
+                  "hidden": "data.type !== 'humidity'"
+                },
+                {
+                  "value": "Atmospheric",
+                  "label": "Atmospheric",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Water",
+                  "label": "Water",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Steam",
+                  "label": "Steam",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Compressed Air",
+                  "label": "Compressed Air",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Hydraulic",
+                  "label": "Hydraulic",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Filter",
+                  "label": "Filter",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "AltimeterSetting",
+                  "label": "AltimeterSetting",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Oil",
+                  "label": "Oil",
+                  "hidden": "data.type !== 'pressure'"
+                },
+                {
+                  "value": "Fuel",
+                  "label": "Fuel",
+                  "hidden": "data.type !== 'pressure'"
+                }
+              ],
+              "defaultFunc": "data.type === 'pressure' ? 'Atmospheric' : (data.type === 'humidity' ? 'Outside' : 'Outside Temperature')"
+            },
+            {
+              "attr": "oid",
+              "type": "objectId",
+              "label": "Object ID"
+            }
+          ],
+          "sm": 12
+        }
+      }
+    }
+  }
+}
