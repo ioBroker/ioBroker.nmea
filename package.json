@@ -15,21 +15,21 @@
     "NMEA0183"
   ],
   "dependencies": {
-    "@canboat/canboatjs": "^2.5.5",
+    "@canboat/canboatjs": "^2.5.7",
     "@iobroker/adapter-core": "^3.0.4"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.7.0",
     "@alcalzone/release-script-plugin-iobroker": "^3.7.0",
     "@alcalzone/release-script-plugin-license": "^3.7.0",
-    "eslint": "^8.55.0",
+    "eslint": "^8.57.0",
     "gulp": "^4.0.2",
     "@iobroker/vis-2-widgets-react-dev": "^1.0.5"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.nmea/issues"
   },
-  "main": "nmea.js",
+  "main": "main.js",
   "files": [
     "admin/",
     "main.js",

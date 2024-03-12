@@ -8,7 +8,7 @@ const META_DATA = require('./lib/metaData');
 const AutoPilot = require('./lib/seaTalkAutoPilot');
 const { FromPgn } = require('@canboat/canboatjs');
 
-class NMEA extends utils.Adapter {
+class Main extends utils.Adapter {
     /**
      * @param {Partial<utils.AdapterOptions>} [options={}]
      */
@@ -910,8 +910,8 @@ if (require.main !== module) {
     /**
      * @param {Partial<utils.AdapterOptions>} [options={}]
      */
-    module.exports = (options) => new NMEA(options);
+    module.exports = (options) => new Main(options);
 } else {
     // otherwise start the instance directly
-    new NMEA();
+    new Main();
 }
