@@ -25,7 +25,8 @@
     "eslint": "^8.57.0",
     "gulp": "^4.0.2",
     "mocha": "^10.3.0",
-    "@iobroker/vis-2-widgets-react-dev": "^1.0.5"
+    "@iobroker/vis-2-widgets-react-dev": "^1.0.5",
+    "@iobroker/vis-2-widgets-testing": "^1.0.0"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.nmea/issues"
@@ -35,6 +36,7 @@
     "admin/",
     "main.js",
     "LICENSE",
+    "widgets",
     "io-package.json",
     "lib/"
   ],

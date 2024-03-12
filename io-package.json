@@ -30,32 +30,31 @@
         "zh-cn": "初步承诺"
       }
     },
-    "title": "MQTT Broker/Client",
     "titleLang": {
-      "en": "MQTT Broker/Client",
-      "de": "MQTT Broker/Client",
-      "ru": "Брокер MQTT/Клиент",
-      "pt": "MQTT Broker/Cliente",
-      "nl": "MQTT-makelaar/klant",
-      "fr": "Courtier MQTT/Client",
-      "it": "Broker/Cliente MQTT",
-      "es": "Agente MQTT/Cliente",
-      "pl": "Broker/klient MQTT",
-      "uk": "Брокер MQTT/Клієнт",
-      "zh-cn": "MQTT经纪人/客户"
+      "en": "NMEA 2000 - connect boat",
+      "de": "NMEA 2000 - Boot verbinden",
+      "ru": "NMEA 2000 - подключить лодку",
+      "pt": "NMEA 2000 - conectar barco",
+      "nl": "NMEA 2000 - boot verbinden",
+      "fr": "NMEA 2000 - connecter le bateau",
+      "it": "NMEA 2000 - collegare la barca",
+      "es": "NMEA 2000 - conectar barco",
+      "pl": "NMEA 2000 - połącz łódź",
+      "uk": "NMEA 2000 - підключити човен",
+      "zh-cn": "NMEA 2000 - 连接船"
     },
     "desc": {
-      "en": "This adapter allows to send and receive MQTT messages from ioBroker and to be a broker",
-      "de": "Adapter ermöglicht eine Kommunikation mit dem MQTT broker und kann auch selbst ein broker/server sein",
-      "ru": "Драйвер позволяет подключатся к MQTT брокерам, а также самому выступать в роли брокера",
-      "pt": "Este adaptador permite enviar e receber mensagens MQTT da ioBroker e ser um corretor",
-      "nl": "Met deze adapter kunt u MQTT-berichten van ioBroker verzenden en ontvangen en makelaar worden",
-      "fr": "Cet adaptateur permet d'envoyer et de recevoir des messages MQTT de ioBroker et d'être un courtier",
-      "it": "Questo adattatore consente di inviare e ricevere messaggi MQTT da ioBroker e di essere un broker",
-      "es": "Este adaptador permite enviar y recibir mensajes MQTT de ioBroker y ser un intermediario",
-      "pl": "Ten adapter umożliwia wysyłanie i odbieranie wiadomości MQTT od ioBroker i brokera",
-      "uk": "Цей адаптер дозволяє надсилати та отримувати повідомлення MQTT від ioBroker та бути брокером",
-      "zh-cn": "该适配器允许从ioBroker发送和接收MQTT消息并成为代理"
+      "en": "This adapter allows to connect your NMEA 2000 devices on the boat to ioBroker",
+      "de": "Dieser Adapter ermöglicht es, Ihre NMEA 2000-Geräte auf dem Boot mit ioBroker zu verbinden",
+      "ru": "Этот адаптер позволяет подключать ваши устройства NMEA 2000 на лодке к ioBroker",
+      "pt": "Este adaptador permite conectar seus dispositivos NMEA 2000 no barco ao ioBroker",
+      "nl": "Deze adapter maakt het mogelijk om uw NMEA 2000-apparaten op de boot aan te sluiten op ioBroker",
+      "fr": "Cet adaptateur permet de connecter vos appareils NMEA 2000 sur le bateau à ioBroker",
+      "it": "Questo adattatore consente di collegare i dispositivi NMEA 2000 sulla barca a ioBroker",
+      "es": "Este adaptador permite conectar sus dispositivos NMEA 2000 en el barco a ioBroker",
+      "pl": "Ten adapter pozwala podłączyć urządzenia NMEA 2000 na łodzi do ioBroker",
+      "uk": "Цей адаптер дозволяє підключати ваші пристрої NMEA 2000 на човні до ioBroker",
+      "zh-cn": "此适配器允许将船上的NMEA 2000设备连接到ioBroker"
     },
     "authors": [
       "bluefox <dogafox@gmail.com>"
@@ -87,15 +86,8 @@
         "dsn": "https://40b55da1fb50459eab397fe8291e75fe@sentry.iobroker.net/91"
       }
     },
-    "dependencies": [
-      {
-        "js-controller": ">=3.0.0"
-      }
-    ],
-    "globalDependencies": [
-      {
-        "admin": ">=5.4.3"
-      }
+    "restartAdapters": [
+      "vis-2"
     ],
     "visWidgets": {
       "vis2Nmea": {
