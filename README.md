@@ -32,7 +32,7 @@ sudo apt-get install can-utils
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### 0.0.2 (2024-03-12)
+### **WORK IN PROGRESS**
 * (bluefox) Initial commit
 
 ## License
