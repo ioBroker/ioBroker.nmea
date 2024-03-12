@@ -14,7 +14,7 @@
         "@mui/styles": "5.14.14",
         "@mui/system": "5.14.14",
         "color": "^4.2.3",
-        "craco-esbuild": "^0.5.2",
+        "craco-esbuild": "^0.6.0",
         "craco-module-federation": "^1.1.0",
         "eslint": "^8.56.0",
         "eslint-config-airbnb": "^19.0.4",
