@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "nmea",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "news": {
+      "0.0.4": {
+        "en": "Fixed CI tests",
+        "de": "Feste CI-Tests",
+        "ru": "Испытания CI",
+        "pt": "Testes de IC fixos",
+        "nl": "Vaste CI-tests",
+        "fr": "Essais d'IC fixes",
+        "it": "Test CI fissi",
+        "es": "Pruebas de CI fijas",
+        "pl": "Stałe badania CI",
+        "uk": "Виправлені тести CI",
+        "zh-cn": "固定CI测试"
+      },
       "0.0.3": {
         "en": "Initial commit",
         "de": "Ursprüngliche Verpflichtung",
