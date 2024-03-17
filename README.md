@@ -1,8 +1,22 @@
 ![Logo](admin/nmea.png)
 # ioBroker.nmea
+This adapter allows connecting ioBroker to NMEA-2000 bus.
 
-## How to use it on raspberry PI with Pican-M
+To use this adapter, you need a hardware that can read NMEA-2000 bus and convert it to the serial port:
+- Actisense NGT-1 (USB)
+- or Raspberry PI with Pican-M
 
+## How to use it on Raspberry PI with Pican-M
+
+The PiCAN M is a compact add-on board designed for the Raspberry Pi 3/4.
+It enables the connection of both NMEA2000 and NMEA0183 networks to a Raspberry Pi.
+The board can be powered through an external 12V source.
+Additionally, it offers the option to power the Raspberry Pi directly via the NMEA2000 bus when used with the PiCAN-M board.
+
+Because of the high requirements of Raspberry Pi to power supply, we suggest powering the Raspberry PI from the external power source.
+Power over NMEA2000 and over USB could function in parallel without a problem.
+
+### Installation
 Edit file `/boot/config.txt` (with `sudo nano /boot/config.txt`) and add the following lines to the end of the file:
 ```
 enable_uart=1
@@ -22,6 +36,9 @@ Install can-utils
 ```
 sudo apt-get install can-utils
 ```
+
+## Actisense NGT-1
+Actisense NGT-1 is visible on Windows or Linux without any additional drivers. It is visible as a serial port 'COMn' (Windows) or ttyN(on linux).
 
 ## Todo
 - Encode code

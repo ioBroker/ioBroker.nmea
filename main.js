@@ -853,25 +853,44 @@ class Main extends utils.Adapter {
                 if (obj.callback) {
                     try {
                         // cmd: ip link show
-                        const { SerialPort } = require('serialport');
-                        if (SerialPort) {
-                            // read all found serial ports
-                            SerialPort.list()
-                                .then(ports => {
-                                    this.log.info(`List of port: ${JSON.stringify(ports)}`);
-                                    this.sendTo(obj.from, obj.command, ports.map(item => ({
-                                        label: item.path,
-                                        value: item.path
-                                    })), obj.callback);
-                                })
-                                .catch(e => {
-                                    this.sendTo(obj.from, obj.command, [], obj.callback);
-                                    this.log.error(e)
-                                });
-                        } else {
-                            this.log.warn('Module serialport is not available');
-                            this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
-                        }
+                        const { exec } = require('child_process');
+
+                        // Output of "ip link show"
+                        // ~$ ip link show
+                        // 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+                        // link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+                        // 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+                        // link/ether 00:0c:29:35:8c:af brd ff:ff:ff:ff:ff:ff
+                        // 3: can0: <NOARP,ECHO> mtu 16 qdisc noop state DOWN mode DEFAULT group default qlen 10
+                        // link/can
+
+                        exec('ip link show', (error, stdout, stderr) => {
+                            if (error) {
+                                this.log.error(`error: ${error.message}`);
+                                return;
+                            }
+                            if (stderr) {
+                                this.log.error(`stderr: ${stderr}`);
+                                return;
+                            }
+                            // analyse stdout
+                            const lines = stdout.split('\n');
+                            const ports = [];
+                            for (let l = 0; l < lines.length; l++) {
+                                const line = lines[l].trim();
+                                const m = line.match(/^\d+: (can\d+): /);
+                                if (m) {
+                                    ports.push({
+                                        label: m[1],
+                                        value: m[1],
+                                    });
+                                }
+                            }
+                            this.sendTo(obj.from, obj.command, ports.map(item => ({
+                                label: item.path,
+                                value: item.path,
+                            })), obj.callback);
+                        });
                     } catch (e) {
                         this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
                     }

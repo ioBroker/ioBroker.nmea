@@ -39,7 +39,7 @@
         "canPort": {
           "label": "CAN port",
           "newLine": true,
-          "type": "text",
+          "type": "selectSendTo",
           "command": "listCan",
           "manual": true,
           "noTranslation": true,
