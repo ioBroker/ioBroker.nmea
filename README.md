@@ -1,6 +1,6 @@
 ![Logo](admin/nmea.png)
 # ioBroker.nmea
-This adapter allows connecting ioBroker to NMEA-2000 bus.
+This adapter allows connecting ioBroker to NMEA-2000 yacht bus.
 
 To use this adapter, you need a hardware that can read NMEA-2000 bus and convert it to the serial port:
 - Actisense NGT-1 (USB)
