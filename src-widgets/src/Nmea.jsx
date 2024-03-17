@@ -543,7 +543,7 @@ class Nmea extends Generic {
 
     renderNavigation() {
         const twd = this.getPropertyValue('oid_twd');
-        const cog = this.getPropertyValue('oid_cog')
+        const cog = this.getPropertyValue('oid_cog');
         const rudder = this.getPropertyValue('oid_rudder');
 
         return <Navigation
