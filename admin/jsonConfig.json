@@ -316,7 +316,7 @@
                 },
                 {
                   "value": "AltimeterSetting",
-                  "label": "AltimeterSetting",
+                  "label": "Altimeter Setting",
                   "hidden": "data.type !== 'pressure'"
                 },
                 {

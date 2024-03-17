@@ -99,7 +99,7 @@ const Wind = props => {
                         {Generic.t(text).toUpperCase()}
                     </div>
                     <div className={props.classes.centerText2}>
-                        {Math.round(props[text] * 10) / 10}
+                        {Number.isNaN(props[text]) || props[text] === null || props[text] === undefined ? '---' : Math.round(props[text] * 10) / 10}
                     </div>
                     <div>{Generic.t('kts')}</div>
                 </div>

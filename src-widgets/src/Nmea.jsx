@@ -542,13 +542,17 @@ class Nmea extends Generic {
     }
 
     renderNavigation() {
+        const twd = this.getPropertyValue('oid_twd');
+        const cog = this.getPropertyValue('oid_cog')
+        const rudder = this.getPropertyValue('oid_rudder');
+
         return <Navigation
             angle={this.state.angle}
             smallWindAngle={this.state.smallWindAngle}
             bigWindAngle={this.state.bigWindAngle}
-            twd={this.getPropertyValue('oid_twd')}
-            cog={this.getPropertyValue('oid_cog')}
-            rudder={this.getPropertyValue('oid_rudder')}
+            twd={twd === undefined ? null : twd}
+            cog={cog === undefined ? null : cog}
+            rudder={rudder === undefined ? null : rudder}
         />;
     }
 
@@ -645,8 +649,8 @@ class Nmea extends Generic {
                     }}
                     className={this.props.classes.carousel}
                 >
-                    {[this.state.prevWindow, this.state.window, this.state.nextWindow].map(windowIndex => <div
-                        key={windowIndex}
+                    {[this.state.prevWindow, this.state.window, this.state.nextWindow].map((windowIndex, i) => <div
+                        key={windowIndex === undefined ? 1000 + i : windowIndex}
                         className={this.props.classes.windowPanel}
                     >
                         {windowIndex === undefined || !windows[windowIndex] ? null : windows[windowIndex]()}
