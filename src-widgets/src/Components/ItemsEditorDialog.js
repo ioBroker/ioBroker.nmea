@@ -82,6 +82,8 @@ class ItemsEditorDialog extends Component {
         return <ItemSelectorDialog
             context={this.props.context}
             instance={this.state.itemSelector}
+            wid={this.props.wid}
+            usedIds={this.state.items.map(item => item.oid).filter(oid => oid)}
             onClose={objs => {
                 if (objs && objs.length) {
                     const items = JSON.parse(JSON.stringify(this.state.items));
@@ -395,8 +397,8 @@ class ItemsEditorDialog extends Component {
                     <TableCell style={{ width: 100 }}>{Generic.t('Name')}</TableCell>
                     <TableCell style={{ width: 200 }}>{Generic.t('OID')}</TableCell>
                     <TableCell style={{ width: 50 }}>{Generic.t('Unit')}</TableCell>
-                    <TableCell style={{ width: 50 }} title={Generic.t('Indicate changes with color')}><TrackChanges /></TableCell>
-                    <TableCell style={{ width: 50 }} title={Generic.t('Show plus by positive numbers')}>+</TableCell>
+                    <TableCell style={{ width: 25, paddingLeft: 25 }} title={Generic.t('Indicate changes with color')}><TrackChanges /></TableCell>
+                    <TableCell style={{ width: 25, paddingLeft: 25 }} title={Generic.t('Show plus by positive numbers')}>+</TableCell>
                     <TableCell style={{ width: 50 }}>{Generic.t('Before comma')}</TableCell>
                     <TableCell style={{ width: 50 }}>{Generic.t('After comma')}</TableCell>
                     <TableCell style={{ width: 100 }}>{Generic.t('Color')}</TableCell>
@@ -428,7 +430,7 @@ class ItemsEditorDialog extends Component {
     render() {
         return <Dialog
             fullWidth
-            maxWidth="lg"
+            maxWidth="xl"
             open={!0}
             onClose={() => this.props.onClose()}
         >
@@ -466,6 +468,7 @@ ItemsEditorDialog.propTypes = {
     context: PropTypes.object,
     data: PropTypes.object,
     onClose: PropTypes.func,
+    wid: PropTypes.string,
 };
 
 export default withStyles(styles)(ItemsEditorDialog);

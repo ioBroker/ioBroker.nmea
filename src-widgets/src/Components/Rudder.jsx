@@ -7,12 +7,7 @@ import {
 } from './Elements';
 import Generic from '../Generic';
 
-const styles = theme => ({
-    compass: {
-        fill: theme.palette.background.default,
-        stroke: theme.palette.text.primary,
-        strokeWidth: 2,
-    },
+const styles = {
     content: {
         display: 'grid',
         width: '100%',
@@ -31,20 +26,23 @@ const styles = theme => ({
     arrow: {
         transform: `translate(${RADIUS}px, ${RADIUS}px)`,
     },
-});
+};
 
 const Rudder = props => {
     const factor = 120 / 50;
 
     const compass = useMemo(() => <>
         <ellipse
-            className={props.classes.compass}
+            fill={props.themeType === 'dark' ? '#000' : '#FFF'}
+            stroke={props.themeType === 'dark' ? '#FFFFFF' : '#000000'}
+            strokeWidth={2}
             cx={RADIUS}
             cy={RADIUS}
             rx={RADIUS}
             ry={RADIUS}
         />
         <Lines
+            color={props.themeType === 'dark' ? '#FFFFFF' : '#000000'}
             textCallback={_angle =>
                 (_angle % 10 ?
                     '' :
@@ -73,7 +71,7 @@ const Rudder = props => {
             flat
         />)}
         <ellipse cx={RADIUS} cy={RADIUS} rx={40} ry={40} fill="grey" />
-    </>, []); // eslint-disable-line react-hooks/exhaustive-deps
+    </>, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return <div className={props.classes.content}>
         <div className={props.classes.header}>
@@ -85,6 +83,7 @@ const Rudder = props => {
             </SvgContainer>
             <SvgContainer>
                 <Text
+                    color={props.themeType === 'dark' ? '#FFF' : '#000'}
                     x={RADIUS}
                     y={RADIUS}
                     radius={RADIUS}
@@ -93,6 +92,7 @@ const Rudder = props => {
                     text={Generic.t('PORT')}
                 />
                 <Text
+                    color={props.themeType === 'dark' ? '#FFF' : '#000'}
                     x={RADIUS}
                     y={RADIUS}
                     radius={RADIUS}
@@ -116,7 +116,8 @@ const Rudder = props => {
 };
 
 Rudder.propTypes = {
-    rudder: PropTypes.number.isRequired,
+    rudder: PropTypes.number,
+    themeType: PropTypes.string,
 };
 
 export default withStyles(styles)(Rudder);

@@ -8,29 +8,40 @@ import {
     AccordionSummary,
     Button, Checkbox,
     Dialog, DialogActions,
-    DialogContent, DialogTitle,
-    LinearProgress, ListItemIcon, ListItemText, MenuItem, MenuList,
+    DialogContent, DialogTitle, IconButton, InputAdornment,
+    LinearProgress, ListItemIcon, ListItemText, MenuItem, MenuList, TextField, Tooltip,
 } from '@mui/material';
 import {
-    Add,
-    Close,
-    ExpandMore,
+    Add, Clear,
+    Close, ExpandLess,
+    ExpandMore, Search,
 } from '@mui/icons-material';
 
 import Generic from '../Generic';
 
-const styles = () => ({
+const styles = theme => ({
     itemsCount: {
         marginLeft: 10,
         opacity: 0.5,
         fontSize: 'smaller',
+    },
+    value: {
+        maxWidth: 250,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    tooltip: {
+        pointerEvents: 'none',
+    },
+    used: {
+        color: theme.palette.primary.main,
     },
 });
 
 class ItemsSelectorDialog extends Component {
     constructor(props) {
         super(props);
-        let openedChannels = window.localStorage.getItem(`vis.nmea.openedChannels.${props.instance}`) || '[]';
+        let openedChannels = window.localStorage.getItem(`vis.nmea.openedChannels.${props.wid || this.props.instance}`) || '[]';
         try {
             openedChannels = JSON.parse(openedChannels);
         } catch (e) {
@@ -43,6 +54,7 @@ class ItemsSelectorDialog extends Component {
             channels: null,
             openedChannels,
             selectedStates: [],
+            filter: window.localStorage.getItem(`vis.nmea.filter.${props.wid || this.props.instance}`) || '',
         };
 
         this.subscribes = [];
@@ -63,10 +75,15 @@ class ItemsSelectorDialog extends Component {
                 channels[channelId].count = stateIds.filter(id => id.startsWith(channelId)).length;
                 const _channelId = `${channelId}.`;
                 channels[channelId].states = Object.keys(states).filter(id => id.startsWith(_channelId));
+                // Translate names
+                channels[channelId].name = Generic.getText(channels[channelId].common.name);
+                channels[channelId].lowerName = channels[channelId].name.toLowerCase();
             }
         });
         Object.keys(states).forEach(stateId => {
             delete states[stateId].native;
+            states[stateId].name = Generic.getText(states[stateId].common.name);
+            states[stateId].lowerName = states[stateId].name.toLowerCase();
         });
 
         this.setState({ channels, states }, async () => {
@@ -92,8 +109,24 @@ class ItemsSelectorDialog extends Component {
         this.subscribes.forEach(sub => this.props.context.socket.unsubscribeState(sub, this.onStateChanged));
     }
 
-    renderState(id) {
+    renderState(id, opacity) {
+        let val = this.state.values[id];
+        if (val === null || val === undefined) {
+            val = 'null';
+        } else {
+            val = val.toString();
+        }
+        let title;
+        if (val.length + (this.state.states[id].common.unit?.length || 0) > 25) {
+            title = val + (this.state.states[id].common.unit || '');
+        }
+
         return <MenuItem
+            className={this.props.usedIds.includes(id) ? this.props.classes.used : ''}
+            style={{
+                opacity: opacity ? 1 : 0.3,
+                padding: '0 8px 0 2px',
+            }}
             key={id}
             onDoubleClick={() => this.props.onClose([this.state.states[id]])}
             onClick={() => {
@@ -110,43 +143,97 @@ class ItemsSelectorDialog extends Component {
             <ListItemIcon>
                 <Checkbox checked={this.state.selectedStates.includes(id)} />
             </ListItemIcon>
-            <ListItemText>{Generic.getText(this.state.states[id].common.name)}</ListItemText>
-            <div className={this.props.classes.value}>
-                {this.state.values[id]}
-                {this.state.states[id].common.unit ? <span className={this.props.classes.unit}>{this.state.states[id].common.unit}</span> : null}
-            </div>
+            <ListItemText>{this.state.states[id].name}</ListItemText>
+            {title ? <Tooltip title={title} size="small" classes={{ popper: this.props.classes.tooltip }}>
+                <div className={this.props.classes.value}>
+                    {val}
+                    {this.state.states[id].common.unit ?
+                        <span className={this.props.classes.unit}>{this.state.states[id].common.unit}</span> : null}
+                </div>
+            </Tooltip> : <div className={this.props.classes.value}>
+                {val}
+                {this.state.states[id].common.unit ?
+                    <span className={this.props.classes.unit}>{this.state.states[id].common.unit}</span> : null}
+            </div>}
         </MenuItem>;
     }
 
     async subscribeChannel(channelId) {
-        const states = this.state.channels[channelId].states;
-        for (let s = 0; s < states.length; s++) {
-            if (!this.subscribes.includes(states[s])) {
-                this.subscribes.push(states[s]);
-                await this.props.context.socket.subscribeState(states[s], this.onStateChanged);
+        if (channelId) {
+            const states = this.state.channels[channelId].states;
+            for (let s = 0; s < states.length; s++) {
+                if (!this.subscribes.includes(states[s])) {
+                    this.subscribes.push(states[s]);
+                    await this.props.context.socket.subscribeState(states[s], this.onStateChanged);
+                }
+            }
+        } else {
+            // Subscribe all
+            const channelIDs = Object.keys(this.state.channels);
+            for (let c = 0; c < channelIDs.length; c++) {
+                const states = this.state.channels[channelIDs[c]].states;
+                for (let s = 0; s < states.length; s++) {
+                    if (!this.subscribes.includes(states[s])) {
+                        this.subscribes.push(states[s]);
+                        await this.props.context.socket.subscribeState(states[s], this.onStateChanged);
+                    }
+                }
             }
         }
     }
 
     async unsubscribeChannel(channelId) {
-        const states = this.state.channels[channelId].states;
-        for (let s = 0; s < states.length; s++) {
-            const pos = this.subscribes.indexOf(states[s]);
-            if (pos !== -1) {
-                this.subscribes.splice(pos, 1);
-                await this.props.context.socket.unsubscribeState(states[s], this.onStateChanged);
+        if (channelId) {
+            const states = this.state.channels[channelId].states;
+            for (let s = 0; s < states.length; s++) {
+                const pos = this.subscribes.indexOf(states[s]);
+                if (pos !== -1) {
+                    this.subscribes.splice(pos, 1);
+                    await this.props.context.socket.unsubscribeState(states[s], this.onStateChanged);
+                }
             }
+        } else {
+            // unsubscribe all
+            for (let s = 0; s < this.subscribes.length; s++) {
+                await this.props.context.socket.unsubscribeState(this.subscribes[s], this.onStateChanged);
+            }
+            this.subscribes = [];
         }
     }
 
     renderChannels() {
         if (!this.state.channels) {
-            return <LinearProgress  />;
+            return <LinearProgress />;
         }
-        const keys = Object.keys(this.state.channels);
+        let keys = Object.keys(this.state.channels);
         if (!keys.length) {
             return <div>{Generic.t('No channels found')}</div>;
         }
+        const states = {};
+        if (this.state.filter) {
+            const filter = this.state.filter.toLowerCase();
+            keys = keys.filter(channelId => {
+                const find = this.state.channels[channelId].lowerName.includes(filter);
+                this.state.channels[channelId].states.forEach(id => {
+                    if (this.state.states[id].lowerName.includes(filter)) {
+                        states[channelId] = states[channelId] || {};
+                        states[channelId][id] = true;
+                    }
+                });
+                if (find && !states[channelId]) {
+                    states[channelId] = {};
+                    this.state.channels[channelId].states.forEach(id => states[channelId][id] = false);
+                    return true;
+                }
+                return find || states[channelId];
+            });
+        } else {
+            keys.forEach(channelId => {
+                states[channelId] = {};
+                this.state.channels[channelId].states.forEach(id => states[channelId][id] = true);
+            });
+        }
+
         return keys.map(channelId => <Accordion
             key={channelId}
             expanded={this.state.openedChannels.includes(channelId)}
@@ -163,11 +250,17 @@ class ItemsSelectorDialog extends Component {
                         .catch(e => console.error(`Cannot subscribe ${channelId}: ${e}`));
                 }
                 this.setState({ openedChannels });
-                window.localStorage.setItem(`vis.nmea.openedChannels.${this.props.instance}`, JSON.stringify(openedChannels));
+                window.localStorage.setItem(`vis.nmea.openedChannels.${this.props.wid || this.props.instance}`, JSON.stringify(openedChannels));
             }}
         >
-            <AccordionSummary expandIcon={<ExpandMore />}>
-                {Generic.getText(this.state.channels[channelId].common.name)}
+            <AccordionSummary
+                expandIcon={<ExpandMore />}
+                style={{ padding: '0 10px', minHeight: 32 }}
+                sx={{
+                    backgroundColor: 'secondary.main',
+                }}
+            >
+                {this.state.channels[channelId].name}
                 <span className={this.props.classes.itemsCount}>
                     [
                     {this.state.channels[channelId].count}
@@ -176,7 +269,7 @@ class ItemsSelectorDialog extends Component {
             </AccordionSummary>
             {this.state.openedChannels.includes(channelId) ? <AccordionDetails>
                 <MenuList>
-                    {this.state.channels[channelId].states.map(id => this.renderState(id))}
+                    {Object.keys(states[channelId]).map(id => this.renderState(id, states[channelId][id]))}
                 </MenuList>
             </AccordionDetails> : null}
         </Accordion>);
@@ -188,8 +281,63 @@ class ItemsSelectorDialog extends Component {
             fullWidth
             maxWidth="md"
         >
-            <DialogTitle>
+            <DialogTitle style={{ display: 'flex', alignItems: 'baseline' }}>
                 {Generic.t('Select items')}
+                <TextField
+                    margin="dense"
+                    label={Generic.t('Filter')}
+                    variant="standard"
+                    style={{ marginLeft: 10, width: 300 }}
+                    onChange={e => {
+                        this.setState({ filter: e.target.value });
+                        if (!e.target.value) {
+                            window.localStorage.removeItem(`vis.nmea.filter.${this.props.wid || this.props.instance}`);
+                        } else {
+                            window.localStorage.setItem(`vis.nmea.filter.${this.props.wid || this.props.instance}`, e.target.value);
+                        }
+                    }}
+                    value={this.state.filter || ''}
+                    InputProps={{
+                        endAdornment: this.state.filter ? <IconButton
+                            size="small"
+                            onClick={() => {
+                                this.setState({ filter: '' });
+                                window.localStorage.removeItem(`vis.nmea.filter.${this.props.wid || this.props.instance}`);
+                            }}
+                        >
+                            <Clear />
+                        </IconButton> : null,
+                        startAdornment: <InputAdornment position="start">
+                            <Search />
+                        </InputAdornment>,
+                    }}
+                />
+                <div style={{ flexGrow: 1 }} />
+                <IconButton
+                    title={Generic.t('Expand all')}
+                    disabled={!this.state.channels || Object.keys(this.state.channels).length === this.state.openedChannels.length}
+                    onClick={() => {
+                        const openedChannels = Object.keys(this.state.channels);
+                        this.subscribeChannel()
+                            .catch(e => console.error(`Cannot subscribe: ${e}`));
+                        this.setState({ openedChannels });
+                        window.localStorage.setItem(`vis.nmea.openedChannels.${this.props.wid || this.props.instance}`, JSON.stringify(openedChannels));
+                    }}
+                >
+                    <ExpandMore />
+                </IconButton>
+                <IconButton
+                    disabled={!this.state.openedChannels.length}
+                    title={Generic.t('Close all')}
+                    onClick={() => {
+                        this.unsubscribeChannel()
+                            .catch(e => console.error(`Cannot subscribe: ${e}`));
+                        this.setState({ openedChannels: [] });
+                        window.localStorage.setItem(`vis.nmea.openedChannels.${this.props.wid || this.props.instance}`, '[]');
+                    }}
+                >
+                    <ExpandLess />
+                </IconButton>
             </DialogTitle>
             <DialogContent>
                 {this.renderChannels()}
@@ -221,6 +369,8 @@ ItemsSelectorDialog.propTypes = {
     instance: PropTypes.string,
     context: PropTypes.object,
     onClose: PropTypes.func,
+    wid: PropTypes.string,
+    usedIds: PropTypes.array,
 };
 
 export default withStyles(styles)(ItemsSelectorDialog);

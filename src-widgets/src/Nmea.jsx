@@ -472,10 +472,13 @@ class Nmea extends Generic {
     }
 
     async propertiesUpdate() {
-        if (this.state.rxData.oid_autopilot_mode) {
+        if (this.state.rxData.oid_autopilot_mode !== this.oid_autopilot_mode) {
+            this.oid_autopilot_mode = this.state.rxData.oid_autopilot_mode;
             const autopilotMode = await this.props.context.socket.getObject(this.state.rxData.oid_autopilot_mode);
             if (autopilotMode) {
                 this.setState({ autopilotStates: autopilotMode.common.states });
+            } else {
+                this.setState({ autopilotStates: {} });
             }
         }
     }
@@ -531,13 +534,19 @@ class Nmea extends Generic {
     }
 
     renderWind() {
+        const tws = this.getPropertyValue('oid_tws');
+        const aws = this.getPropertyValue('oid_aws');
+        const twd = this.getPropertyValue('oid_twd');
+        const awd = this.getPropertyValue('oid_awd');
+
         return <Wind
             smallWindAngle={this.state.smallWindAngle}
             bigWindAngle={this.state.bigWindAngle}
-            tws={this.getPropertyValue('oid_tws')}
-            aws={this.getPropertyValue('oid_aws')}
-            twd={this.getPropertyValue('oid_twd')}
-            awd={this.getPropertyValue('oid_awd')}
+            tws={tws === undefined ? null : tws}
+            aws={aws === undefined ? null : aws}
+            twd={twd === undefined ? null : twd}
+            awd={awd === undefined ? null : awd}
+            themeType={this.props.context.themeType}
         />;
     }
 
@@ -553,26 +562,37 @@ class Nmea extends Generic {
             twd={twd === undefined ? null : twd}
             cog={cog === undefined ? null : cog}
             rudder={rudder === undefined ? null : rudder}
+            themeType={this.props.context.themeType}
         />;
     }
 
     renderRudder() {
-        return <Rudder rudder={this.getPropertyValue('oid_rudder')} />;
+        const rudder = this.getPropertyValue('oid_rudder');
+        return <Rudder
+            rudder={rudder === undefined ? null : rudder}
+            themeType={this.props.context.themeType}
+        />;
     }
 
     renderAutopilot() {
+        const heading = this.getPropertyValue('oid_heading');
+        const cog = this.getPropertyValue('oid_cog');
+        const autopilotMode = this.getPropertyValue('oid_autopilot_mode');
+        const rudder = this.getPropertyValue('oid_rudder');
+
         return <Autopilot
-            cog={this.getPropertyValue('oid_cog')}
-            heading={this.getPropertyValue('oid_heading')}
-            mode={this.getPropertyValue('oid_autopilot_mode')}
+            cog={cog === undefined ? null : cog}
+            heading={heading === undefined ? null : heading}
+            mode={autopilotMode === undefined ? null : autopilotMode}
             modeId={this.state.rxData.oid_autopilot_mode}
             plus1Id={this.state.rxData.oid_autopilot_plus_1}
             plus10Id={this.state.rxData.oid_autopilot_plus_10}
             minus1Id={this.state.rxData.oid_autopilot_minus_1}
             minus10Id={this.state.rxData.oid_autopilot_minus_10}
             autopilotStates={this.state.autopilotStates}
-            socket={this.props.context.socket}
-            rudder={this.getPropertyValue('oid_rudder')}
+            context={this.props.context}
+            rudder={rudder === undefined ? null : rudder}
+            themeType={this.props.context.themeType}
         />;
     }
 

@@ -57,7 +57,7 @@ export const Arc = props => <path
 export const Line = props => {
     const theme = useTheme();
     const fill = theme.palette.background.default;
-    const stroke = theme.palette.text.primary;
+    const stroke = props.color || theme.palette.text.primary;
     let padding = 0;
     const factor = props.factor || 1;
     if (props.paddingCallback) {
@@ -142,7 +142,7 @@ export const SmallArrow = props => <SvgContainer angle={props.angle} zIndex={pro
 export const Text = props => {
     const theme = useTheme();
     // const fill = theme.palette.background.default;
-    const stroke = theme.palette.text.primary;
+    const stroke = props.color || theme.palette.text.primary;
     let padding = 0;
     const factor = props.factor || 1;
     if (props.paddingCallback) {
@@ -219,6 +219,7 @@ export const Lines = props => {
             angle={angle}
             factor={factor}
             paddingCallback={props.paddingCallback}
+            color={props.color}
         />
         <Text
             x={RADIUS}
@@ -230,6 +231,7 @@ export const Lines = props => {
             paddingCallback={props.paddingCallback}
             noRotate={props.noRotateText}
             textRotate={props.textRotate}
+            color={props.color}
         />
     </React.Fragment>);
 };

@@ -12,11 +12,11 @@
           "noTranslation": true,
           "options": [
             {
-              "label": "NGT1",
+              "label": "NGT-1",
               "value": "ngt1"
             },
             {
-              "label": "PicanM",
+              "label": "PiCAN-M",
               "value": "picanm"
             }
           ],

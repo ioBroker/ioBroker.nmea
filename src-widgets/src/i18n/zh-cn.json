@@ -106,5 +106,8 @@
   "Add": "添加",
   "Close": "关闭",
   "Indicate changes with color": "用颜色表示变化",
-  "instrument": "乐器"
+  "instrument": "乐器",
+  "Filter": "搜索",
+  "Expand all": "展开全部",
+  "Close all": "关闭所有"
 }

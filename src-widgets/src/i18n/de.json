@@ -97,8 +97,8 @@
   "Custom": "Benutzerdefiniert",
   "Enabled": "Aktiviert",
   "OID": "Objekt ID",
-  "Before comma": "Vor dem Komma",
-  "After comma": "Nach dem Komma",
+  "Before comma": "Vor Komma",
+  "After comma": "Nach Komma",
   "Apply": "Anwenden",
   "Cancel": "Stornieren",
   "Show plus by positive numbers": "Bei positiven Zahlen Plus anzeigen",
@@ -106,5 +106,8 @@
   "Add": "Hinzufügen",
   "Close": "Schließen",
   "Indicate changes with color": "Änderungen farblich kennzeichnen ",
-  "instrument": "Instrument"
+  "instrument": "Instrument",
+  "Filter": "Suchen",
+  "Expand all": "Alle erweitern",
+  "Close all": "Alle schließen"
 }

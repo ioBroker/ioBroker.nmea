@@ -106,5 +106,8 @@
   "Add": "Toevoegen",
   "Close": "Dichtbij",
   "Indicate changes with color": "Geef veranderingen aan met kleur",
-  "instrument": "Instrument"
+  "instrument": "Instrument",
+  "Filter": "Zoekopdracht",
+  "Expand all": "Alles uitvouwen",
+  "Close all": "Sluit alles"
 }

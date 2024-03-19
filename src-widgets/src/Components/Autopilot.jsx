@@ -13,17 +13,7 @@ import {
 } from './Elements';
 import Generic from '../Generic';
 
-const styles = theme => ({
-    compass: {
-        fill: theme.palette.background.default,
-        stroke: theme.palette.text.primary,
-        strokeWidth: 2,
-    },
-    compassSecond: {
-        fill: theme.palette.background.default,
-        stroke: theme.palette.text.primary,
-        strokeWidth: 10,
-    },
+const styles = {
     content: {
         display: 'grid',
         width: '100%',
@@ -76,7 +66,7 @@ const styles = theme => ({
         width: 90,
         zIndex: 1,
     },
-});
+};
 
 const Autopilot = props => {
     const angle = useAngle(-props.cog - 90);
@@ -84,14 +74,18 @@ const Autopilot = props => {
 
     const compassStatic = useMemo(() => <>
         <ellipse
-            className={props.classes.compass}
+            strokeWidth={2}
+            fill={props.themeType === 'dark' ? '#000' : '#FFF'}
+            stroke={props.themeType === 'dark' ? '#FFF' : '#000'}
             cx={RADIUS}
             cy={RADIUS}
             rx={RADIUS}
             ry={RADIUS}
         />
         <ellipse
-            className={props.classes.compassSecond}
+            strokeWidth={10}
+            fill={props.themeType === 'dark' ? '#000' : '#FFF'}
+            stroke={props.themeType === 'dark' ? '#FFF' : '#000'}
             cx={RADIUS}
             cy={RADIUS}
             rx={RADIUS - 20}
@@ -115,24 +109,36 @@ const Autopilot = props => {
             flat
             color="green"
         />
-    </>, []); // eslint-disable-line react-hooks/exhaustive-deps
+    </>, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const compass = useMemo(() => <Lines textCallback={_angle => {
-        if (_angle === 0) {
-            return 'N';
+    const compass = useMemo(() => <Lines
+        color={props.themeType === 'dark' ? '#FFF' : '#000'}
+        textCallback={_angle => {
+            if (_angle === 0) {
+                return 'N';
+            }
+            if (_angle === 90) {
+                return 'O';
+            }
+            if (_angle === 180) {
+                return 'S';
+            }
+            if (_angle === 270) {
+                return 'W';
+            }
+            return _angle % 30 ? '' : _angle;
+        }}
+    />, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    let autopilotStates;
+    if (props.modeId && props.autopilotStates) {
+        autopilotStates = props.autopilotStates;
+        if (Array.isArray(autopilotStates)) {
+            const _autopilotStates = {};
+            autopilotStates.forEach(state => _autopilotStates[state] = state);
+            autopilotStates = _autopilotStates;
         }
-        if (_angle === 90) {
-            return 'O';
-        }
-        if (_angle === 180) {
-            return 'S';
-        }
-        if (_angle === 270) {
-            return 'W';
-        }
-        return _angle % 30 ? '' : _angle;
-    }}
-    />, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }
 
     return <div className={props.classes.content}>
         <div className={props.classes.header}>
@@ -146,17 +152,17 @@ const Autopilot = props => {
             </div>
         </div>
         <div className={props.classes.contentInner}>
-            <div className={props.classes.mode}>
+            {props.modeId && autopilotStates ? <div className={props.classes.mode}>
                 <Select
                     style={{ width: '100%' }}
                     value={props.mode || 0}
                     variant="standard"
                     onChange={e => props.socket.setState(props.modeId, e.target.value)}
                 >
-                    {Object.keys(props.autopilotStates).map(state =>
-                        <MenuItem key={state} value={state}>{props.autopilotStates[state]}</MenuItem>)}
+                    {Object.keys(autopilotStates).map(key =>
+                        <MenuItem key={key} value={key}>{autopilotStates[key]}</MenuItem>)}
                 </Select>
-            </div>
+            </div> : null}
             <SvgContainer
                 angle={0}
                 height={(RADIUS + 10) / 2}
@@ -217,32 +223,33 @@ const Autopilot = props => {
                     { id: props.minus1Id, name: '-1' },
                     { id: props.plus1Id, name: '+1' },
                     { id: props.plus10Id, name: '+10' },
-                ].map(button => <div key={button.name}>
+                ].map(button => (button.id ? <div key={button.name}>
                     <Button
                         variant="contained"
                         color="grey"
-                        onClick={() => props.socket.setState(button.id, true)}
+                        onClick={() => props.context.setValue(button.id, true)}
                     >
                         {button.name}
                     </Button>
-                </div>)}
+                </div> : null))}
             </div>
         </div>
     </div>;
 };
 
 Autopilot.propTypes = {
-    autopilotStates: PropTypes.object.isRequired,
-    cog: PropTypes.number.isRequired,
-    heading: PropTypes.number.isRequired,
-    minus10Id: PropTypes.string.isRequired,
-    minus1Id: PropTypes.string.isRequired,
-    mode: PropTypes.string.isRequired,
-    modeId: PropTypes.string.isRequired,
-    plus10Id: PropTypes.string.isRequired,
-    plus1Id: PropTypes.string.isRequired,
-    socket: PropTypes.object.isRequired,
-    rudder: PropTypes.number.isRequired,
+    autopilotStates: PropTypes.object,
+    cog: PropTypes.number,
+    heading: PropTypes.number,
+    mode: PropTypes.number,
+    rudder: PropTypes.number,
+    minus10Id: PropTypes.string,
+    minus1Id: PropTypes.string,
+    modeId: PropTypes.string,
+    plus10Id: PropTypes.string,
+    plus1Id: PropTypes.string,
+    context: PropTypes.object.isRequired,
+    themeType: PropTypes.string,
 };
 
 export default withStyles(styles)(Autopilot);

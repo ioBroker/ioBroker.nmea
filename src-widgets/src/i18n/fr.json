@@ -106,5 +106,8 @@
   "Add": "Ajouter",
   "Close": "Fermer",
   "Indicate changes with color": "Indiquer les changements avec la couleur",
-  "instrument": "Instrument"
+  "instrument": "Instrument",
+  "Filter": "Recherche",
+  "Expand all": "Développer tout",
+  "Close all": "Ferme tout"
 }

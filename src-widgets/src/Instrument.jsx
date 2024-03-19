@@ -106,6 +106,7 @@ const ItemsEditor = props => {
         {open ? <ItemsEditorDialog
             context={props.context}
             data={props.data}
+            wid={props.id}
             onClose={items => {
                 if (items) {
                     const data = JSON.parse(JSON.stringify(props.data));
@@ -324,7 +325,7 @@ class Instrument extends Generic {
         super.renderWidgetBody(props);
         let items = typeof this.state.data.items === 'string' ? JSON.parse(this.state.data.items || '[]') : (this.state.data.items || []);
 
-        if (!items) {
+        if (!items?.length) {
             return this.wrapContent(Generic.t('No items defined!'));
         }
         items = items.filter(item => item.enabled !== false);

@@ -9,12 +9,7 @@ import {
 } from './Elements';
 import Generic from '../Generic';
 
-const styles = theme => ({
-    compass: {
-        fill: theme.palette.background.default,
-        stroke: theme.palette.text.primary,
-        strokeWidth: 2,
-    },
+const styles = {
     content: {
         display: 'grid',
         width: '100%',
@@ -39,7 +34,7 @@ const styles = theme => ({
     centerTextBig: {
         fontSize: 20,
     },
-});
+};
 
 function getCompassDirection(angle) {
     if (angle === null || angle === undefined) {
@@ -80,29 +75,33 @@ const Navigation = props => {
 
     const compass = useMemo(() => <>
         <ellipse
-            className={props.classes.compass}
+            fill={props.themeType === 'dark' ? '#000' : '#FFF'}
+            stroke={props.themeType === 'dark' ? '#FFF' : '#000'}
+            strokeWidth={2}
             cx={RADIUS}
             cy={RADIUS}
             rx={RADIUS}
             ry={RADIUS}
         />
-        <Lines textCallback={_angle => {
-            if (_angle === 0) {
-                return 'N';
-            }
-            if (_angle === 90) {
-                return 'O';
-            }
-            if (_angle === 180) {
-                return 'S';
-            }
-            if (_angle === 270) {
-                return 'W';
-            }
-            return _angle % 30 ? '' : _angle;
-        }}
+        <Lines
+            color={props.themeType === 'dark' ? '#FFF' : '#000'}
+            textCallback={_angle => {
+                if (_angle === 0) {
+                    return 'N';
+                }
+                if (_angle === 90) {
+                    return 'O';
+                }
+                if (_angle === 180) {
+                    return 'S';
+                }
+                if (_angle === 270) {
+                    return 'W';
+                }
+                return _angle % 30 ? '' : _angle;
+            }}
         />
-    </>, []); // eslint-disable-line react-hooks/exhaustive-deps
+    </>, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const compassDirection = getCompassDirection(props.cog).short;
 
@@ -139,9 +138,10 @@ const Navigation = props => {
 };
 
 Navigation.propTypes = {
-    cog: PropTypes.number.isRequired,
-    rudder: PropTypes.number.isRequired,
-    twd: PropTypes.number.isRequired,
+    cog: PropTypes.number,
+    rudder: PropTypes.number,
+    twd: PropTypes.number,
+    themeType: PropTypes.string,
 };
 
 export default withStyles(styles)(Navigation);

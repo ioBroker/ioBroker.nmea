@@ -7,12 +7,7 @@ import {
 } from './Elements';
 import Generic from '../Generic';
 
-const styles = theme => ({
-    compass: {
-        fill: theme.palette.background.default,
-        stroke: theme.palette.text.primary,
-        strokeWidth: 2,
-    },
+const styles = {
     content: {
         display: 'grid',
         width: '100%',
@@ -42,7 +37,7 @@ const styles = theme => ({
     centerText2: {
         fontSize: RADIUS / 5,
     },
-});
+};
 
 const Wind = props => {
     // const [angle, setAngle] = useState(-90);
@@ -54,9 +49,11 @@ const Wind = props => {
     //     setAngle(_angle => closestEquivalentAngle(_angle, props.angle) - 90);
     // }, [props.angle]);
 
-    const compas = useMemo(() => <>
+    const compass = useMemo(() => <>
         <ellipse
-            className={props.classes.compass}
+            fill={props.themeType === 'dark' ? '#000' : '#FFF'}
+            stroke={props.themeType === 'dark' ? '#FFF' : '#000'}
+            strokeWidth={2}
             cx={RADIUS}
             cy={RADIUS}
             rx={RADIUS}
@@ -72,7 +69,7 @@ const Wind = props => {
             angleEnd={_angle + 30}
             color={_angle === 30 || _angle === 120 ? '#00FF00AA' : '#FF0000AA'}
         />)}
-    </>, []); // eslint-disable-line react-hooks/exhaustive-deps
+    </>, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return <div className={props.classes.content}>
         <div className={props.classes.header}>
@@ -88,7 +85,7 @@ const Wind = props => {
                 zIndex={4}
             />
             <SvgContainer angle={-90}>
-                {compas}
+                {compass}
             </SvgContainer>
             <SvgContainer scale={2}>
                 <Ship className={props.classes.ship} />
@@ -109,12 +106,13 @@ const Wind = props => {
 };
 
 Wind.propTypes = {
-    twd: PropTypes.number.isRequired,
-    awd: PropTypes.number.isRequired,
+    twd: PropTypes.number,
+    awd: PropTypes.number,
     // eslint-disable-next-line react/no-unused-prop-types
-    tws: PropTypes.number.isRequired,
+    tws: PropTypes.number,
     // eslint-disable-next-line react/no-unused-prop-types
-    aws: PropTypes.number.isRequired,
+    aws: PropTypes.number,
+    themeType: PropTypes.string,
 };
 
 export default withStyles(styles)(Wind);
