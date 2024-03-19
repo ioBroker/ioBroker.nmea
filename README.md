@@ -61,7 +61,7 @@ Actisense NGT-1 is visible on Windows or Linux without any additional drivers. I
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.1.5 (2024-03-19)
 * (bluefox) Corrected vis-2 widgets
 
 ### 0.1.1 (2024-03-19)
