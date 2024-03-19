@@ -2,6 +2,10 @@
 # ioBroker.nmea
 This adapter allows connecting ioBroker to NMEA-2000 yacht bus.
 
+**This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers.**
+For more details and for information how to disable the error reporting see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)!
+Sentry reporting is used starting with js-controller 3.0.
+
 To use this adapter, you need a hardware that can read NMEA-2000 bus and convert it to the serial port:
 - Actisense NGT-1 (USB)
 - or Raspberry PI with PiCAN-M

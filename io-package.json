@@ -121,7 +121,7 @@
     "type": "protocols",
     "plugins": {
       "sentry": {
-        "dsn": "https://40b55da1fb50459eab397fe8291e75fe@sentry.iobroker.net/91"
+        "dsn": "https://24ff815f40154cb587c896460581c81b@sentry.iobroker.net/246"
       }
     },
     "restartAdapters": [
