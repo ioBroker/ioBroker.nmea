@@ -144,20 +144,20 @@ const Autopilot = props => {
         <div className={props.classes.header}>
             {Generic.t('Autopilot')}
         </div>
-        <div>
+        {props.rudder === false ? null : <div>
             <div className={props.classes.rudderContainer}>
                 <SvgContainer height={30} style={{ padding: 4 }}>
                     <Rudder rudder={props.rudder} y={0} />
                 </SvgContainer>
             </div>
-        </div>
+        </div>}
         <div className={props.classes.contentInner}>
             {props.modeId && autopilotStates ? <div className={props.classes.mode}>
                 <Select
                     style={{ width: '100%' }}
                     value={props.mode || 0}
                     variant="standard"
-                    onChange={e => props.socket.setState(props.modeId, e.target.value)}
+                    onChange={e => props.context.setValue(props.modeId,  e.target.value)}
                 >
                     {Object.keys(autopilotStates).map(key =>
                         <MenuItem key={key} value={key}>{autopilotStates[key]}</MenuItem>)}
@@ -216,7 +216,7 @@ const Autopilot = props => {
                 </foreignObject>
             </SvgContainer>
         </div>
-        <div className={props.classes.bottomPanel}>
+        {props.minus10Id || props.minus1Id || props.plus1Id || props.plus10Id ? <div className={props.classes.bottomPanel}>
             <div className={props.classes.bottomPanelButtons}>
                 {[
                     { id: props.minus10Id, name: '-10' },
@@ -233,7 +233,7 @@ const Autopilot = props => {
                     </Button>
                 </div> : null))}
             </div>
-        </div>
+        </div> : null}
     </div>;
 };
 

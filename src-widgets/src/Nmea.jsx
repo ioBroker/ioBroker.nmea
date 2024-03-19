@@ -553,7 +553,7 @@ class Nmea extends Generic {
     renderNavigation() {
         const twd = this.getPropertyValue('oid_twd');
         const cog = this.getPropertyValue('oid_cog');
-        const rudder = this.getPropertyValue('oid_rudder');
+        const rudder = this.state.rxData.oid_rudder ? this.getPropertyValue('oid_rudder') : false;
 
         return <Navigation
             angle={this.state.angle}
@@ -578,7 +578,7 @@ class Nmea extends Generic {
         const heading = this.getPropertyValue('oid_heading');
         const cog = this.getPropertyValue('oid_cog');
         const autopilotMode = this.getPropertyValue('oid_autopilot_mode');
-        const rudder = this.getPropertyValue('oid_rudder');
+        const rudder = this.state.rxData.oid_rudder ? this.getPropertyValue('oid_rudder') : false;
 
         return <Autopilot
             cog={cog === undefined ? null : cog}

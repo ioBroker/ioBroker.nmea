@@ -131,7 +131,7 @@ const Navigation = props => {
                         </div>
                     </CenterText>
                 </foreignObject>
-                <Rudder rudder={props.rudder} />
+                {props.rudder === false ? null : <Rudder rudder={props.rudder} />}
             </SvgContainer>
         </div>
     </div>;
