@@ -301,11 +301,11 @@ class ItemsEditorDialog extends Component {
                 </TableCell>
                 <TableCell>
                     <Checkbox
-                        value={!!item.changes}
+                        value={!item.change}
                         disabled={!!item.color}
                         onChange={e => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
-                            items[index].changes = e.target.value;
+                            items[index].changes = e.target.checked;
                             this.updateItems(items);
                         }}
                     />
@@ -315,7 +315,7 @@ class ItemsEditorDialog extends Component {
                         value={!!item.showPlus}
                         onChange={e => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
-                            items[index].showPlus = e.target.value;
+                            items[index].showPlus = e.target.checked;
                             this.updateItems(items);
                         }}
                     /> : null}
@@ -325,8 +325,7 @@ class ItemsEditorDialog extends Component {
                         variant="standard"
                         fullWidth
                         type="number"
-                        min={0}
-                        max={10}
+                        InputProps={{ inputProps: { min: 0, max: 10 } }}
                         value={item.beforeComma}
                         onChange={e => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
@@ -341,8 +340,7 @@ class ItemsEditorDialog extends Component {
                         variant="standard"
                         fullWidth
                         type="number"
-                        min={0}
-                        max={3}
+                        InputProps={{ inputProps: { min: 0, max: 3 } }}
                         value={item.afterComma}
                         onChange={e => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
