@@ -180,6 +180,7 @@ class ItemsEditorDialog extends Component {
             socket={this.props.context.socket}
             selected={this.state.items[this.state.selectId].oid}
             onOk={async id => {
+                const selectId = this.state.selectId;
                 this.setState({ selectId: null });
                 if (id) {
                     const items = JSON.parse(JSON.stringify(this.state.items));
@@ -188,18 +189,18 @@ class ItemsEditorDialog extends Component {
                     try {
                         const obj = await this.props.context.socket.getObject(id);
                         if (obj?.common?.unit) {
-                            items[this.state.selectId].unit = obj.common.unit;
+                            items[selectId].unit = obj.common.unit;
                         }
                         if (obj?.common?.color) {
-                            items[this.state.selectId].color = obj.common.color;
+                            items[selectId].color = obj.common.color;
                         }
-                        if (obj?.common?.name && !items[this.state.selectId].name) {
-                            items[this.state.selectId].name = ItemsEditorDialog.getText(obj.common.name);
+                        if (obj?.common?.name && !items[selectId].name) {
+                            items[selectId].name = ItemsEditorDialog.getText(obj.common.name);
                         }
                     } catch (e) {
                         console.error(e);
                     }
-                    items[this.state.selectId].oid = id;
+                    items[selectId].oid = id;
                     this.setState({ selectId: null, items });
                 } else {
                     this.setState({ selectId: null });
