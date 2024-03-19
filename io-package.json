@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "nmea",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "news": {
+      "0.1.3": {
+        "en": "Corrected vis-2 widgets",
+        "de": "Korrigierte vis-2 Widgets",
+        "ru": "Исправленные виджеты vis-2",
+        "pt": "Vis-2 widgets corrigidos",
+        "nl": "Gecorrigeerde vis-2 widgets",
+        "fr": "Widgets corrigés vis-à-vis de 2",
+        "it": "Corretti widget vis-2",
+        "es": "Widgets corregidos vis-2",
+        "pl": "Poprawione widżety vis-2",
+        "uk": "Виправлено vis-2 віджети",
+        "zh-cn": "已校正的2个部件"
+      },
       "0.1.1": {
         "en": "Corrected vis-2 widgets",
         "de": "Korrigierte vis-2 Widgets",
