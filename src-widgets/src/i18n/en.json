@@ -69,10 +69,8 @@
   "order 3": "Position 3",
   "order 4": "Position 4",
   "hide": "Hide",
-  "Indicators count": "Indicators count",
   "rudder": "rudder",
   "autopilot": "autopilot",
-  "group_indicator": "Indicator",
   "Autopilot": "Autopilot",
   "id": "ID",
   "Name": "Name",
@@ -109,5 +107,6 @@
   "instrument": "Instrument",
   "Filter": "Search",
   "Expand all": "Expand all",
-  "Close all": "Close all"
+  "Close all": "Close all",
+  "Indicators": "Indicators"
 }

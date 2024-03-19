@@ -78,7 +78,6 @@
   "Color": "Колір",
   "Digits after comma": "Цифри після коми",
   "Digits before comma": "Цифри перед комою",
-  "Indicators count": "Розрахунок показників",
   "Left / Top": "Зліва / Зверху",
   "Name": "Ім'я",
   "PORT": "PORT",
@@ -87,7 +86,6 @@
   "STBD": "STBD",
   "Unit": "одиниця",
   "autopilot": "автопілот",
-  "group_indicator": "Індикатор",
   "id": "ID",
   "rudder": "кермо",
   "Use instance": "Використовуйте екземпляр",
@@ -109,5 +107,6 @@
   "instrument": "Інструмент",
   "Filter": "Пошук",
   "Expand all": "Розгорнути все",
-  "Close all": "Закрити все"
+  "Close all": "Закрити все",
+  "Indicators": "Індикатори"
 }

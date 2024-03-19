@@ -78,16 +78,14 @@
   "Color": "Kleur",
   "Digits after comma": "Cijfers na komma",
   "Digits before comma": "Cijfers vóór komma",
-  "Indicators count": "Indicatoren tellen",
   "Left / Top": "Bovenaan links",
   "Name": "Naam",
   "PORT": "PORT",
   "Position": "Positie",
-  "Right / Bottom": "Rechts beneden",
+  "Right / Bottom": "Rechts / beneden",
   "STBD": "STBD",
   "Unit": "Eenheid",
   "autopilot": "automatische piloot",
-  "group_indicator": "Indicator",
   "id": "ID kaart",
   "rudder": "roer",
   "Use instance": "Gebruik exemplaar",
@@ -109,5 +107,6 @@
   "instrument": "Instrument",
   "Filter": "Zoekopdracht",
   "Expand all": "Alles uitvouwen",
-  "Close all": "Sluit alles"
+  "Close all": "Sluit alles",
+  "Indicators": "Indicatoren"
 }

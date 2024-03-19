@@ -78,16 +78,14 @@
   "Color": "Kolor",
   "Digits after comma": "Cyfry po przecinku",
   "Digits before comma": "Cyfry przed przecinkiem",
-  "Indicators count": "Liczą się wskaźniki",
   "Left / Top": "Lewy górny",
   "Name": "Nazwa",
   "PORT": "PORT",
   "Position": "Pozycja",
-  "Right / Bottom": "Prawy dół",
+  "Right / Bottom": "Prawy / dół",
   "STBD": "STBD",
   "Unit": "Jednostka",
   "autopilot": "autopilota",
-  "group_indicator": "Wskaźnik",
   "id": "ID",
   "rudder": "ster",
   "Use instance": "Użyj instancji",
@@ -109,5 +107,6 @@
   "instrument": "Instrument",
   "Filter": "Szukaj",
   "Expand all": "Rozwiń wszystkie",
-  "Close all": "Zamknij wszystko"
+  "Close all": "Zamknij wszystko",
+  "Indicators": "Wskaźniki"
 }

@@ -9,7 +9,7 @@ import {
     Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Fab,
     IconButton,
     Menu,
-    MenuItem,
+    MenuItem, Select,
     Switch,
     Table, TableBody,
     TableCell, TableHead,
@@ -24,7 +24,7 @@ import {
     Delete, TrackChanges,
 } from '@mui/icons-material';
 
-import { ColorPicker, SelectID } from '@iobroker/adapter-react-v5';
+import { ColorPicker, SelectID, I18n } from '@iobroker/adapter-react-v5';
 
 import Generic from '../Generic';
 import ItemSelectorDialog from './ItemSelectorDialog';
@@ -164,6 +164,13 @@ class ItemsEditorDialog extends Component {
         }
     }
 
+    static getText(text) {
+        if (typeof text === 'object') {
+            return text[I18n.getLanguage()] || text.en || '';
+        }
+        return text;
+    }
+
     renderSelectIdDialog() {
         if (this.state.selectId === null) {
             return null;
@@ -172,10 +179,26 @@ class ItemsEditorDialog extends Component {
             imagePrefix="../.."
             socket={this.props.context.socket}
             selected={this.state.items[this.state.selectId].oid}
-            onOk={id => {
+            onOk={async id => {
                 this.setState({ selectId: null });
                 if (id) {
                     const items = JSON.parse(JSON.stringify(this.state.items));
+
+                    // read object
+                    try {
+                        const obj = await this.props.context.socket.getObject(id);
+                        if (obj?.common?.unit) {
+                            items[this.state.selectId].unit = obj.common.unit;
+                        }
+                        if (obj?.common?.color) {
+                            items[this.state.selectId].color = obj.common.color;
+                        }
+                        if (obj?.common?.name && !items[this.state.selectId].name) {
+                            items[this.state.selectId].name = ItemsEditorDialog.getText(obj.common.name);
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
                     items[this.state.selectId].oid = id;
                     this.setState({ selectId: null, items });
                 } else {
@@ -299,9 +322,24 @@ class ItemsEditorDialog extends Component {
                         InputLabelProps={{ shrink: true }}
                     /> : null}
                 </TableCell>
+                {this.props.withPosition ? <TableCell>
+                    <Select
+                        variant="standard"
+                        fullWidth
+                        value={item.position || 'left'}
+                        onChange={e => {
+                            const items = JSON.parse(JSON.stringify(this.state.items));
+                            items[index].position = e.target.value;
+                            this.updateItems(items);
+                        }}
+                    >
+                        <MenuItem value="left">{Generic.t('Left / Top')}</MenuItem>
+                        <MenuItem value="right">{Generic.t('Right / Bottom')}</MenuItem>
+                    </Select>
+                </TableCell> : null}
                 <TableCell>
                     <Checkbox
-                        value={!item.change}
+                        checked={!!item.changes}
                         disabled={!!item.color}
                         onChange={e => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
@@ -312,7 +350,7 @@ class ItemsEditorDialog extends Component {
                 </TableCell>
                 <TableCell>
                     {!this.state.objects[item.oid] || this.state.objects[item.oid].common.type === 'number' ? <Checkbox
-                        value={!!item.showPlus}
+                        checked={!!item.showPlus}
                         onChange={e => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
                             items[index].showPlus = e.target.checked;
@@ -354,7 +392,7 @@ class ItemsEditorDialog extends Component {
                     <ColorPicker
                         fullWidth
                         value={item.color}
-                        disabled={!item.changes}
+                        disabled={!!item.changes}
                         onChange={color => {
                             const items = JSON.parse(JSON.stringify(this.state.items));
                             items[index].color = color;
@@ -395,6 +433,7 @@ class ItemsEditorDialog extends Component {
                     <TableCell style={{ width: 100 }}>{Generic.t('Name')}</TableCell>
                     <TableCell style={{ width: 200 }}>{Generic.t('OID')}</TableCell>
                     <TableCell style={{ width: 50 }}>{Generic.t('Unit')}</TableCell>
+                    {this.props.withPosition ? <TableCell style={{ width: 50 }}>{Generic.t('Position')}</TableCell> : null}
                     <TableCell style={{ width: 25, paddingLeft: 25 }} title={Generic.t('Indicate changes with color')}><TrackChanges /></TableCell>
                     <TableCell style={{ width: 25, paddingLeft: 25 }} title={Generic.t('Show plus by positive numbers')}>+</TableCell>
                     <TableCell style={{ width: 50 }}>{Generic.t('Before comma')}</TableCell>
@@ -467,6 +506,8 @@ ItemsEditorDialog.propTypes = {
     data: PropTypes.object,
     onClose: PropTypes.func,
     wid: PropTypes.string,
+    withPosition: PropTypes.bool,
+    language: PropTypes.string,
 };
 
 export default withStyles(styles)(ItemsEditorDialog);

@@ -78,16 +78,14 @@
   "Color": "Цвет",
   "Digits after comma": "Цифры после запятой",
   "Digits before comma": "Цифры перед запятой",
-  "Indicators count": "Количество показателей",
-  "Left / Top": "Слева/сверху",
+  "Left / Top": "Слева / сверху",
   "Name": "Имя",
   "PORT": "PORT",
   "Position": "Позиция",
-  "Right / Bottom": "Справа/снизу",
+  "Right / Bottom": "Справа / снизу",
   "STBD": "STBD",
   "Unit": "Единица",
   "autopilot": "автопилот",
-  "group_indicator": "Индикатор",
   "id": "ИДЕНТИФИКАТОР",
   "rudder": "руль направления",
   "Use instance": "Использовать экземпляр",
@@ -109,5 +107,6 @@
   "instrument": "Инструмент",
   "Filter": "Поиск",
   "Expand all": "Расширить все",
-  "Close all": "Закрыть все"
+  "Close all": "Закрыть все",
+  "Indicators": "Индикаторы"
 }

@@ -78,7 +78,6 @@
   "Color": "颜色",
   "Digits after comma": "逗号后的数字",
   "Digits before comma": "逗号前的数字",
-  "Indicators count": "指标计数",
   "Left / Top": "左/上",
   "Name": "姓名",
   "PORT": "PORT",
@@ -87,7 +86,6 @@
   "STBD": "STBD",
   "Unit": "单元",
   "autopilot": "自动驾驶仪",
-  "group_indicator": "指标",
   "id": "ID",
   "rudder": "舵",
   "Use instance": "使用实例",
@@ -109,5 +107,6 @@
   "instrument": "乐器",
   "Filter": "搜索",
   "Expand all": "展开全部",
-  "Close all": "关闭所有"
+  "Close all": "关闭所有",
+  "Indicators": "指标"
 }

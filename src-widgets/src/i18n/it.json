@@ -78,7 +78,6 @@
   "Color": "Colore",
   "Digits after comma": "Cifre dopo la virgola",
   "Digits before comma": "Cifre prima della virgola",
-  "Indicators count": "Gli indicatori contano",
   "Left / Top": "A sinistra/in alto",
   "Name": "Nome",
   "PORT": "PORT",
@@ -87,7 +86,6 @@
   "STBD": "STBD",
   "Unit": "Unità",
   "autopilot": "autopilota",
-  "group_indicator": "Indicatore",
   "id": "ID",
   "rudder": "timone",
   "Use instance": "Usa l'istanza",
@@ -109,5 +107,6 @@
   "instrument": "Strumento",
   "Filter": "Ricerca",
   "Expand all": "Espandi tutto",
-  "Close all": "Chiudi tutto"
+  "Close all": "Chiudi tutto",
+  "Indicators": "Indicatori"
 }

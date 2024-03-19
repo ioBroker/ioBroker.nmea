@@ -10,15 +10,17 @@ import {
     MenuItem,
 } from '@mui/material';
 
-import { KeyboardArrowUp, KeyboardArrowDown } from '@mui/icons-material';
+import { KeyboardArrowUp, KeyboardArrowDown, Edit } from '@mui/icons-material';
+import { Utils } from '@iobroker/adapter-react-v5';
 
 import Generic from './Generic';
 import Wind from './Components/Wind';
 import Navigation from './Components/Navigation';
 import Rudder from './Components/Rudder';
 import Autopilot from './Components/Autopilot';
+import ItemsEditorDialog from './Components/ItemsEditorDialog';
 
-const styles = () => ({
+const styles = theme => ({
     indicatorNumber: {
         fontSize: 40,
         display: 'inline-block',
@@ -72,6 +74,20 @@ const styles = () => ({
         minHeight: '100%',
         maxHeight: '100%',
     },
+    newValue: {
+        animation: '$newValueAnimation 2s ease-in-out',
+    },
+    '@keyframes newValueAnimation': {
+        '0%': {
+            color: '#00f900',
+        },
+        '80%': {
+            color: '#008000',
+        },
+        '100%': {
+            color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+        },
+    },
 });
 
 const POSSIBLE_NAMES = {
@@ -92,41 +108,33 @@ const POSSIBLE_NAMES = {
     oid_autopilot_minus_10: ['autoPilot.headingMinus10'],
 };
 
-const loadIndicator = async (field, data, changeData, socket) => {
-    if (data[field.name]) {
-        // read object
-        const obj = await socket.getObject(data[field.name]);
-        if (obj) {
-            const parts = data[field.name].split('.');
-            const last = parts.pop();
-            const butLast = parts.pop();
-            let changed = false;
-            if (Generic.DATA[last] || Generic.DATA[`${butLast}.${last}`]) {
-                const attr = Generic.DATA[`${butLast}.${last}`] ? `${butLast}.${last}` : last;
-                for (const key in Generic.DATA[attr]) {
-                    if (data[key + field.index] === undefined || data[key + field.index] === null || data[key + field.index] === '') {
-                        data[key + field.index] = Generic.DATA[attr][key];
-                        changed = true;
-                    }
-                }
-            }
-            // take unit and name from an object
-            if (obj.common?.unit && !data[`indicatorUnit${field.index}`]) {
-                data[`indicatorUnit${field.index}`] = obj.common.unit;
-                changed = true;
-            }
-            if (obj.common?.name && !data[`indicatorName${field.index}`]) {
-                data[`indicatorName${field.index}`] = Generic.getText(obj.common.name);
-                changed = true;
-            }
-            if (obj.common?.color && !data[`indicatorColor${field.index}`]) {
-                data[`indicatorColor${field.index}`] = obj.common.color;
-                changed = true;
-            }
+const ItemsEditor = props => {
+    const [open, setOpen] = useState(false);
 
-            changed && changeData(data);
-        }
-    }
+    return <>
+        <Button
+            style={{ whiteSpace: 'nowrap' }}
+            onClick={() => setOpen(true)}
+            variant="outlined"
+            startIcon={<Edit />}
+        >
+            {Generic.t('Edit items')}
+        </Button>
+        {open ? <ItemsEditorDialog
+            withPosition
+            context={props.context}
+            data={props.data}
+            wid={props.id}
+            onClose={items => {
+                if (items) {
+                    const data = JSON.parse(JSON.stringify(props.data));
+                    data.items = JSON.stringify(items);
+                    props.setData(data);
+                }
+                setOpen(false);
+            }}
+        /> : null}
+    </>;
 };
 
 const InstanceField = props => {
@@ -204,6 +212,8 @@ class Nmea extends Generic {
         this.state.width = 2;
         this.state.height = 2;
         this.state.autopilotStates = { 0: 'Standby' };
+        this.state.myValues = {};
+        this.subscribed = [];
     }
 
     static getWidgetInfo() {
@@ -231,10 +241,17 @@ class Nmea extends Generic {
                             hidden: '!!data.noCard',
                         },
                         {
-                            name: 'indicatorsCount',
-                            label: 'Indicators count',
-                            type: 'number',
-                            default: 2,
+                            name: 'items',
+                            label: 'Indicators',
+                            type: 'custom',
+                            noBinding: true,
+                            component: (field, data, setData, props) => <ItemsEditor
+                                field={field}
+                                data={data}
+                                setData={setData}
+                                context={props.context}
+                            />,
+                            default: '[]',
                         },
                     ],
                 },
@@ -398,64 +415,6 @@ class Nmea extends Generic {
                         },
                     ],
                 },
-                {
-                    name: 'indicator',
-                    label: 'group_indicator',
-                    indexFrom: 1,
-                    indexTo: 'indicatorsCount',
-                    fields: [
-                        {
-                            name: 'indicatorPosition',
-                            type: 'select',
-                            label: 'Position',
-                            options: [
-                                {
-                                    value: 'left',
-                                    label: 'Left / Top',
-                                },
-                                {
-                                    value: 'right',
-                                    label: 'Right / Bottom',
-                                },
-                            ],
-                            default: 'left',
-                        },
-                        {
-                            name: 'indicatorId',
-                            label: 'id',
-                            type: 'id',
-                            onChange: loadIndicator,
-                        },
-                        {
-                            name: 'indicatorName',
-                            label: 'Name',
-                        },
-                        {
-                            name: 'indicatorUnit',
-                            label: 'Unit',
-                        },
-                        {
-                            name: 'indicatorColor',
-                            label: 'Color',
-                            type: 'color',
-                        },
-                        {
-                            name: 'indicatorDigitsBeforeComma',
-                            label: 'Digits before comma',
-                            type: 'number',
-                        },
-                        {
-                            name: 'indicatorDigitsAfterComma',
-                            label: 'Digits after comma',
-                            type: 'number',
-                        },
-                        {
-                            name: 'indicatorShowPlus',
-                            label: 'Show plus',
-                            type: 'checkbox',
-                        },
-                    ],
-                },
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -481,12 +440,52 @@ class Nmea extends Generic {
                 this.setState({ autopilotStates: {} });
             }
         }
+        const items = typeof this.state.data.items === 'string' ? JSON.parse(this.state.data.items || '[]') : (this.state.data.items || []);
+
+        if (items) {
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].oid && !this.subscribed.includes(items[i].oid) && items[i].enabled !== false) {
+                    this.subscribed.push(items[i].oid);
+                    await this.props.context.socket.subscribeStateAsync(items[i].oid, this.onMyStateChanged);
+                }
+            }
+            for (let i = this.subscribed.length - 1; i >= 0; i--) {
+                if (!items.find(item => item.oid === this.subscribed[i] && item.enabled !== false)) {
+                    this.props.context.socket.unsubscribeState(this.subscribed[i], this.onMyStateChanged);
+                    this.subscribed.splice(i, 1);
+                }
+            }
+            this.subscribed.sort();
+            this.subscribing = JSON.stringify(this.subscribed);
+        }
     }
 
     async componentDidMount() {
         super.componentDidMount();
         await this.propertiesUpdate();
     }
+
+    async componentWillUnmount() {
+        super.componentWillUnmount();
+        this.myValuesTimer && clearTimeout(this.myValuesTimer);
+        this.myValuesTimer = null;
+        for (let i = 0; i < this.subscribed.length; i++) {
+            this.props.context.socket.unsubscribeState(this.subscribed[i], this.onMyStateChanged);
+        }
+    }
+
+    onMyStateChanged = (id, state) => {
+        if (state && state.val !== null && state.val !== undefined && this.state.myValues[id] !== state.val) {
+            this.myValues = this.myValues || JSON.parse(JSON.stringify(this.state.myValues || {}));
+            this.myValues[id] = state.val;
+            this.myValuesTimer = this.myValuesTimer || setTimeout(() => {
+                this.myValuesTimer = null;
+                const myValues = this.myValues;
+                this.myValues = null;
+                this.setState({ myValues });
+            }, 100);
+        }
+    };
 
     async onRxDataChanged() {
         await this.propertiesUpdate();
@@ -498,36 +497,38 @@ class Nmea extends Generic {
         }
     }
 
-    renderIndicator(i) {
-        const val = this.getPropertyValue(`indicatorId${i}`);
+    renderIndicator(item, i) {
+        const val = this.state.myValues[item.oid];
 
         return <Card
             key={i}
-            style={{ color: this.state.rxData[`indicatorColor${i}`] }}
+            style={{ color: item.color }}
             className={this.props.classes.indicatorCard}
         >
-            <div className={this.props.classes.indicatorName}>{this.state.rxData[`indicatorName${i}`] || ''}</div>
+            <div className={this.props.classes.indicatorName}>{item.name || ''}</div>
             <div className={this.props.classes.indicatorNumberContainer}>
-                <div className={this.props.classes.indicatorNumber}>
-                    {this.state.rxData[`indicatorShowPlus${i}`] && val > 0
-                        ? '+' : ''}
+                <div className={Utils.clsx(this.props.classes.indicatorNumber, item.changes && this.props.classes.newValue)}>
+                    {item.showPlus && val > 0 ? '+' : ''}
                     {val === null || val === undefined ? '---' : (Number.isNaN(parseFloat(val)) ? val : Generic.zeroBeforeAfterComma(
                         val || 0,
-                        this.state.rxData[`indicatorDigitsBeforeComma${i}`] || 0,
-                        this.state.rxData[`indicatorDigitsAfterComma${i}`] || 0,
+                        item.beforeComma || 0,
+                        item.afterComma || 0,
                         this.props.context.systemConfig.common.isFloatComma,
                     ))}
                 </div>
-                {this.state.rxData[`indicatorDigitsAfterComma${i}`] ? this.state.rxData[`indicatorUnit${i}`] : <span className={this.props.classes.indicatorNumber}>{this.state.rxData[`indicatorUnit${i}`]}</span>}
+                {item.afterComma ? item.unit : <span className={this.props.classes.indicatorNumber}>{item.unit}</span>}
             </div>
         </Card>;
     }
 
-    renderIndicatorsBlock(position) {
+    renderIndicatorsBlock(items, position) {
         const indicators = [];
-        for (let i = 1; i <= this.state.rxData.indicatorsCount; i++) {
-            if (this.state.rxData[`indicatorPosition${i}`] === position) {
-                indicators.push(this.renderIndicator(i));
+        if (!items?.length) {
+            return null;
+        }
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].enabled !== false && (items[i].position === position || (!items[i].position && position === 'left'))) {
+                indicators.push(this.renderIndicator(items[i], i));
             }
         }
         return indicators;
@@ -584,6 +585,7 @@ class Nmea extends Generic {
             cog={cog === undefined ? null : cog}
             heading={heading === undefined ? null : heading}
             mode={autopilotMode === undefined ? null : autopilotMode}
+            rudder={rudder === undefined ? null : rudder}
             modeId={this.state.rxData.oid_autopilot_mode}
             plus1Id={this.state.rxData.oid_autopilot_plus_1}
             plus10Id={this.state.rxData.oid_autopilot_plus_10}
@@ -591,13 +593,20 @@ class Nmea extends Generic {
             minus10Id={this.state.rxData.oid_autopilot_minus_10}
             autopilotStates={this.state.autopilotStates}
             context={this.props.context}
-            rudder={rudder === undefined ? null : rudder}
             themeType={this.props.context.themeType}
         />;
     }
 
     renderWidgetBody(props) {
         super.renderWidgetBody(props);
+
+        const items = typeof this.state.data.items === 'string' ? JSON.parse(this.state.data.items || '[]') : (this.state.data.items || []);
+
+        const oids = items.filter(item => item.oid && item.enabled !== false).map(item => item.oid).filter(oid => oid).sort();
+        if (JSON.stringify(oids) !== this.subscribing) {
+            this.subscribing = JSON.stringify(oids);
+            setTimeout(() => this.propertiesUpdate(), 100);
+        }
 
         let windows = [
             this.state.rxData.displayWind !== '0' ? {
@@ -659,7 +668,7 @@ class Nmea extends Generic {
                 style={{ flexDirection: vertical ? 'row' : 'column' }}
                 className={this.props.classes.leftPanel}
             >
-                {this.renderIndicatorsBlock('left')}
+                {this.renderIndicatorsBlock(items, 'left')}
             </div>
             <div className={this.props.classes.mainPanel}>
                 <div
@@ -681,7 +690,7 @@ class Nmea extends Generic {
                 style={{ flexDirection: vertical ? 'row' : 'column' }}
                 className={this.props.classes.rightPanel}
             >
-                {this.renderIndicatorsBlock('right')}
+                {this.renderIndicatorsBlock(items, 'right')}
             </div>
             {windows.length > 1 ? <div className={this.props.classes.bottomPanel}>
                 <IconButton

@@ -140,6 +140,21 @@ const Autopilot = props => {
         }
     }
 
+    let buttonsVisible = true;
+    if (!props.minus10Id && !props.minus1Id && !props.plus1Id && !props.plus10Id) {
+        // no control buttons
+        buttonsVisible = false;
+    } else if (props.mode !== false && (props.mode || 0) === 0) {
+        // autopilot is OFF
+        buttonsVisible = false;
+    } else if (
+        props.mode !== false &&
+        autopilotStates?.[props.mode || 0]?.toLowerCase().includes('track')
+    ) {
+        // Autopilot is track
+        buttonsVisible = false;
+    }
+
     return <div className={props.classes.content}>
         <div className={props.classes.header}>
             {Generic.t('Autopilot')}
@@ -152,7 +167,7 @@ const Autopilot = props => {
             </div>
         </div>}
         <div className={props.classes.contentInner}>
-            {props.modeId && autopilotStates ? <div className={props.classes.mode}>
+            {props.mode !== false && props.modeId && autopilotStates ? <div className={props.classes.mode}>
                 <Select
                     style={{ width: '100%' }}
                     value={props.mode || 0}
@@ -216,7 +231,7 @@ const Autopilot = props => {
                 </foreignObject>
             </SvgContainer>
         </div>
-        {props.minus10Id || props.minus1Id || props.plus1Id || props.plus10Id ? <div className={props.classes.bottomPanel}>
+        {buttonsVisible ? <div className={props.classes.bottomPanel}>
             <div className={props.classes.bottomPanelButtons}>
                 {[
                     { id: props.minus10Id, name: '-10' },

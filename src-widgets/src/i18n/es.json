@@ -78,16 +78,14 @@
   "Color": "Color",
   "Digits after comma": "Dígitos después de la coma",
   "Digits before comma": "Dígitos antes de la coma",
-  "Indicators count": "Los indicadores cuentan",
   "Left / Top": "Izquierda / Arriba",
   "Name": "Nombre",
   "PORT": "PORT",
   "Position": "Posición",
-  "Right / Bottom": "Boton derecho",
+  "Right / Bottom": "Boton / derecho",
   "STBD": "STBD",
   "Unit": "Unidad",
   "autopilot": "piloto automático",
-  "group_indicator": "Indicador",
   "id": "IDENTIFICACIÓN",
   "rudder": "timón",
   "Use instance": "Usar instancia",
@@ -109,5 +107,6 @@
   "instrument": "Instrumento",
   "Filter": "Buscar",
   "Expand all": "Expandir todo",
-  "Close all": "Cierra todo"
+  "Close all": "Cierra todo",
+  "Indicators": "Indicadores"
 }

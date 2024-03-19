@@ -78,16 +78,14 @@
   "Color": "Cor",
   "Digits after comma": "Dígitos depois da vírgula",
   "Digits before comma": "Dígitos antes da vírgula",
-  "Indicators count": "Contagem de indicadores",
   "Left / Top": "Esquerda / Superior",
   "Name": "Nome",
   "PORT": "PORT",
   "Position": "Posição",
-  "Right / Bottom": "Inferior direito",
+  "Right / Bottom": "Inferior / direito",
   "STBD": "STBD",
   "Unit": "Unidade",
   "autopilot": "piloto automático",
-  "group_indicator": "Indicador",
   "id": "EU IA",
   "rudder": "leme",
   "Use instance": "Usar instância",
@@ -109,5 +107,6 @@
   "instrument": "Instrumento",
   "Filter": "Procurar",
   "Expand all": "Expandir todos",
-  "Close all": "Feche tudo"
+  "Close all": "Feche tudo",
+  "Indicators": "Indicadores"
 }
