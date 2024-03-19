@@ -3,7 +3,7 @@ import {
 } from '@mui/material';
 import { withStyles } from '@mui/styles';
 import {
-    useMemo,
+    useMemo, useRef,
 } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -72,6 +72,7 @@ const styles = {
 const Autopilot = props => {
     const angle = useAngle(-props.cog - 90);
     const headingAngle = useAngle(angle + 90 + props.heading);
+    const modeType = useRef(null);
 
     const compassStatic = useMemo(() => <>
         <ellipse
@@ -145,7 +146,7 @@ const Autopilot = props => {
     if (!props.minus10Id && !props.minus1Id && !props.plus1Id && !props.plus10Id) {
         // no control buttons
         buttonsVisible = false;
-    } else if (props.mode !== false && (props.mode || 0) === 0) {
+    } else if (props.mode !== false && ((props.mode || 0) === 0 || props.mode === '0')) {
         // autopilot is OFF
         buttonsVisible = false;
     } else if (
@@ -173,7 +174,23 @@ const Autopilot = props => {
                     style={{ width: '100%' }}
                     value={props.mode || 0}
                     variant="standard"
-                    onChange={e => props.context.setValue(props.modeId,  e.target.value)}
+                    onChange={async e => {
+                        if (modeType.current === null) {
+                            try {
+                                const obj = await props.context.socket.getObject(props.modeId);
+                                if (obj.common.type) {
+                                    modeType.current = obj.common.type;
+                                }
+                            } catch (err) {
+                                // ignore
+                            }
+                        }
+                        if (modeType.current === 'number') {
+                            props.context.setValue(props.modeId, Number.isNaN(e.target.value) ? 0 : parseInt(e.target.value, 10));
+                        } else {
+                            props.context.setValue(props.modeId, e.target.value.toString());
+                        }
+                    }}
                 >
                     {Object.keys(autopilotStates).map(key =>
                         <MenuItem key={key} value={key}>{autopilotStates[key]}</MenuItem>)}

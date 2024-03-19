@@ -59,7 +59,6 @@ const styles = theme => ({
         // gridArea: 'bottom',
         bottom: 0,
         left: 0,
-        width: '100%',
         position: 'absolute',
     },
     carousel: {
@@ -100,7 +99,7 @@ const POSSIBLE_NAMES = {
     oid_sog: ['directionData.sog'],
     oid_rudder: ['rudder.position'],
     oid_depth: ['waterDepth.depth'],
-    oid_heading: ['vesselHeading.headingTrue'],
+    oid_heading: ['autoPilot.heading'],
     oid_autopilot_mode: ['autoPilot.state'],
     oid_autopilot_plus_1: ['autoPilot.headingPlus1'],
     oid_autopilot_plus_10: ['autoPilot.headingPlus10'],
@@ -326,8 +325,8 @@ class Nmea extends Generic {
                         },
                         {
                             name: 'oid_heading',
-                            label: 'Heading',
-                            tooltip: 'Magnetic heading',
+                            label: 'Autopilot heading',
+                            tooltip: 'Autopilot heading',
                             type: 'id',
                         },
                         {
