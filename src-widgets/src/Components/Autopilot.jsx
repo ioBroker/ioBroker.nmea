@@ -54,6 +54,7 @@ const styles = {
         gap: 8,
         justifyContent: 'center',
         width: '100%',
+        flexWrap: 'wrap',
     },
     rudderContainer: {
         height: 60,
