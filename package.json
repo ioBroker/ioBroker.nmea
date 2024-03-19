@@ -1,7 +1,7 @@
 {
   "name": "iobroker.nmea",
   "description": "The adapter allows the communication to NMEA2000 or NMEA0183 bus",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "author": "Haev Denis <dogafox@gmail.com>",
   "homepage": "https://github.com/ioBroker/ioBroker.nmea",
   "repository": {
