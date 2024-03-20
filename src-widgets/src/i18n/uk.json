@@ -109,5 +109,7 @@
   "Expand all": "Розгорнути все",
   "Close all": "Закрити все",
   "Indicators": "Індикатори",
-  "Autopilot heading": "Рух автопілота"
+  "Autopilot heading": "Рух автопілота",
+  "Synchronize": "Синхронізувати",
+  "Synchronize with other browsers": "Синхронізація з іншими браузерами"
 }

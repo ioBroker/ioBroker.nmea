@@ -109,5 +109,7 @@
   "Expand all": "Rozwiń wszystkie",
   "Close all": "Zamknij wszystko",
   "Indicators": "Wskaźniki",
-  "Autopilot heading": "Kierunek autopilota"
+  "Autopilot heading": "Kierunek autopilota",
+  "Synchronize": "Synchronizować",
+  "Synchronize with other browsers": "Synchronizuj z innymi przeglądarkami"
 }

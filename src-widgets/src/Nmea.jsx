@@ -203,9 +203,9 @@ class Nmea extends Generic {
 
     constructor(props) {
         super(props);
-        this.state.window = parseInt(window.localStorage.getItem(`vis.${this.props.id}`), 10) || 0;
-        this.state.prevWindow = undefined;
-        this.state.nextWindow = undefined;
+        this.state.index = parseInt(window.localStorage.getItem(`vis.${this.props.id}`), 10) || 0;
+        this.state.prevIndex = undefined;
+        this.state.nextIndex = undefined;
         this.state.angle = 0;
         this.state.smallWindAngle = 20;
         this.state.bigWindAngle = 40;
@@ -252,6 +252,12 @@ class Nmea extends Generic {
                                 context={props.context}
                             />,
                             default: '[]',
+                        },
+                        {
+                            name: 'sync',
+                            type: 'checkbox',
+                            label: 'Synchronize',
+                            tooltip: 'Synchronize with other browsers',
                         },
                     ],
                 },
@@ -458,6 +464,8 @@ class Nmea extends Generic {
             this.subscribed.sort();
             this.subscribing = JSON.stringify(this.subscribed);
         }
+
+        await this.initSync();
     }
 
     async componentDidMount() {
@@ -631,22 +639,22 @@ class Nmea extends Generic {
         windows.sort((a, b) => a.order - b.order);
 
         // If window index does not exist, reset it to 0
-        if (this.state.window >= windows.length) {
-            setTimeout(() => this.setState({ window: 0 }), 50);
+        if (this.state.index >= windows.length) {
+            setTimeout(() => this.setState({ index: 0 }), 50);
             return null;
         }
 
         // Render only visible windows
         windows = windows.map((item, index) =>
-            ((index === this.state.window || index === this.state.prevWindow || index === this.state.nextWindow) ? item.el : null));
+            ((index === this.state.index || index === this.state.prevIndex || index === this.state.nextIndex) ? item.el : null));
 
         const vertical = this.contentRef.current?.offsetHeight > this.contentRef.current?.offsetWidth;
 
         let currentWindow = 1;
-        if (this.state.nextWindow !== undefined) {
+        if (this.state.nextIndex !== undefined) {
             currentWindow = 2;
         }
-        if (this.state.prevWindow !== undefined) {
+        if (this.state.prevIndex !== undefined) {
             currentWindow = 0;
         }
 
@@ -674,11 +682,11 @@ class Nmea extends Generic {
                 <div
                     style={{
                         transform: `translate3d(0px, ${-currentWindow * 100}%, 0px)`,
-                        transition: this.state.nextWindow !== undefined || this.state.prevWindow !== undefined ? undefined : 'none',
+                        transition: this.state.nextIndex !== undefined || this.state.prevIndex !== undefined ? undefined : 'none',
                     }}
                     className={this.props.classes.carousel}
                 >
-                    {[this.state.prevWindow, this.state.window, this.state.nextWindow].map((windowIndex, i) => <div
+                    {[this.state.prevIndex, this.state.index, this.state.nextIndex].map((windowIndex, i) => <div
                         key={windowIndex === undefined ? 1000 + i : windowIndex}
                         className={this.props.classes.windowPanel}
                     >
@@ -695,36 +703,7 @@ class Nmea extends Generic {
             >
                 {this.renderIndicatorsBlock(items, 'right')}
             </div>
-            {windows.length > 1 ? <div className={this.props.classes.bottomPanel}>
-                <IconButton
-                    size="large"
-                    onClick={() => {
-                        const _window = this.state.window === 0 ? windows.length - 1 : this.state.window - 1;
-                        this.setState({ prevWindow: _window });
-                        window.localStorage.setItem(`vis.${this.props.id}`, _window.toString());
-                        setTimeout(() => this.setState({
-                            window: _window,
-                            prevWindow: undefined,
-                        }), 500);
-                    }}
-                >
-                    <KeyboardArrowUp />
-                </IconButton>
-                <IconButton
-                    size="large"
-                    onClick={() => {
-                        const _window = this.state.window >= windows.length - 1 ? 0 : this.state.window + 1;
-                        this.setState({ nextWindow: _window });
-                        window.localStorage.setItem(`vis.${this.props.id}`, _window.toString());
-                        setTimeout(() => this.setState({
-                            window: _window,
-                            nextWindow: undefined,
-                        }), 500);
-                    }}
-                >
-                    <KeyboardArrowDown />
-                </IconButton>
-            </div> : null}
+            {windows.length > 1 ? this.renderNextPrevButtons(windows.length) : null}
         </div>;
 
         return this.wrapContent(content);

@@ -271,7 +271,7 @@ class ItemsSelectorDialog extends Component {
             {this.state.openedChannels.includes(channelId) ? <AccordionDetails>
                 <MenuList>
                     {Object.keys(states[channelId])
-                        .sort((a, b) => this.state.states[a].lowerName > this.state.states[b].lowerName ? 1 : -1)
+                        .sort((a, b) => (this.state.states[a].lowerName > this.state.states[b].lowerName ? 1 : -1))
                         .map(id => this.renderState(id, states[channelId][id]))}
                 </MenuList>
             </AccordionDetails> : null}

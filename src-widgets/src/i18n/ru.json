@@ -109,5 +109,7 @@
   "Expand all": "Расширить все",
   "Close all": "Закрыть все",
   "Indicators": "Индикаторы",
-  "Autopilot heading": "Курс автопилота"
+  "Autopilot heading": "Курс автопилота",
+  "Synchronize": "Синхронизировать",
+  "Synchronize with other browsers": "Синхронизировать с другими браузерами"
 }

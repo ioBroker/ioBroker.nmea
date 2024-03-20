@@ -177,6 +177,12 @@ class Instrument extends Generic {
                             />,
                             default: '[]',
                         },
+                        {
+                            name: 'sync',
+                            type: 'checkbox',
+                            label: 'Synchronize',
+                            tooltip: 'Synchronize with other browsers',
+                        },
                     ],
                 },
             ],
@@ -202,6 +208,10 @@ class Instrument extends Generic {
         }
     };
 
+    async onRxDataChanged() {
+        await this.initSync();
+    }
+
     async componentDidMount() {
         await super.componentDidMount();
         // read one time the values
@@ -220,6 +230,7 @@ class Instrument extends Generic {
 
             this.setState({ myValues });
         }
+        await super.initSync();
     }
 
     componentWillUnmount() {
@@ -374,36 +385,7 @@ class Instrument extends Generic {
                     </div>)}
                 </div>
             </div>
-            {items.length > 1 ? <div className={this.props.classes.bottomPanel}>
-                <IconButton
-                    size="large"
-                    onClick={() => {
-                        const index = this.state.index === 0 ? items.length - 1 : this.state.index - 1;
-                        this.setState({ prevIndex: index });
-                        window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
-                        setTimeout(() => this.setState({
-                            index,
-                            prevIndex: undefined,
-                        }), 500);
-                    }}
-                >
-                    <KeyboardArrowUp />
-                </IconButton>
-                <IconButton
-                    size="large"
-                    onClick={() => {
-                        const index = this.state.index >= items.length - 1 ? 0 : this.state.index + 1;
-                        this.setState({ nextIndex: index });
-                        window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
-                        setTimeout(() => this.setState({
-                            index,
-                            nextIndex: undefined,
-                        }), 500);
-                    }}
-                >
-                    <KeyboardArrowDown />
-                </IconButton>
-            </div> : null}
+            {items.length > 1 ? this.renderNextPrevButtons(items.length) : null}
         </div>;
 
         return this.wrapContent(content);

@@ -109,5 +109,7 @@
   "Expand all": "Développer tout",
   "Close all": "Ferme tout",
   "Indicators": "Indicateurs",
-  "Autopilot heading": "Cap du pilote automatique"
+  "Autopilot heading": "Cap du pilote automatique",
+  "Synchronize": "Synchroniser",
+  "Synchronize with other browsers": "Synchronisez avec d'autres navigateurs"
 }

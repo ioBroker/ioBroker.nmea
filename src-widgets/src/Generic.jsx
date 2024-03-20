@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { VisRxWidget } from '@iobroker/vis-2-widgets-react-dev';
+import {IconButton} from "@mui/material";
+import {KeyboardArrowDown, KeyboardArrowUp} from "@mui/icons-material";
 
 class Generic extends (window.visRxWidget || VisRxWidget) {
     getPropertyValue = stateName => this.state.values[`${this.state.rxData[stateName]}.val`];
@@ -32,14 +34,6 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         windSpeed: { indicatorDigitsAfterComma: 1 },
         windSpeedTrue: { indicatorDigitsAfterComma: 1 },
     };
-
-    // TODO: remove this method when vis-2-widgets-react-dev is updated
-    static getText(text) {
-        if (text && typeof text === 'object') {
-            return text[(window.visRxWidget || VisRxWidget).getLanguage()] || text.en;
-        }
-        return text || null;
-    }
 
     static zeroBeforeAfterComma(num, beforeLength, afterLength, useComma, fontSizeAfterComma) {
         const numParts = num.toString().split('.');
@@ -109,6 +103,141 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         }
 
         return src || null;
+    }
+
+    onWidgetStateUpdate = (id, state) => {
+        if (id === this.widgetStateId && state?.val && !state.ack) {
+            let index;
+            if (state.val.startsWith('-')) {
+                index = parseInt(state.val.replace('-', ''), 10);
+                if (this.state.index !== index && this.state.prevIndex !== index) {
+                    if (this.subscribeInited) {
+                        this.setState({ prevIndex: index });
+                        setTimeout(() => this.setState({
+                            index,
+                            prevIndex: undefined,
+                        }), 500);
+                    } else {
+                        this.setState({ index });
+                        this.subscribeInited = true;
+                    }
+                    window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
+                } else {
+                    this.subscribeInited = true;
+                }
+            } else {
+                index = parseInt(state.val.replace('+', ''), 10);
+                if (this.state.index !== index && this.state.nextIndex !== index) {
+                    window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
+                    if (this.subscribeInited) {
+                        this.setState({ nextIndex: index });
+                        setTimeout(() => this.setState({
+                            index,
+                            nextIndex: undefined,
+                        }), 500);
+                    } else {
+                        this.setState({ index });
+                        this.subscribeInited = true;
+                    }
+                } else {
+                    this.subscribeInited = true;
+                }
+            }
+        }
+    };
+
+    async componentDidMount() {
+        await super.componentDidMount();
+        await this.initSync();
+    }
+
+    async initSync() {
+        let syncObj;
+        if (this.state.rxData.sync && !this.widgetStateId) {
+            // Check if the sync object exists
+            this.widgetStateId = `${this.props.context.adapterName}.${this.props.context.instance}.widgets.${this.props.context.projectName}.${this.props.id}`;
+            try {
+                syncObj = await this.props.context.socket.getObject(this.widgetStateId);
+            } catch (e) {
+                console.error(`Cannot get sync object: ${e}`);
+            }
+            if (!syncObj) {
+                await this.props.context.socket.setObject(this.widgetStateId, {
+                    type: 'state',
+                    common: {
+                        name: `Widget state synchronization for ${this.props.id}`,
+                        type: 'string',
+                        role: 'state',
+                        read: true,
+                        write: true,
+                    },
+                    native: {},
+                });
+            }
+            this.subscribeInited = false;
+            await this.props.context.socket.subscribeState(this.widgetStateId, this.onWidgetStateUpdate);
+        } else if (!this.state.rxData.sync && this.widgetStateId) {
+            this.subscribeInited = false;
+            this.props.context.socket.unsubscribeState(this.widgetStateId, this.onWidgetStateUpdate);
+            try {
+                syncObj = await this.props.context.socket.getObject(this.widgetStateId);
+            } catch (e) {
+                console.error(`Cannot get sync object: ${e}`);
+            }
+            if (syncObj) {
+                await this.props.context.socket.delObject(this.widgetStateId);
+            }
+            this.widgetStateId = null;
+        }
+    }
+
+    async componentWillUnmount() {
+        await super.componentWillUnmount();
+        if (this.widgetStateId) {
+            this.props.context.socket.unsubscribeState(this.widgetStateId, this.onWidgetStateUpdate);
+            this.widgetStateId = null;
+        }
+    }
+
+    renderNextPrevButtons(maxIndex) {
+        return <div className={this.props.classes.bottomPanel}>
+            <IconButton
+                size="large"
+                onClick={() => {
+                    const index = this.state.index === 0 ? maxIndex - 1 : this.state.index - 1;
+                    this.setState({ prevIndex: index }, () => {
+                        if (this.widgetStateId) {
+                            this.props.context.setValue(this.widgetStateId, `-${index}`);
+                        }
+                    });
+                    window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
+                    setTimeout(() => this.setState({
+                        index,
+                        prevIndex: undefined,
+                    }), 500);
+                }}
+            >
+                <KeyboardArrowUp />
+            </IconButton>
+            <IconButton
+                size="large"
+                onClick={() => {
+                    const index = this.state.index >= maxIndex - 1 ? 0 : this.state.index + 1;
+                    this.setState({ nextIndex: index }, () => {
+                        if (this.widgetStateId) {
+                            this.props.context.setValue(this.widgetStateId, `+${index}`);
+                        }
+                    });
+                    window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
+                    setTimeout(() => this.setState({
+                        index,
+                        nextIndex: undefined,
+                    }), 500);
+                }}
+            >
+                <KeyboardArrowDown />
+            </IconButton>
+        </div>;
     }
 }
 

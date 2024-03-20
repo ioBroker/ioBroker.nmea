@@ -109,5 +109,7 @@
   "Expand all": "Alle erweitern",
   "Close all": "Alle schließen",
   "Indicators": "Indikatoren",
-  "Autopilot heading": "Autopilot-Kurs"
+  "Autopilot heading": "Autopilot-Kurs",
+  "Synchronize": "Synchronisieren",
+  "Synchronize with other browsers": "Mit anderen Browsern synchronisieren"
 }

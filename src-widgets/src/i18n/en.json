@@ -109,5 +109,7 @@
   "Expand all": "Expand all",
   "Close all": "Close all",
   "Indicators": "Indicators",
-  "Autopilot heading": "Autopilot heading"
+  "Autopilot heading": "Autopilot heading",
+  "Synchronize": "Synchronize",
+  "Synchronize with other browsers": "Synchronize with other browsers"
 }
