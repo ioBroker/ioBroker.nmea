@@ -233,6 +233,7 @@ class ItemsSelectorDialog extends Component {
                 this.state.channels[channelId].states.forEach(id => states[channelId][id] = true);
             });
         }
+        keys.sort((a, b) => (this.state.channels[a].lowerName > this.state.channels[b].lowerName ? 1 : -1));
 
         return keys.map(channelId => <Accordion
             key={channelId}
@@ -269,7 +270,9 @@ class ItemsSelectorDialog extends Component {
             </AccordionSummary>
             {this.state.openedChannels.includes(channelId) ? <AccordionDetails>
                 <MenuList>
-                    {Object.keys(states[channelId]).map(id => this.renderState(id, states[channelId][id]))}
+                    {Object.keys(states[channelId])
+                        .sort((a, b) => this.state.states[a].lowerName > this.state.states[b].lowerName ? 1 : -1)
+                        .map(id => this.renderState(id, states[channelId][id]))}
                 </MenuList>
             </AccordionDetails> : null}
         </Accordion>);

@@ -34,7 +34,7 @@ const styles = theme => ({
     bottomPanel: {
         position: 'absolute',
         bottom: 0,
-        left: 0,
+        right: 0,
         width: '100%',
         zIndex: 1,
     },
@@ -376,6 +376,7 @@ class Instrument extends Generic {
             </div>
             {items.length > 1 ? <div className={this.props.classes.bottomPanel}>
                 <IconButton
+                    size="large"
                     onClick={() => {
                         const index = this.state.index === 0 ? items.length - 1 : this.state.index - 1;
                         this.setState({ prevIndex: index });
@@ -389,6 +390,7 @@ class Instrument extends Generic {
                     <KeyboardArrowUp />
                 </IconButton>
                 <IconButton
+                    size="large"
                     onClick={() => {
                         const index = this.state.index >= items.length - 1 ? 0 : this.state.index + 1;
                         this.setState({ nextIndex: index });

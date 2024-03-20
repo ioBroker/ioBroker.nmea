@@ -58,8 +58,9 @@ const styles = theme => ({
     bottomPanel: {
         // gridArea: 'bottom',
         bottom: 0,
-        left: 0,
+        right: 0,
         position: 'absolute',
+        zIndex: 1,
     },
     carousel: {
         transition: 'all .35s ease-in-out',
@@ -686,13 +687,17 @@ class Nmea extends Generic {
                 </div>
             </div>
             <div
-                style={{ flexDirection: vertical ? 'row' : 'column' }}
+                style={{
+                    flexDirection: vertical ? 'row' : 'column',
+                    marginBottom: vertical && windows.length > 1 ? 24 : 0,
+                }}
                 className={this.props.classes.rightPanel}
             >
                 {this.renderIndicatorsBlock(items, 'right')}
             </div>
             {windows.length > 1 ? <div className={this.props.classes.bottomPanel}>
                 <IconButton
+                    size="large"
                     onClick={() => {
                         const _window = this.state.window === 0 ? windows.length - 1 : this.state.window - 1;
                         this.setState({ prevWindow: _window });
@@ -706,6 +711,7 @@ class Nmea extends Generic {
                     <KeyboardArrowUp />
                 </IconButton>
                 <IconButton
+                    size="large"
                     onClick={() => {
                         const _window = this.state.window >= windows.length - 1 ? 0 : this.state.window + 1;
                         this.setState({ nextWindow: _window });
