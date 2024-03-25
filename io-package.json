@@ -178,6 +178,7 @@
     "updateAtLeastEveryMs": 60000,
     "magneticVariation": "magneticVariation.variation",
     "simulationEnabled": false,
+    "combinedEnvironment": false,
     "simulate": [],
     "simulateAddress": 204
   },

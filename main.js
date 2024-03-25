@@ -147,7 +147,9 @@ class Main extends utils.Adapter {
                         this.simulationsValues[sim.oid] = null;
                     }
                 }
-                this.log.debug(`Simulate [${sim.type}] ${sim.oid} = ${this.simulationsValues[sim.oid]}`)
+
+                this.log.debug(`Simulate [${sim.type}] ${sim.oid} = ${this.simulationsValues[sim.oid]}`);
+
                 if (!this.config.combinedEnvironment) {
                     if (sim.type === 'temperature') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {

@@ -57,6 +57,14 @@ Actisense NGT-1 is visible on Windows or Linux without any additional drivers. I
 - Integration of [iKonvert NMEA 2000](https://digitalyachtamerica.com/product/ikonvert-usb/)
 - Integration of [Shipmodul MiniPlex-3-N2K](https://www.shipmodul.com/products.html)
 
+## Data simulation
+You can feed the data from external sensors to the NMEA2000 bus.
+Actually, you can only simulate environmental data, like temperature, humidity, pressure.
+
+With the flag `Combined environment` you can define the PGN number which will be used for temperature, humidity and pressure:
+- If you unselect the flag `Combined environment`, so for the temperature will be used PGN 130314, for humidity PGN 130313 and for pressure PGN 130314.
+- If you select the flag `Combined environment`, so all three values will be sent in PGN 130311 together with other possible environmental values.
+
 <!--
 	### **WORK IN PROGRESS**
 -->
