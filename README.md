@@ -12,6 +12,8 @@ To use this adapter, you need a hardware that can read NMEA-2000 bus and convert
 
 ![Widgets](img/widgetExamples.png)
 
+[YouTube explanation](https://youtu.be/flp_-mypbRU?si=k0lp95OukQ88LBxj)
+
 ## How to use it on Raspberry PI with PiCAN-M
 
 The PiCAN M is a compact add-on board designed for the Raspberry Pi 3/4.
