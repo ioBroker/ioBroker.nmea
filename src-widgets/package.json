@@ -12,7 +12,7 @@
         "@mui/icons-material": "^5.15.13",
         "@mui/material": "5.14.14",
         "@mui/styles": "5.14.14",
-        "@mui/system": "5.14.14",
+        "@mui/system": "5.15.14",
         "color": "^4.2.3",
         "craco-esbuild": "^0.6.1",
         "craco-module-federation": "^1.1.0",
