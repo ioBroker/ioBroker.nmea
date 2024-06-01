@@ -15,7 +15,7 @@
     "NMEA0183"
   ],
   "dependencies": {
-    "@canboat/canboatjs": "^2.5.7",
+    "@canboat/canboatjs": "^2.6.0",
     "@iobroker/adapter-core": "^3.0.4"
   },
   "devDependencies": {
