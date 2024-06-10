@@ -1,6 +1,11 @@
+import { useMemo, useState } from 'react';
 import { withStyles } from '@mui/styles';
-import { useMemo } from 'react';
 import PropTypes from 'prop-types';
+
+import { IconButton } from '@mui/material';
+
+import { ZoomIn, ZoomOut } from '@mui/icons-material';
+
 import {
     Arc, Lines, SvgContainer, RADIUS,
     Text,
@@ -29,7 +34,19 @@ const styles = {
 };
 
 const Rudder = props => {
-    const factor = 120 / 50;
+    const [zoomActive, setZoomActive] = useState(Math.abs(props.rudder) <= props.zoomAt);
+
+    if (props.rudder !== null) {
+        if (zoomActive && Math.abs(props.rudder) > props.zoomAt + (props.zoomDelay || 4)) {
+            setZoomActive(false);
+        } else if (!zoomActive && Math.abs(props.rudder) <= props.zoomAt - (props.zoomDelay || 4)) {
+            setZoomActive(true);
+        }
+    }
+
+    const minMax = zoomActive ? props.zoomAt + (props.zoomDelay || 4) : (typeof props.minMax === 'number' ? Math.abs(props.minMax) : 50);
+
+    const factor = 120 / minMax;
 
     const compass = useMemo(() => <>
         <ellipse
@@ -51,7 +68,7 @@ const Rudder = props => {
                 (Math.abs(_angle) % 10 ? 0 : 20)}
             getAngles={() => {
                 const angles = [];
-                for (let i = -50; i <= 50; i++) {
+                for (let i = -1 * minMax; i <= minMax; i++) {
                     angles.push(i);
                 }
                 return angles;
@@ -59,6 +76,11 @@ const Rudder = props => {
             factor={factor}
             radius={RADIUS - 20}
             textRotate={-90}
+            width={1}
+            marks={zoomActive ? null : [
+                { color: '#0F0', width: 3, angle: -1 * (props.zoomAt - (props.zoomDelay || 4))  },
+                { color: '#0F0', width: 3, angle: props.zoomAt - (props.zoomDelay || 4) },
+            ]}
         />
         {[360 - 120, 0].map(_angle => <Arc
             key={_angle}
@@ -71,13 +93,30 @@ const Rudder = props => {
             flat
         />)}
         <ellipse cx={RADIUS} cy={RADIUS} rx={40} ry={40} fill="grey" />
-    </>, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
+    </>, [props.themeType, zoomActive, factor]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return <div className={props.classes.content}>
         <div className={props.classes.header}>
             {Generic.t('Rudder')}
         </div>
         <div className={props.classes.contentInner}>
+            <IconButton
+                size="small"
+                disableRipple
+                onClick={() => setZoomActive(!zoomActive)}
+                disabled={zoomActive ?
+                    Math.abs(props.rudder) <= props.zoomAt - (props.zoomDelay || 4)
+                    : Math.abs(props.rudder) > props.zoomAt + (props.zoomDelay || 4)}
+                style={{
+                    position: 'absolute',
+                    left: 'calc(50% - 15px)',
+                    top: 'calc(50% - 15px)',
+                    zIndex: 1,
+                    display: !zoomActive && Math.abs(props.rudder) > props.zoomAt + (props.zoomDelay || 4) ? 'none' : 'block',
+                }}
+            >
+                {zoomActive ? <ZoomOut /> :  <ZoomIn />}
+            </IconButton>
             <SvgContainer angle={90}>
                 {compass}
             </SvgContainer>
@@ -101,6 +140,7 @@ const Rudder = props => {
                     text={Generic.t('STBD')}
                 />
             </SvgContainer>
+            {/* Arrow */}
             {props.rudder !== null && props.rudder !== undefined ? <SvgContainer
                 angle={props.rudder * -1 * factor + 180}
                 zIndex={3}
@@ -117,6 +157,9 @@ const Rudder = props => {
 
 Rudder.propTypes = {
     rudder: PropTypes.number,
+    minMax: PropTypes.number,
+    zoomAt: PropTypes.number,
+    zoomDelay: PropTypes.number,
     themeType: PropTypes.string,
 };
 

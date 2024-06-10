@@ -44,6 +44,7 @@ class ItemsEditorDialog extends Component {
                 items = [];
             }
         }
+        const applyItems = JSON.stringify(items || []);
         items = (items || []).map(item => ({ ...item, id: uuid() }));
 
         this.state = {
@@ -52,9 +53,10 @@ class ItemsEditorDialog extends Component {
             anchorEl: null,
             itemSelector: null,
             selectId: null,
-            applyItems: JSON.stringify(props.data.items || []),
+            applyItems,
             objects: {},
         };
+
         this.originalItems = this.state.applyItems;
     }
 
@@ -201,7 +203,7 @@ class ItemsEditorDialog extends Component {
                         console.error(e);
                     }
                     items[selectId].oid = id;
-                    this.setState({ selectId: null, items });
+                    this.setState({ selectId: null }, () => this.updateItems(items));
                 } else {
                     this.setState({ selectId: null });
                 }

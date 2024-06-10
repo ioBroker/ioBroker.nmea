@@ -180,7 +180,10 @@
     "simulationEnabled": false,
     "combinedEnvironment": false,
     "simulate": [],
-    "simulateAddress": 204
+    "simulateAddress": 204,
+    "approximateMs": 10000,
+    "applyGpsTimeZoneToSystem": false,
+    "deleteAisAfter": 3600
   },
   "objects": [],
   "instanceObjects": [

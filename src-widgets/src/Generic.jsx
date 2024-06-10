@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import { IconButton } from '@mui/material';
+import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+
 import { VisRxWidget } from '@iobroker/vis-2-widgets-react-dev';
-import {IconButton} from "@mui/material";
-import {KeyboardArrowDown, KeyboardArrowUp} from "@mui/icons-material";
 
 class Generic extends (window.visRxWidget || VisRxWidget) {
     getPropertyValue = stateName => this.state.values[`${this.state.rxData[stateName]}.val`];

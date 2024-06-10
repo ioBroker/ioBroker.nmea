@@ -5,12 +5,11 @@ import { withStyles } from '@mui/styles';
 import {
     Button, Card,
     CircularProgress,
-    IconButton,
     Menu,
     MenuItem,
 } from '@mui/material';
 
-import { KeyboardArrowUp, KeyboardArrowDown, Edit } from '@mui/icons-material';
+import { Edit } from '@mui/icons-material';
 import { Utils } from '@iobroker/adapter-react-v5';
 
 import Generic from './Generic';
@@ -36,6 +35,7 @@ const styles = theme => ({
         padding: 4,
         margin: 4,
         overflow: 'visible',
+        minWidth: 100,
     },
     content: {
         width: '100%',
@@ -421,6 +421,36 @@ class Nmea extends Generic {
                         },
                     ],
                 },
+                {
+                    name: 'rudder',
+                    label: 'rudder',
+                    hidden: '!data.oid_rudder',
+                    fields: [
+                        {
+                            name: 'rudderMinMax',
+                            label: 'rudderMinMax',
+                            type: 'slider',
+                            min: 1,
+                            max: 90,
+                        },
+                        {
+                            name: 'rudderZoomAt',
+                            label: 'rudderZoomAt',
+                            type: 'slider',
+                            min: 1,
+                            max: 45,
+                            default: 12,
+                        },
+                        {
+                            name: 'rudderZoomDelay',
+                            label: 'rudderZoomDelay',
+                            type: 'slider',
+                            min: 1,
+                            max: 10,
+                            default: 4,
+                        },
+                    ],
+                },
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -439,13 +469,24 @@ class Nmea extends Generic {
     async propertiesUpdate() {
         if (this.state.rxData.oid_autopilot_mode !== this.oid_autopilot_mode) {
             this.oid_autopilot_mode = this.state.rxData.oid_autopilot_mode;
-            const autopilotMode = await this.props.context.socket.getObject(this.state.rxData.oid_autopilot_mode);
+            const autopilotMode = this.oid_autopilot_mode && (await this.props.context.socket.getObject(this.state.rxData.oid_autopilot_mode));
             if (autopilotMode) {
                 this.setState({ autopilotStates: autopilotMode.common.states });
             } else {
                 this.setState({ autopilotStates: {} });
             }
         }
+
+        if (this.state.rxData.oid_rudder !== this.oid_rudder) {
+            this.oid_rudder = this.state.rxData.oid_rudder;
+            const rudderMinMax = this.oid_rudder && (await this.props.context.socket.getObject(this.state.rxData.oid_rudder));
+            if (rudderMinMax) {
+                this.setState({ autopilotStates: Math.abs(rudderMinMax.common.max || rudderMinMax.common.min || 0) || null });
+            } else {
+                this.setState({ rudderMinMax: null });
+            }
+        }
+
         const items = typeof this.state.data.items === 'string' ? JSON.parse(this.state.data.items || '[]') : (this.state.data.items || []);
 
         if (items) {
@@ -578,6 +619,9 @@ class Nmea extends Generic {
     renderRudder() {
         const rudder = this.getPropertyValue('oid_rudder');
         return <Rudder
+            minMax={this.state.rxData.rudderMinMax || this.state.rudderMinMax}
+            zoomAt={this.state.rxData.rudderZoomAt}
+            zoomDelay={this.state.rxData.rudderZoomDelay || 4}
             rudder={rudder === undefined ? null : rudder}
             themeType={this.props.context.themeType}
         />;

@@ -4,12 +4,9 @@ import { withStyles } from '@mui/styles';
 
 import {
     Button,
-    IconButton,
 } from '@mui/material';
 
 import {
-    KeyboardArrowUp,
-    KeyboardArrowDown,
     Edit,
 } from '@mui/icons-material';
 

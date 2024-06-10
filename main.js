@@ -7,6 +7,17 @@ const PGNS = require('@canboat/pgns/canboat.json');
 const META_DATA = require('./lib/metaData');
 const AutoPilot = require('./lib/seaTalkAutoPilot');
 const { FromPgn } = require('@canboat/canboatjs');
+const { find } = require('geo-tz');
+const cp = require('node:child_process');
+
+const WELL_KNOWN_AIS_GROUPS = [
+    'aisClassAPositionReport',
+    'aisClassAStaticAndVoyageRelatedData',
+    'aisClassBPositionReport',
+    'aisClassBStaticDataMsg24PartA',
+    'aisClassBStaticDataMsg24PartB',
+    'aisUtcAndDateReport',
+];
 
 class Main extends utils.Adapter {
     /**
@@ -24,12 +35,14 @@ class Main extends utils.Adapter {
         this.on('unload', this.onUnload.bind(this));
 
         this.createsChannelAndStates = {};
+        this.userId2Name = {};
         this.values = {};
         this.lastMessageReceived = 0;
         this.connectedInterval = null;
         this.sendEnvironmentInterval = null;
         this.autoPilot = null;
         this.simulationsValues = {};
+        this.aisGroups = [];
         this.parser = new FromPgn();
     }
 
@@ -174,6 +187,551 @@ class Main extends utils.Adapter {
         }
     }
 
+    async processWindEvent(data) {
+        // calculate true wind speed and angle
+        // try to find a true direction and true speed
+        let trueCog;
+        if (this.values['cogSogRapidUpdate.cogTrue']) {
+            trueCog = this.values['cogSogRapidUpdate.cogTrue'].val;
+        } else if (this.values['directionData.cogTrue']) {
+            trueCog = this.values['directionData.cogTrue'].val;
+        } else if (this.values['seatalkPilotHeading.headingMagneticTrue']) {
+            trueCog = this.values['seatalkPilotHeading.headingMagneticTrue'].val;
+        } else if (this.values['vesselHeading.headingTrue']) {
+            trueCog = this.values['vesselHeading.headingTrue'].val;
+        } else if (this.values['vesselHeading.headingMagnetic']) {
+            trueCog = this.values['vesselHeading.headingMagnetic'].val;
+        }
+        if (trueCog !== undefined) {
+            let trueSog;
+            if (this.values['cogSogRapidUpdate.sog']) {
+                trueSog = this.values['cogSogRapidUpdate.sog'].val;
+            } else if (this.values['directionData.sog']) {
+                trueSog = this.values['directionData.sog'].val;
+            }
+
+            if (trueSog !== undefined) {
+                // convert from radian to degree
+                const windAngle = data.fields['Wind Angle'] * 180 / Math.PI;
+                // convert frm m/s to kn
+                const windSpeed = data.fields['Wind Speed'] * 1.9438444924574;
+
+                let trueWindDirectionRounded;
+                let trueWindSpeedRounded;
+                let apparentWindDirectionRounded;
+                let apparentWindSpeedRounded;
+
+                if (data.fields.Reference && data.fields.Reference.includes('Apparent')) {
+                    // const awd = (boatHeading + awa) % 360;
+                    // const u = (boatSpeed * Math.sin(boatHeading * Math.PI / 180)) - (aws * Math.sin(awd * Math.PI/180));
+                    // const v = (boatSpeed * Math.cos(boatHeading * Math.PI / 180)) - (aws * Math.cos(awd * Math.PI/180));
+                    // const tws = Math.sqrt(u * u + v * v);
+                    // const twd = Math.atan(u / v) * 180 / Math.PI;
+                    // const twd1 = twd;
+                    // if (twd < 0) {
+                    //   twd = 360+twd;
+                    // }
+                    const apparentWindDirection = (windAngle + trueCog) % 360;
+                    const u = (trueSog * Math.sin(trueCog * Math.PI / 180)) - (windSpeed * Math.sin(apparentWindDirection * Math.PI/180));
+                    const v = (trueSog * Math.cos(trueCog * Math.PI / 180)) - (windSpeed * Math.cos(apparentWindDirection * Math.PI/180));
+                    const trueWindSpeed = Math.sqrt(u * u + v * v);
+                    const trueWindDirection = v ? Math.atan(u / v) * 180 / Math.PI : 0;
+
+                    trueWindDirectionRounded = Math.round(trueWindDirection * 10) / 10;
+                    trueWindSpeedRounded = Math.round(trueWindSpeed * 100) / 100;
+                    apparentWindDirectionRounded = Math.round(apparentWindDirection * 10) / 10;
+                    apparentWindSpeedRounded = Math.round(windSpeed * 100) / 100;
+                } else if (data.fields.Reference && data.fields.Reference.includes('Magnetic')) {
+                    trueWindSpeedRounded = windSpeed;
+                    trueWindDirectionRounded = (trueCog + windAngle + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val) % 360;
+                    apparentWindDirectionRounded = Math.round((trueCog - trueWindDirectionRounded) * 10) / 10;
+                } else {
+                    // True
+                    trueWindSpeedRounded = windSpeed;
+                    trueWindDirectionRounded = windAngle;
+                }
+                const twdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionTrue`;
+                if (!this.createsChannelAndStates[twdId]) {
+                    this.createsChannelAndStates[twdId] = true;
+                    const trueWindAngleObject = {
+                        _id: twdId,
+                        common: {
+                            name: 'True Wind Direction',
+                            type: 'number',
+                            unit: '°',
+                            role: 'value.direction.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(trueWindAngleObject);
+                }
+                const twsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedTrue`;
+                if (!this.createsChannelAndStates[twsId]) {
+                    this.createsChannelAndStates[twsId] = true;
+                    const trueWindSpeedObject = {
+                        _id: twsId,
+                        common: {
+                            name: 'True Wind Speed',
+                            type: 'number',
+                            unit: 'kn',
+                            role: 'value.speed.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(trueWindSpeedObject);
+                }
+
+                const avwdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionAverage`;
+                if (!this.createsChannelAndStates[avwdId]) {
+                    this.createsChannelAndStates[avwdId] = true;
+                    const averageWindAngleObject = {
+                        _id: avwdId,
+                        common: {
+                            name: 'Average Wind Direction',
+                            type: 'number',
+                            unit: '°',
+                            role: 'value.direction.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(averageWindAngleObject);
+                }
+                const avwsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedAverage`;
+                if (!this.createsChannelAndStates[avwsId]) {
+                    this.createsChannelAndStates[avwsId] = true;
+                    const averageWindSpeedObject = {
+                        _id: avwsId,
+                        common: {
+                            name: 'Average Wind Speed',
+                            type: 'number',
+                            unit: 'kn',
+                            role: 'value.speed.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(averageWindSpeedObject);
+                }
+
+                const maxwsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedMax`;
+                if (!this.createsChannelAndStates[maxwsId]) {
+                    this.createsChannelAndStates[maxwsId] = true;
+                    const maxWindSpeedObject = {
+                        _id: maxwsId,
+                        common: {
+                            name: 'Maximal Wind Speed',
+                            type: 'number',
+                            unit: 'kn',
+                            role: 'value.speed.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(maxWindSpeedObject);
+                }
+
+                const awdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionApparent`;
+                if (!this.createsChannelAndStates[awdId]) {
+                    this.createsChannelAndStates[awdId] = true;
+                    const apparentWindDirectionObject = {
+                        _id: awdId,
+                        common: {
+                            name: 'Apparent Wind Direction',
+                            type: 'number',
+                            unit: '°',
+                            role: 'value.direction.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(apparentWindDirectionObject);
+                }
+                const awsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedApparent`;
+                if (!this.createsChannelAndStates[awsId]) {
+                    this.createsChannelAndStates[awsId] = true;
+                    const apparentWindSpeedObject = {
+                        _id: awsId,
+                        common: {
+                            name: 'Apparent Wind Speed',
+                            type: 'number',
+                            unit: 'kn',
+                            role: 'value.speed.wind',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.updateObject(apparentWindSpeedObject);
+                }
+                if (trueWindDirectionRounded < 0) {
+                    trueWindDirectionRounded = trueWindDirectionRounded + 360;
+                }
+                if (apparentWindDirectionRounded < 0) {
+                    apparentWindDirectionRounded = apparentWindDirectionRounded + 360;
+                }
+
+                // Calculate average and max wind speed for the last 30 seconds
+                const now = Date.now();
+                this.windSpeeds = this.windSpeeds || [];
+                this.windSpeeds.push({ tws: trueWindSpeedRounded, ts: now });
+                // Delete all entries older than X seconds
+                this.windSpeeds = this.windSpeeds.filter(w => now - w.ts < this.config.approximateMs);
+
+                this.windDirs = this.windDirs || [];
+                this.windDirs.push({ twd: trueWindDirectionRounded, ts: now });
+                // Delete all entries older than X seconds
+                this.windDirs = this.windDirs.filter(w => now - w.ts < this.config.approximateMs);
+
+                let sumSpeed = 0;
+                let maxSpeed = 0;
+                this.windSpeeds.forEach(w => {
+                    sumSpeed += w.tws;
+                    if (w.tws > maxSpeed) {
+                        maxSpeed = w.tws;
+                    }
+                });
+                sumSpeed = Math.round(sumSpeed / this.windSpeeds.length * 100) / 100;
+
+                let sumDirection = 0;
+                this.windDirs.forEach(w => sumDirection += w.twd);
+                sumDirection = Math.round(sumDirection / this.windDirs.length * 100) / 100;
+
+                if (trueWindDirectionRounded !== undefined) {
+                    await this.setStateAsync(twdId, trueWindDirectionRounded, true);
+                }
+                if (trueWindSpeedRounded !== undefined) {
+                    await this.setStateAsync(twsId, trueWindSpeedRounded, true);
+                }
+                if (apparentWindDirectionRounded !== undefined) {
+                    await this.setStateAsync(awdId, apparentWindDirectionRounded, true);
+                }
+                if (apparentWindSpeedRounded !== undefined) {
+                    await this.setStateAsync(awsId, apparentWindSpeedRounded, true);
+                }
+                if (sumSpeed !== undefined) {
+                    await this.setStateAsync(avwsId, sumSpeed, true);
+                }
+                if (sumDirection !== undefined) {
+                    await this.setStateAsync(avwdId, sumDirection, true);
+                }
+                if (maxSpeed !== undefined) {
+                    await this.setStateAsync(maxwsId, maxSpeed, true);
+                }
+            } else {
+                // show warning only one time and only after 3 calculation rounds
+                this.trueWindSpeedError = this.trueWindSpeedError || 0;
+                if (this.trueWindSpeedError < 100) {
+                    this.trueWindSpeedError++;
+                }
+                if (this.trueWindSpeedError === 50) {
+                    this.log.warn('Could not find true wind speed');
+                }
+            }
+        } else {
+            // show warning only one time and only after 3 calculation rounds
+            this.trueWindAngleError = this.trueWindAngleError || 0;
+            if (this.trueWindAngleError === 50) {
+                this.log.warn('Could not find true wind angle');
+            }
+            if (this.trueWindAngleError < 100) {
+                this.trueWindAngleError++;
+            }
+        }
+    }
+
+    async processPositionEvent(data) {
+        const id = `${this.createsChannelAndStates[data.pgn].Id}.position`;
+        const val = `${data.fields.Longitude};${data.fields.Latitude}`;
+        if (!this.createsChannelAndStates[id]) {
+            this.createsChannelAndStates[id] = true;
+            const positionObject = {
+                _id: id,
+                common: {
+                    name: 'GPS Position',
+                    type: 'string',
+                    role: 'value.gps',
+                    read: true,
+                    write: false,
+                },
+                type: 'state',
+                native: {
+                }
+            };
+            await this.setObjectNotExistsAsync(id, positionObject);
+        }
+        if (data.fields.Time) {
+            // detect time zone
+            const timeZone = find(data.fields.Latitude, data.fields.Longitude);  // ['America/Los_Angeles']
+            if (timeZone && timeZone[0]) {
+                const timeZoneID = `${this.createsChannelAndStates[data.pgn].Id}.timeZone`;
+                if (!this.createsChannelAndStates[timeZoneID]) {
+                    this.createsChannelAndStates[timeZoneID] = true;
+                    const positionObject = {
+                        _id: timeZoneID,
+                        common: {
+                            name: 'Current Time Zone',
+                            type: 'string',
+                            role: 'value',
+                            read: true,
+                            write: false,
+                        },
+                        type: 'state',
+                        native: {
+                        }
+                    };
+                    await this.setObjectNotExistsAsync(id, positionObject);
+                }
+
+                if (this.currentTimeZone !== timeZone[0]) {
+                    this.currentTimeZone = timeZone[0];
+                    await this.setState('timeZone', this.currentTimeZone, true);
+                    this.setSystemTimeZone(timeZone[0]);
+                }
+            }
+        }
+
+        if (!this.values[id] || val !== this.values[id].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[id].ts >= this.config.updateAtLeastEveryMs) {
+            this.values[id] = { val, ts: Date.now() };
+            await this.setState(id, val, true);
+        }
+    }
+
+    setSystemTimeZone(zone) {
+        if (zone !== Intl.DateTimeFormat().resolvedOptions().timeZone && this.config.applyGpsTimeZoneToSystem) {
+            if (process.platform === 'linux') {
+                cp.exec(`timedatectl set-timezone ${zone}`, (error, stdout, stderr) => {
+                    if (error || stderr) {
+                        error && this.log.error(`timedatectl set-timezone ${zone} error: ${error}`);
+                        stderr && this.log.error(`timedatectl set-timezone ${zone} error: ${stderr}`);
+                    } else {
+                        this.log.info(`Time Zone changed to ${zone}`);
+                    }
+                });
+            } else {
+                this.log.warn('Detected new time zone via GPS, but ioBroker cannot change it on this system');
+            }
+        }
+    }
+
+    async processMagneticVariation(data, withReference) {
+        for (let r = 0; r < withReference.length; r++) {
+            const name = withReference[r];
+            const pgnObj = this.createsChannelAndStates[data.pgn];
+            const field = pgnObj.Fields.find(f => f.Name === name);
+            if (!field) {
+                continue;
+            }
+            const mId = `${this.createsChannelAndStates[data.pgn].Id}.${field.Id}True`;
+            if (!this.createsChannelAndStates[mId]) {
+                const headingObject = {
+                    _id: mId,
+                    common: {
+                        name: `${field.Name} with correction`,
+                        type: 'number',
+                        unit: '°',
+                        role: 'value.direction',
+                        read: true,
+                        write: false,
+                    },
+                    type: 'state',
+                    native: {}
+                };
+                await this.updateObject(headingObject);
+                this.createsChannelAndStates[mId] = true;
+            }
+            let val = this.values[`${this.createsChannelAndStates[data.pgn].Id}.${field.Id}`].val;
+            let referenceVal = this.values[`${this.createsChannelAndStates[data.pgn].Id}.${field.Id}Reference`];
+            if (!referenceVal) {
+                referenceVal = this.values[`${this.createsChannelAndStates[data.pgn].Id}.reference`];
+            }
+            if (referenceVal && referenceVal.val === 'Magnetic') {
+                val = val + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val;
+            }
+
+            if (!this.values[mId] || this.values[mId].val !== val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[mId].ts >= this.config.updateAtLeastEveryMs) {
+                this.values[mId] = { val, ts: Date.now() };
+                await this.setStateAsync(mId, val, true);
+            }
+        }
+    }
+
+    static nameToId(name) {
+        const parts = name.split(' ');
+        return parts.map(p => p[0].toUpperCase() + p.substring(1).toLowerCase()).join('_');
+    }
+
+    async processPressureEvent(data) {
+        // check what the type of event it is
+        if (data.fields.Source) {
+            // create the according pressure
+            const pressureId = `${this.createsChannelAndStates[data.pgn].Id}.pressure${Main.nameToId(data.fields.Source)}`;
+            if (!this.createsChannelAndStates[pressureId]) {
+                this.createsChannelAndStates[pressureId] = true;
+                const pressureObject = {
+                    _id: pressureId,
+                    common: {
+                        name: `Pressure ${data.fields.Source}`,
+                        type: 'number',
+                        unit: 'mbar',
+                        role: 'value.pressure',
+                        read: true,
+                        write: false,
+                    },
+                    type: 'state',
+                    native: {
+                    }
+                };
+                await this.updateObject(pressureObject);
+            }
+
+            this.setState(pressureId, Math.round(data.fields.Pressure / 100), true);
+        }
+    }
+
+    async processTemperatureEvent(data) {
+        // check what the type of event it is
+        if (data.fields['Temperature Source']) {
+            // create the according pressure
+            const tempId = `${this.createsChannelAndStates[data.pgn].Id}.temperature${Main.nameToId(data.fields['Temperature Source'])}`;
+            if (!this.createsChannelAndStates[tempId]) {
+                this.createsChannelAndStates[tempId] = true;
+                const tempObject = {
+                    _id: tempId,
+                    common: {
+                        name: `Temperature ${data.fields['Temperature Source']}`,
+                        type: 'number',
+                        unit: '°C',
+                        role: 'value.temperature',
+                        read: true,
+                        write: false,
+                    },
+                    type: 'state',
+                    native: {
+                    },
+                };
+                await this.updateObject(tempObject);
+            }
+
+            this.setState(tempId, Math.round((data.fields.Temperature - 273.15) * 10) / 10, true);
+        }
+    }
+
+    async processActualTemperatureEvent(data) {
+        // check what the type of event it is
+        // (data.fields['Actual Temperature'] && data.fields.Source) {
+        if (data.fields.Source) {
+            // create the according pressure
+            const tempId = `${this.createsChannelAndStates[data.pgn].Id}.actualTemperature${Main.nameToId(data.fields.Source)}`;
+            if (!this.createsChannelAndStates[tempId]) {
+                this.createsChannelAndStates[tempId] = true;
+                const tempObject = {
+                    _id: tempId,
+                    common: {
+                        name: `Temperature ${data.fields.Source}`,
+                        type: 'number',
+                        unit: '°C',
+                        role: 'value.temperature',
+                        read: true,
+                        write: false,
+                    },
+                    type: 'state',
+                    native: {
+                    },
+                };
+                await this.updateObject(tempObject);
+            }
+
+            this.setState(tempId, Math.round((data.fields['Actual Temperature'] - 273.15) * 10) / 10, true);
+        }
+    }
+
+    static nameToID(name) {
+        return name.replace(/[.\s]/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+    }
+
+    cleanAisNames() {
+        if (this.lastCleanNames && Date.now() - this.lastCleanNames < this.config.deleteAisAfter) {
+            return;
+        }
+        this.lastCleanNames = Date.now();
+        Object.keys(this.userId2Name).forEach(k => {
+            if (Date.now() - this.userId2Name[k].ts > 3600000) {
+                delete this.userId2Name[k];
+            }
+        });
+
+        // delete all AIS data older than one hour
+        setTimeout(async () => {
+            const groups = [...WELL_KNOWN_AIS_GROUPS, this.aisGroups];
+            for (let l = 0; l < groups.length; l++) {
+                const states = await this.getStatesAsync(`${this.namespace}.${groups[l]}.*`);
+                const ids = Object.keys(states);
+                for (let s = 0; s < ids.length; s++) {
+                    const val = ids[s];
+                    if (!states[ids[s]] || states[ids[s]].ts > Date.now() - this.config.deleteAisAfter * 1000) {
+                        // delete object
+                        await this.delObjectAsync(ids[s]);
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    async processAisData(data) {
+        const aisId = `${this.createsChannelAndStates[data.pgn].Id}.${Main.nameToID(data.fields['User ID'])}`;
+        if (data.field.name) {
+            this.userId2Name[data.fields['User ID']] = { name: data.field.name, ts: Date.now() };
+        }
+        if (!this.aisGroups.includes(this.createsChannelAndStates[data.pgn].Id)) {
+            this.aisGroups.push(this.createsChannelAndStates[data.pgn].Id);
+        }
+
+        this.cleanAisNames();
+
+        if (!this.createsChannelAndStates[aisId]) {
+            this.createsChannelAndStates[aisId] = true;
+            const aisObject = {
+                _id: aisId,
+                common: {
+                    name: data.fields.name || this.userId2Name[data.fields['User ID']] || '',
+                    type: 'json',
+                    role: 'value',
+                    read: true,
+                    write: false,
+                },
+                type: 'state',
+                native: {
+                }
+            };
+            await this.updateObject(aisObject);
+        }
+
+        this.setState(aisId, JSON.stringify(data.fields), true);
+    }
+
     onData = async data => {
         this.lastMessageReceived = Date.now();
 
@@ -197,349 +755,41 @@ class Main extends utils.Adapter {
             if (await this.createNmeaChannel(data.pgn, data.src)) {
                 const keys = Object.keys(data.fields);
                 const withReference = [];
-                for (let k = 0; k < keys.length; k++) {
-                    if (keys[k] === 'SID') {
-                        continue;
-                    }
-                    if (data.fields[`${keys[k]} Reference`]) {
-                        withReference.push(keys[k]);
-                    } else if (keys[k] === 'Heading' && data.fields.Reference) {
-                        withReference.push(keys[k]);
-                    }
-                    const val = data.fields[keys[k]];
-                    const options = { pgn: data.pgn, name: keys[k], value: val };
-                    const id = await this.createNmeaState(options);
-                    if (id) {
-                        if (!this.values[id] || options.value !== this.values[id].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[id].ts >= this.config.updateAtLeastEveryMs) {
-                            this.values[id] = { val: options.value, ts: Date.now() };
-                            await this.setStateAsync(id, options.value, true);
+                if (!data.fields['User ID']) {
+                    for (let k = 0; k < keys.length; k++) {
+                        if (keys[k] === 'SID') {
+                            continue;
+                        }
+                        if (data.fields[`${keys[k]} Reference`]) {
+                            withReference.push(keys[k]);
+                        } else if (keys[k] === 'Heading' && data.fields.Reference) {
+                            withReference.push(keys[k]);
+                        }
+                        const val = data.fields[keys[k]];
+                        const options = { pgn: data.pgn, name: keys[k], value: val };
+                        const id = await this.createNmeaState(options);
+                        if (id) {
+                            if (!this.values[id] || options.value !== this.values[id].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[id].ts >= this.config.updateAtLeastEveryMs) {
+                                this.values[id] = { val: options.value, ts: Date.now() };
+                                await this.setState(id, options.value, true);
+                            }
                         }
                     }
                 }
                 if (data.fields['Wind Speed'] && data.fields['Wind Angle']) {
-                    // calculate true wind speed and angle
-                    // try to find a true direction and true speed
-                    let trueCog;
-                    if (this.values['cogSogRapidUpdate.cogTrue']) {
-                        trueCog = this.values['cogSogRapidUpdate.cogTrue'].val;
-                    } else if (this.values['directionData.cogTrue']) {
-                        trueCog = this.values['directionData.cogTrue'].val;
-                    } else if (this.values['seatalkPilotHeading.headingMagneticTrue']) {
-                        trueCog = this.values['seatalkPilotHeading.headingMagneticTrue'].val;
-                    } else if (this.values['vesselHeading.headingTrue']) {
-                        trueCog = this.values['vesselHeading.headingTrue'].val;
-                    } else if (this.values['vesselHeading.headingMagnetic']) {
-                        trueCog = this.values['vesselHeading.headingMagnetic'].val;
-                    }
-                    if (trueCog !== undefined) {
-                        let trueSog;
-                        if (this.values['cogSogRapidUpdate.sog']) {
-                            trueSog = this.values['cogSogRapidUpdate.sog'].val;
-                        } else if (this.values['directionData.sog']) {
-                            trueSog = this.values['directionData.sog'].val;
-                        }
-
-                        if (trueSog !== undefined) {
-                            // convert from radian to degree
-                            const windAngle = data.fields['Wind Angle'] * 180 / Math.PI;
-                            // convert frm m/s to kn
-                            const windSpeed = data.fields['Wind Speed'] * 1.9438444924574;
-
-                            let trueWindDirectionRounded;
-                            let trueWindSpeedRounded;
-                            let apparentWindDirectionRounded;
-                            let apparentWindSpeedRounded;
-
-                            if (data.fields.Reference && data.fields.Reference.includes('Apparent')) {
-                                // const awd = (boatHeading + awa) % 360;
-                                // const u = (boatSpeed * Math.sin(boatHeading * Math.PI / 180)) - (aws * Math.sin(awd * Math.PI/180));
-                                // const v = (boatSpeed * Math.cos(boatHeading * Math.PI / 180)) - (aws * Math.cos(awd * Math.PI/180));
-                                // const tws = Math.sqrt(u * u + v * v);
-                                // const twd = Math.atan(u / v) * 180 / Math.PI;
-                                // const twd1 = twd;
-                                // if (twd < 0) {
-                                //   twd = 360+twd;
-                                // }
-                                const apparentWindDirection = (windAngle + trueCog) % 360;
-                                const u = (trueSog * Math.sin(trueCog * Math.PI / 180)) - (windSpeed * Math.sin(apparentWindDirection * Math.PI/180));
-                                const v = (trueSog * Math.cos(trueCog * Math.PI / 180)) - (windSpeed * Math.cos(apparentWindDirection * Math.PI/180));
-                                const trueWindSpeed = Math.sqrt(u * u + v * v);
-                                const trueWindDirection = v ? Math.atan(u / v) * 180 / Math.PI : 0;
-
-                                trueWindDirectionRounded = Math.round(trueWindDirection * 10) / 10;
-                                trueWindSpeedRounded = Math.round(trueWindSpeed * 100) / 100;
-                                apparentWindDirectionRounded = Math.round(apparentWindDirection * 10) / 10;
-                                apparentWindSpeedRounded = Math.round(windSpeed * 100) / 100;
-                            } else if (data.fields.Reference && data.fields.Reference.includes('Magnetic')) {
-                                trueWindSpeedRounded = windSpeed;
-                                trueWindDirectionRounded = (trueCog + windAngle + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val) % 360;
-                                apparentWindDirectionRounded = Math.round((trueCog - trueWindDirectionRounded) * 10) / 10;
-                            } else {
-                                // True
-                                trueWindSpeedRounded = windSpeed;
-                                trueWindDirectionRounded = windAngle;
-                            }
-                            const twdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionTrue`;
-                            if (!this.createsChannelAndStates[twdId]) {
-                                this.createsChannelAndStates[twdId] = true;
-                                const trueWindAngleObject = {
-                                    _id: twdId,
-                                    common: {
-                                        name: 'True Wind Direction',
-                                        type: 'number',
-                                        unit: '°',
-                                        role: 'value.direction.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(trueWindAngleObject);
-                            }
-                            const twsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedTrue`;
-                            if (!this.createsChannelAndStates[twsId]) {
-                                this.createsChannelAndStates[twsId] = true;
-                                const trueWindSpeedObject = {
-                                    _id: twsId,
-                                    common: {
-                                        name: 'True Wind Speed',
-                                        type: 'number',
-                                        unit: 'kn',
-                                        role: 'value.speed.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(trueWindSpeedObject);
-                            }
-
-                            const avwdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionAverage`;
-                            if (!this.createsChannelAndStates[avwdId]) {
-                                this.createsChannelAndStates[avwdId] = true;
-                                const averageWindAngleObject = {
-                                    _id: avwdId,
-                                    common: {
-                                        name: 'Average Wind Direction',
-                                        type: 'number',
-                                        unit: '°',
-                                        role: 'value.direction.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(averageWindAngleObject);
-                            }
-                            const avwsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedAverage`;
-                            if (!this.createsChannelAndStates[avwsId]) {
-                                this.createsChannelAndStates[avwsId] = true;
-                                const averageWindSpeedObject = {
-                                    _id: avwsId,
-                                    common: {
-                                        name: 'Average Wind Speed',
-                                        type: 'number',
-                                        unit: 'kn',
-                                        role: 'value.speed.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(averageWindSpeedObject);
-                            }
-
-                            const maxwsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedMax`;
-                            if (!this.createsChannelAndStates[maxwsId]) {
-                                this.createsChannelAndStates[maxwsId] = true;
-                                const maxWindSpeedObject = {
-                                    _id: maxwsId,
-                                    common: {
-                                        name: 'Maximal Wind Speed',
-                                        type: 'number',
-                                        unit: 'kn',
-                                        role: 'value.speed.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(maxWindSpeedObject);
-                            }
-
-                            const awdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionApparent`;
-                            if (!this.createsChannelAndStates[awdId]) {
-                                this.createsChannelAndStates[awdId] = true;
-                                const apparentWindDirectionObject = {
-                                    _id: awdId,
-                                    common: {
-                                        name: 'Apparent Wind Direction',
-                                        type: 'number',
-                                        unit: '°',
-                                        role: 'value.direction.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(apparentWindDirectionObject);
-                            }
-                            const awsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedApparent`;
-                            if (!this.createsChannelAndStates[awsId]) {
-                                this.createsChannelAndStates[awsId] = true;
-                                const apparentWindSpeedObject = {
-                                    _id: awsId,
-                                    common: {
-                                        name: 'Apparent Wind Speed',
-                                        type: 'number',
-                                        unit: 'kn',
-                                        role: 'value.speed.wind',
-                                        read: true,
-                                        write: false,
-                                    },
-                                    type: 'state',
-                                    native: {
-                                    }
-                                };
-                                await this.updateObject(apparentWindSpeedObject);
-                            }
-                            if (trueWindDirectionRounded < 0) {
-                                trueWindDirectionRounded = trueWindDirectionRounded + 360;
-                            }
-                            if (apparentWindDirectionRounded < 0) {
-                                apparentWindDirectionRounded = apparentWindDirectionRounded + 360;
-                            }
-
-                            // Calculate average and max wind speed for the last 30 seconds
-                            const now = Date.now();
-                            this.windSpeeds = this.windSpeeds || [];
-                            this.windSpeeds.push({ tws: trueWindSpeedRounded, ts: now });
-                            // Delete all entries older than 30 seconds
-                            this.windSpeeds = this.windSpeeds.filter(w => now - w.ts < 30000);
-
-                            this.windDirs = this.windDirs || [];
-                            this.windDirs.push({ twd: trueWindDirectionRounded, ts: now });
-                            // Delete all entries older than 30 seconds
-                            this.windDirs = this.windDirs.filter(w => now - w.ts < 30000);
-
-                            let sumSpeed = 0;
-                            let maxSpeed = 0;
-                            this.windSpeeds.forEach(w => {
-                                sumSpeed += w.tws;
-                                if (w.tws > maxSpeed) {
-                                    maxSpeed = w.tws;
-                                }
-                            });
-                            sumSpeed = Math.round(sumSpeed / this.windSpeeds.length * 100) / 100;
-
-                            let sumDirection = 0;
-                            this.windDirs.forEach(w => sumDirection += w.twd);
-                            sumDirection = Math.round(sumDirection / this.windDirs.length * 100) / 100;
-
-                            await this.setStateAsync(twdId, trueWindDirectionRounded, true);
-                            await this.setStateAsync(twsId, trueWindSpeedRounded, true);
-                            await this.setStateAsync(awdId, apparentWindDirectionRounded, true);
-                            await this.setStateAsync(awsId, apparentWindSpeedRounded, true);
-                            await this.setStateAsync(avwsId, sumSpeed, true);
-                            await this.setStateAsync(avwdId, sumDirection, true);
-                            await this.setStateAsync(maxwsId, maxSpeed, true);
-                        } else {
-                            // show warning only one time and only after 3 calculation rounds
-                            this.trueWindSpeedError = this.trueWindSpeedError || 0;
-                            if (this.trueWindSpeedError < 100) {
-                                this.trueWindSpeedError++;
-                            }
-                            if (this.trueWindSpeedError === 50) {
-                                this.log.warn('Could not find true wind speed');
-                            }
-                        }
-                    } else {
-                        // show warning only one time and only after 3 calculation rounds
-                        this.trueWindAngleError = this.trueWindAngleError || 0;
-                        if (this.trueWindAngleError === 50) {
-                            this.log.warn('Could not find true wind angle');
-                        }
-                        if (this.trueWindAngleError < 100) {
-                            this.trueWindAngleError++;
-                        }
-                    }
+                    await this.processWindEvent(data);
                 } else if (data.fields.Longitude && data.fields.Latitude) {
-                    const id = `${this.createsChannelAndStates[data.pgn].Id}.position`;
-                    const val = `${data.fields.Longitude};${data.fields.Latitude}`;
-                    if (!this.createsChannelAndStates[id]) {
-                        this.createsChannelAndStates[id] = true;
-                        const positionObject = {
-                            _id: id,
-                            common: {
-                                name: 'GPS Position',
-                                type: 'string',
-                                role: 'value.gps',
-                                read: true,
-                                write: false,
-                            },
-                            type: 'state',
-                            native: {
-                            }
-                        };
-                        await this.setObjectNotExistsAsync(id, positionObject);
-                    }
-
-                    if (!this.values[id] || val !== this.values[id].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[id].ts >= this.config.updateAtLeastEveryMs) {
-                        this.values[id] = { val, ts: Date.now() };
-                        await this.setStateAsync(id, val, true);
-                    }
+                    await this.processPositionEvent(data);
                 } else if (withReference.length && this.values[this.config.magneticVariation || 'magneticVariation.variation']) {
-                    for (let r = 0; r < withReference.length; r++) {
-                        const name = withReference[r];
-                        const pgnObj = this.createsChannelAndStates[data.pgn];
-                        const field = pgnObj.Fields.find(f => f.Name === name);
-                        if (!field) {
-                            continue;
-                        }
-                        const mId = `${this.createsChannelAndStates[data.pgn].Id}.${field.Id}True`;
-                        if (!this.createsChannelAndStates[mId]) {
-                            const headingObject = {
-                                _id: mId,
-                                common: {
-                                    name: `${field.Name} with correction`,
-                                    type: 'number',
-                                    unit: '°',
-                                    role: 'value.direction',
-                                    read: true,
-                                    write: false,
-                                },
-                                type: 'state',
-                                native: {}
-                            };
-                            await this.updateObject(headingObject);
-                            this.createsChannelAndStates[mId] = true;
-                        }
-                        let val = this.values[`${this.createsChannelAndStates[data.pgn].Id}.${field.Id}`].val;
-                        let referenceVal = this.values[`${this.createsChannelAndStates[data.pgn].Id}.${field.Id}Reference`];
-                        if (!referenceVal) {
-                            referenceVal = this.values[`${this.createsChannelAndStates[data.pgn].Id}.reference`];
-                        }
-                        if (referenceVal && referenceVal.val === 'Magnetic') {
-                            val = val + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val;
-                        }
-
-                        if (!this.values[mId] || this.values[mId].val !== val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[mId].ts >= this.config.updateAtLeastEveryMs) {
-                            this.values[mId] = { val, ts: Date.now() };
-                            await this.setStateAsync(mId, val, true);
-                        }
-                    }
+                    await this.processMagneticVariation(data, withReference);
+                } else if (data.fields.Pressure && data.fields.Source) {
+                    await this.processPressureEvent(data);
+                } else if (data.fields.Temperature && data.fields['Temperature Source']) {
+                    await this.processTemperatureEvent(data);
+                } else if (data.fields['Actual Temperature'] && data.fields.Source) {
+                    await this.processActualTemperatureEvent(data);
+                } else if (data.fields['User ID']) {
+                    await this.processAisData(data);
                 }
             }
         }
@@ -552,6 +802,9 @@ class Main extends utils.Adapter {
         if (this.config.updateAtLeastEveryMs === undefined) {
             this.config.updateAtLeastEveryMs = 60000;
         }
+
+        this.config.approximateMs = parseInt(this.config.approximateMs, 10) || 10000;
+        this.config.deleteAisAfter = parseInt(this.config.deleteAisAfter, 10) || 3600;
 
         await this.subscribeStatesAsync('test.rawString');
 
@@ -699,11 +952,20 @@ class Main extends utils.Adapter {
             unit = metaData.unit;
             if (metaData.radians) {
                 options.value = value * 180 / Math.PI;
-                options.value = Math.round(options.value * 10) / 10;
             } else if (metaData.meterPerSecond) {
                 options.value = value * 1.9438444924574;
-                options.value = Math.round(options.value * 100) / 100;
             }
+            if (metaData.factor) {
+                options.value = value * metaData.factor;
+            }
+            if (options.offset !== undefined) {
+                options.value += options.offset;
+            }
+            // round value to X digits
+            if (options.round !== undefined) {
+                options.value = Math.round(options.value * options.round) / options.round;
+            }
+
             if (metaData.applyMagneticVariation) {
                 if (this.values[this.config.magneticVariation || 'magneticVariation.variation']) {
                     const val = options.value + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val;

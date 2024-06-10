@@ -71,6 +71,7 @@ export const Line = props => {
         style={{
             fill,
             stroke,
+            strokeWidth: props.width || 1,
         }}
         x1={coord1.x}
         y1={coord1.y}
@@ -211,29 +212,34 @@ export const Lines = props => {
 
     const factor = props.factor || 1;
 
-    return angles.map(angle => <React.Fragment key={angle}>
-        <Line
-            x={RADIUS}
-            y={RADIUS}
-            radius={props.radius || RADIUS}
-            angle={angle}
-            factor={factor}
-            paddingCallback={props.paddingCallback}
-            color={props.color}
-        />
-        <Text
-            x={RADIUS}
-            y={RADIUS}
-            radius={props.radius || RADIUS - 10}
-            angle={angle}
-            factor={factor}
-            text={props.textCallback(angle)}
-            paddingCallback={props.paddingCallback}
-            noRotate={props.noRotateText}
-            textRotate={props.textRotate}
-            color={props.color}
-        />
-    </React.Fragment>);
+    return angles.map(angle => {
+        const specialMark = props.marks?.find(a => a.angle === angle);
+        const label = props.textCallback(angle);
+        return <React.Fragment key={angle}>
+            <Line
+                x={RADIUS}
+                y={RADIUS}
+                radius={props.radius || RADIUS}
+                angle={angle}
+                factor={factor}
+                paddingCallback={props.paddingCallback}
+                width={specialMark?.width || props.width || 1}
+                color={specialMark?.color || props.color}
+            />
+            {label ? <Text
+                x={RADIUS}
+                y={RADIUS}
+                radius={props.radius || RADIUS - 10}
+                angle={angle}
+                factor={factor}
+                text={label}
+                paddingCallback={props.paddingCallback}
+                noRotate={props.noRotateText}
+                textRotate={props.textRotate}
+                color={props.color}
+            /> : null}
+        </React.Fragment>;
+    });
 };
 
 export const CenterText = props => <SvgContainer angle={0}>
