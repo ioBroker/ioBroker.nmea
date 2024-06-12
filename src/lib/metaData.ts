@@ -1,4 +1,13 @@
-const META_DATA = {
+const META_DATA: Record<string, {
+    unit: string;
+    role?: string;
+    radians?: boolean;
+    applyMagneticVariation?: boolean;
+    round?: number;
+    factor?: number;
+    meterPerSecond?: boolean;
+    offset?: number;
+}> = {
     headingMagnetic: {
         unit: '°',
         radians: true,
@@ -173,4 +182,5 @@ const META_DATA = {
         factor: 1.9438444924574,
     },
 };
-module.exports = META_DATA;
+
+export default META_DATA;

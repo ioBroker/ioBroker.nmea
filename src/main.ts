@@ -1,14 +1,22 @@
 'use strict';
 
-const utils = require('@iobroker/adapter-core');
-const fs = require('node:fs');
-const adapterName = require('./package.json').name.split('.').pop();
-const PGNS = require('@canboat/pgns/canboat.json');
-const META_DATA = require('./lib/metaData');
-const AutoPilot = require('./lib/seaTalkAutoPilot');
-const { FromPgn } = require('@canboat/canboatjs');
-const { find } = require('geo-tz');
-const cp = require('node:child_process');
+import * as utils from '@iobroker/adapter-core';
+import fs from 'node:fs';
+import cp, { ExecException } from 'node:child_process';
+import { find } from 'geo-tz';
+import META_DATA from './lib/metaData';
+import AutoPilot from './lib/seaTalkAutoPilot';
+// @ts-expect-error no types
+import { FromPgn } from '@canboat/canboatjs';
+import {
+    PGNType, NmeaConfig,
+    GenericDriver, PgnDataEvent, PGNEntry,
+} from './types';
+
+import NGT1 from './lib/ngt1';
+import PicanM from './lib/picanM';
+
+const PGNS: PGNType = JSON.parse(fs.readFileSync(require.resolve('@canboat/pgns/canboat.json'), 'utf8'));
 
 const WELL_KNOWN_AIS_GROUPS = [
     'aisClassAPositionReport',
@@ -19,14 +27,49 @@ const WELL_KNOWN_AIS_GROUPS = [
     'aisUtcAndDateReport',
 ];
 
-class Main extends utils.Adapter {
-    /**
-     * @param {Partial<utils.AdapterOptions>} [options={}]
-     */
-    constructor(options) {
+export class NmeaAdapter extends utils.Adapter {
+    private createsChannelAndStates: Record<string, boolean> = {};
+
+    private pgn2entry: Record<number, PGNEntry> = {};
+
+    private userId2Name: Record<string, { name: string, ts: number }> = {};
+
+    private values: Record<string, { val: ioBroker.StateValue, ts: number }> = {};
+
+    private lastMessageReceived = 0;
+
+    private connectedInterval: ioBroker.Interval | null | undefined = null;
+
+    private sendEnvironmentInterval: ioBroker.Interval | null | undefined = null;
+
+    private autoPilot: AutoPilot | null = null;
+
+    private simulationsValues: Record<string, number | null> = {};
+
+    private aisGroups: string[] = [];
+
+    private parser: FromPgn;
+
+    private nmConfig: NmeaConfig;
+
+    private lastCleanNames = 0;
+
+    private nmeaDriver: GenericDriver | null = null;
+
+    private windSpeeds: { tws: number, ts: number }[] | null = null;
+
+    private windDirs: { twd: number, ts: number }[] | null = null;
+
+    private trueWindSpeedError = 0;
+
+    private trueWindAngleError = 0;
+
+    private currentTimeZone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
-            name: adapterName,
+            name: 'nmea',
         });
 
         this.on('ready', this.onReady.bind(this));
@@ -34,19 +77,25 @@ class Main extends utils.Adapter {
         this.on('message', this.onMessage.bind(this));
         this.on('unload', this.onUnload.bind(this));
 
-        this.createsChannelAndStates = {};
-        this.userId2Name = {};
-        this.values = {};
-        this.lastMessageReceived = 0;
-        this.connectedInterval = null;
-        this.sendEnvironmentInterval = null;
-        this.autoPilot = null;
-        this.simulationsValues = {};
-        this.aisGroups = [];
         this.parser = new FromPgn();
+
+        this.nmConfig = {
+            serialPort: 'COM3',
+            type: 'ngt1',
+            canPort: 'can0',
+            updateAtLeastEveryMs: 60000,
+            magneticVariation: 'magneticVariation.variation',
+            simulationEnabled: false,
+            combinedEnvironment: false,
+            simulate: [],
+            simulateAddress: 204,
+            approximateMs: 10000,
+            applyGpsTimeZoneToSystem: false,
+            deleteAisAfter: 3600
+        };
     }
 
-    sendCombinedEnvironment() {
+    sendCombinedEnvironment(): void {
         const obj = {
             dst: 255,
             prio: 2,
@@ -59,37 +108,36 @@ class Main extends utils.Adapter {
                 'Humidity': 50,
                 'Humidity Source': 'Outside',
             },
-            src: this.config.simulateAddress || 204,
+            src: this.nmConfig.simulateAddress || 204,
         };
 
-        for (let s = 0; s < this.config.simulate.length; s++) {
-            const sim = this.config.simulate[s];
+        for (let s = 0; s < this.nmConfig.simulate.length; s++) {
+            const sim = this.nmConfig.simulate[s];
             if (sim.type === 'temperature') {
                 if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                    obj.fields.Temperature = Math.round(this.simulationsValues[sim.oid] + 273.15);
+                    obj.fields.Temperature = Math.round(this.simulationsValues[sim.oid] as number + 273.15);
                     obj.fields['Temperature Source'] = sim.subType || 'Outside Temperature';
                 }
             } else if (sim.type === 'humidity') {
                 if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                    obj.fields.Humidity = this.simulationsValues[sim.oid];
+                    obj.fields.Humidity = this.simulationsValues[sim.oid] as number;
                     obj.fields['Humidity Source'] = sim.subType || 'Outside';
                 }
             } else if (sim.type === 'pressure' && sim.subType === 'Atmospheric') {
                 if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                    obj.fields['Atmospheric Pressure'] = this.simulationsValues[sim.oid];
+                    obj.fields['Atmospheric Pressure'] = this.simulationsValues[sim.oid] as number;
                 }
             }
         }
 
         console.log(`send combined${JSON.stringify(obj)}`);
 
-        this.nmeaDriver.write(obj);
+        this.nmeaDriver?.write(obj);
     }
 
-    sendTemperature(temperature, subType) {
-        const actualTemperature = 22;
+    sendTemperature(temperature: number, subType: string): void {
         // convert to Kelvin
-        const kelvin = Math.round(actualTemperature + 273.15);
+        const kelvin = Math.round(temperature + 273.15);
 
         const obj = {
             dst: 255,
@@ -103,12 +151,13 @@ class Main extends utils.Adapter {
                 'Set Temperature': 0,
                 Reserved: 0,
             },
-            src: this.config.simulateAddress || 204,
+            src: this.nmConfig.simulateAddress || 204,
         };
-        this.nmeaDriver.write(obj);
+
+        this.nmeaDriver?.write(obj);
     }
 
-    sendHumidity(humidity = 97, subType) {
+    sendHumidity(humidity = 97, subType: string): void {
         const obj = {
             dst: 255,
             prio: 2,
@@ -121,12 +170,12 @@ class Main extends utils.Adapter {
                 'Set Humidity': 0,
                 Reserved: 0,
             },
-            src: this.config.simulateAddress || 204,
+            src: this.nmConfig.simulateAddress || 204,
         };
-        this.nmeaDriver.write(obj);
+        this.nmeaDriver?.write(obj);
     }
 
-    sendPressure(pressure = 0, subType) {
+    sendPressure(pressure = 0, subType: string): void {
         const obj = {
             dst: 255,
             prio: 2,
@@ -138,24 +187,24 @@ class Main extends utils.Adapter {
                 Pressure: Math.round(pressure),
                 Reserved: 0,
             },
-            src: this.config.simulateAddress || 204,
+            src: this.nmConfig.simulateAddress || 204,
         };
-        this.nmeaDriver.write(obj);
+        this.nmeaDriver?.write(obj);
     }
 
-    async sendEnvironment() {
-        if (this.config.simulate) {
+    async sendEnvironment(): Promise<void> {
+        if (this.nmConfig.simulate) {
             let anyData = false;
-            for (let s = 0; s < this.config.simulate.length; s++) {
-                const sim = this.config.simulate[s];
+            for (let s = 0; s < this.nmConfig.simulate.length; s++) {
+                const sim = this.nmConfig.simulate[s];
                 if (!sim || !sim.oid) {
                     continue;
                 }
                 if (this.simulationsValues[sim.oid] === undefined) {
                     await this.subscribeForeignStatesAsync(sim.oid);
-                    this.simulationsValues[sim.oid] = await this.getForeignStateAsync(sim.oid);
-                    if (this.simulationsValues[sim.oid]) {
-                        this.simulationsValues[sim.oid] = this.simulationsValues[sim.oid].val;
+                    const state = await this.getForeignStateAsync(sim.oid);
+                    if (state) {
+                        this.simulationsValues[sim.oid] = state.val as number;
                     } else {
                         this.simulationsValues[sim.oid] = null;
                     }
@@ -163,18 +212,18 @@ class Main extends utils.Adapter {
 
                 this.log.debug(`Simulate [${sim.type}] ${sim.oid} = ${this.simulationsValues[sim.oid]}`);
 
-                if (!this.config.combinedEnvironment) {
+                if (!this.nmConfig.combinedEnvironment) {
                     if (sim.type === 'temperature') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                            this.sendTemperature(this.simulationsValues[sim.oid], sim.subType);
+                            this.sendTemperature(this.simulationsValues[sim.oid] as number, sim.subType);
                         }
                     } else if (sim.type === 'humidity') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                            this.sendHumidity(this.simulationsValues[sim.oid], sim.subType);
+                            this.sendHumidity(this.simulationsValues[sim.oid] as number, sim.subType);
                         }
                     } else if (sim.type === 'pressure') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                            this.sendPressure(this.simulationsValues[sim.oid], sim.subType);
+                            this.sendPressure(this.simulationsValues[sim.oid] as number, sim.subType);
                         }
                     }
                 } else if (sim.type) {
@@ -187,41 +236,54 @@ class Main extends utils.Adapter {
         }
     }
 
-    async processWindEvent(data) {
+    async writeState(id: string, val: ioBroker.StateValue): Promise<void> {
+        if (val !== undefined) {
+            if (!this.values[id] ||
+                val !== this.values[id].val ||
+                !this.nmConfig.updateAtLeastEveryMs ||
+                Date.now() - this.values[id].ts >= this.nmConfig.updateAtLeastEveryMs
+            ) {
+                this.values[id] = { val: val, ts: Date.now() };
+                await this.setState(id, val, true);
+            }
+        }
+    }
+
+    async processWindEvent(data: PgnDataEvent): Promise<void> {
         // calculate true wind speed and angle
         // try to find a true direction and true speed
-        let trueCog;
+        let trueCog: number | undefined;
         if (this.values['cogSogRapidUpdate.cogTrue']) {
-            trueCog = this.values['cogSogRapidUpdate.cogTrue'].val;
+            trueCog = this.values['cogSogRapidUpdate.cogTrue'].val as number;
         } else if (this.values['directionData.cogTrue']) {
-            trueCog = this.values['directionData.cogTrue'].val;
+            trueCog = this.values['directionData.cogTrue'].val as number;
         } else if (this.values['seatalkPilotHeading.headingMagneticTrue']) {
-            trueCog = this.values['seatalkPilotHeading.headingMagneticTrue'].val;
+            trueCog = this.values['seatalkPilotHeading.headingMagneticTrue'].val as number;
         } else if (this.values['vesselHeading.headingTrue']) {
-            trueCog = this.values['vesselHeading.headingTrue'].val;
+            trueCog = this.values['vesselHeading.headingTrue'].val as number;
         } else if (this.values['vesselHeading.headingMagnetic']) {
-            trueCog = this.values['vesselHeading.headingMagnetic'].val;
+            trueCog = this.values['vesselHeading.headingMagnetic'].val as number;
         }
         if (trueCog !== undefined) {
-            let trueSog;
+            let trueSog: number | undefined;
             if (this.values['cogSogRapidUpdate.sog']) {
-                trueSog = this.values['cogSogRapidUpdate.sog'].val;
+                trueSog = this.values['cogSogRapidUpdate.sog'].val as number;
             } else if (this.values['directionData.sog']) {
-                trueSog = this.values['directionData.sog'].val;
+                trueSog = this.values['directionData.sog'].val as number;
             }
 
             if (trueSog !== undefined) {
                 // convert from radian to degree
-                const windAngle = data.fields['Wind Angle'] * 180 / Math.PI;
+                const windAngle: number = data.fields['Wind Angle'] * 180 / Math.PI;
                 // convert frm m/s to kn
-                const windSpeed = data.fields['Wind Speed'] * 1.9438444924574;
+                const windSpeed: number = data.fields['Wind Speed'] * 1.9438444924574;
 
-                let trueWindDirectionRounded;
-                let trueWindSpeedRounded;
-                let apparentWindDirectionRounded;
-                let apparentWindSpeedRounded;
+                let trueWindDirectionRounded: number;
+                let trueWindSpeedRounded: number;
+                let apparentWindDirectionRounded: number;
+                let apparentWindSpeedRounded: number;
 
-                if (data.fields.Reference && data.fields.Reference.includes('Apparent')) {
+                if (data.fields.Reference?.includes('Apparent')) {
                     // const awd = (boatHeading + awa) % 360;
                     // const u = (boatSpeed * Math.sin(boatHeading * Math.PI / 180)) - (aws * Math.sin(awd * Math.PI/180));
                     // const v = (boatSpeed * Math.cos(boatHeading * Math.PI / 180)) - (aws * Math.cos(awd * Math.PI/180));
@@ -243,17 +305,25 @@ class Main extends utils.Adapter {
                     apparentWindSpeedRounded = Math.round(windSpeed * 100) / 100;
                 } else if (data.fields.Reference && data.fields.Reference.includes('Magnetic')) {
                     trueWindSpeedRounded = windSpeed;
-                    trueWindDirectionRounded = (trueCog + windAngle + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val) % 360;
+                    trueWindDirectionRounded = (trueCog + windAngle + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number)) % 360;
                     apparentWindDirectionRounded = Math.round((trueCog - trueWindDirectionRounded) * 10) / 10;
+                    // TODO!!
+                    apparentWindSpeedRounded = 0;
                 } else {
                     // True
                     trueWindSpeedRounded = windSpeed;
                     trueWindDirectionRounded = windAngle;
+                    apparentWindSpeedRounded = windSpeed;
+                    // TODO!!
+                    apparentWindDirectionRounded = 0;
+                    apparentWindSpeedRounded = 0;
                 }
-                const twdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionTrue`;
+
+                const twdId = `${this.pgn2entry[data.pgn].Id}.windDirectionTrue`;
+
                 if (!this.createsChannelAndStates[twdId]) {
                     this.createsChannelAndStates[twdId] = true;
-                    const trueWindAngleObject = {
+                    const trueWindAngleObject: ioBroker.StateObject = {
                         _id: twdId,
                         common: {
                             name: 'True Wind Direction',
@@ -269,10 +339,11 @@ class Main extends utils.Adapter {
                     };
                     await this.updateObject(trueWindAngleObject);
                 }
-                const twsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedTrue`;
+
+                const twsId = `${this.pgn2entry[data.pgn].Id}.windSpeedTrue`;
                 if (!this.createsChannelAndStates[twsId]) {
                     this.createsChannelAndStates[twsId] = true;
-                    const trueWindSpeedObject = {
+                    const trueWindSpeedObject: ioBroker.StateObject = {
                         _id: twsId,
                         common: {
                             name: 'True Wind Speed',
@@ -289,10 +360,10 @@ class Main extends utils.Adapter {
                     await this.updateObject(trueWindSpeedObject);
                 }
 
-                const avwdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionAverage`;
+                const avwdId = `${this.pgn2entry[data.pgn].Id}.windDirectionAverage`;
                 if (!this.createsChannelAndStates[avwdId]) {
                     this.createsChannelAndStates[avwdId] = true;
-                    const averageWindAngleObject = {
+                    const averageWindAngleObject: ioBroker.StateObject = {
                         _id: avwdId,
                         common: {
                             name: 'Average Wind Direction',
@@ -308,10 +379,11 @@ class Main extends utils.Adapter {
                     };
                     await this.updateObject(averageWindAngleObject);
                 }
-                const avwsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedAverage`;
+
+                const avwsId = `${this.pgn2entry[data.pgn].Id}.windSpeedAverage`;
                 if (!this.createsChannelAndStates[avwsId]) {
                     this.createsChannelAndStates[avwsId] = true;
-                    const averageWindSpeedObject = {
+                    const averageWindSpeedObject: ioBroker.StateObject = {
                         _id: avwsId,
                         common: {
                             name: 'Average Wind Speed',
@@ -328,10 +400,10 @@ class Main extends utils.Adapter {
                     await this.updateObject(averageWindSpeedObject);
                 }
 
-                const maxwsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedMax`;
+                const maxwsId = `${this.pgn2entry[data.pgn].Id}.windSpeedMax`;
                 if (!this.createsChannelAndStates[maxwsId]) {
                     this.createsChannelAndStates[maxwsId] = true;
-                    const maxWindSpeedObject = {
+                    const maxWindSpeedObject: ioBroker.StateObject = {
                         _id: maxwsId,
                         common: {
                             name: 'Maximal Wind Speed',
@@ -348,10 +420,10 @@ class Main extends utils.Adapter {
                     await this.updateObject(maxWindSpeedObject);
                 }
 
-                const awdId = `${this.createsChannelAndStates[data.pgn].Id}.windDirectionApparent`;
+                const awdId = `${this.pgn2entry[data.pgn].Id}.windDirectionApparent`;
                 if (!this.createsChannelAndStates[awdId]) {
                     this.createsChannelAndStates[awdId] = true;
-                    const apparentWindDirectionObject = {
+                    const apparentWindDirectionObject: ioBroker.StateObject = {
                         _id: awdId,
                         common: {
                             name: 'Apparent Wind Direction',
@@ -367,10 +439,11 @@ class Main extends utils.Adapter {
                     };
                     await this.updateObject(apparentWindDirectionObject);
                 }
-                const awsId = `${this.createsChannelAndStates[data.pgn].Id}.windSpeedApparent`;
+
+                const awsId = `${this.pgn2entry[data.pgn].Id}.windSpeedApparent`;
                 if (!this.createsChannelAndStates[awsId]) {
                     this.createsChannelAndStates[awsId] = true;
-                    const apparentWindSpeedObject = {
+                    const apparentWindSpeedObject: ioBroker.StateObject = {
                         _id: awsId,
                         common: {
                             name: 'Apparent Wind Speed',
@@ -386,6 +459,7 @@ class Main extends utils.Adapter {
                     };
                     await this.updateObject(apparentWindSpeedObject);
                 }
+
                 if (trueWindDirectionRounded < 0) {
                     trueWindDirectionRounded = trueWindDirectionRounded + 360;
                 }
@@ -398,12 +472,12 @@ class Main extends utils.Adapter {
                 this.windSpeeds = this.windSpeeds || [];
                 this.windSpeeds.push({ tws: trueWindSpeedRounded, ts: now });
                 // Delete all entries older than X seconds
-                this.windSpeeds = this.windSpeeds.filter(w => now - w.ts < this.config.approximateMs);
+                this.windSpeeds = this.windSpeeds.filter(w => now - w.ts < this.nmConfig.approximateMs);
 
                 this.windDirs = this.windDirs || [];
                 this.windDirs.push({ twd: trueWindDirectionRounded, ts: now });
                 // Delete all entries older than X seconds
-                this.windDirs = this.windDirs.filter(w => now - w.ts < this.config.approximateMs);
+                this.windDirs = this.windDirs.filter(w => now - w.ts < this.nmConfig.approximateMs);
 
                 let sumSpeed = 0;
                 let maxSpeed = 0;
@@ -419,27 +493,14 @@ class Main extends utils.Adapter {
                 this.windDirs.forEach(w => sumDirection += w.twd);
                 sumDirection = Math.round(sumDirection / this.windDirs.length * 100) / 100;
 
-                if (trueWindDirectionRounded !== undefined) {
-                    await this.setStateAsync(twdId, trueWindDirectionRounded, true);
-                }
-                if (trueWindSpeedRounded !== undefined) {
-                    await this.setStateAsync(twsId, trueWindSpeedRounded, true);
-                }
-                if (apparentWindDirectionRounded !== undefined) {
-                    await this.setStateAsync(awdId, apparentWindDirectionRounded, true);
-                }
-                if (apparentWindSpeedRounded !== undefined) {
-                    await this.setStateAsync(awsId, apparentWindSpeedRounded, true);
-                }
-                if (sumSpeed !== undefined) {
-                    await this.setStateAsync(avwsId, sumSpeed, true);
-                }
-                if (sumDirection !== undefined) {
-                    await this.setStateAsync(avwdId, sumDirection, true);
-                }
-                if (maxSpeed !== undefined) {
-                    await this.setStateAsync(maxwsId, maxSpeed, true);
-                }
+                await this.writeState(twdId, trueWindDirectionRounded);
+                await this.writeState(twsId, trueWindSpeedRounded);
+                // if the reference is True, we do not calculate the apparent wind
+                await this.writeState(avwdId, apparentWindDirectionRounded);
+                await this.writeState(avwsId, apparentWindSpeedRounded);
+                await this.writeState(maxwsId, maxSpeed);
+                await this.writeState(awdId, sumDirection);
+                await this.writeState(awsId, sumSpeed);
             } else {
                 // show warning only one time and only after 3 calculation rounds
                 this.trueWindSpeedError = this.trueWindSpeedError || 0;
@@ -462,12 +523,12 @@ class Main extends utils.Adapter {
         }
     }
 
-    async processPositionEvent(data) {
-        const id = `${this.createsChannelAndStates[data.pgn].Id}.position`;
+    async processPositionEvent(data: PgnDataEvent): Promise<void> {
+        const id = `${this.pgn2entry[data.pgn].Id}.position`;
         const val = `${data.fields.Longitude};${data.fields.Latitude}`;
         if (!this.createsChannelAndStates[id]) {
             this.createsChannelAndStates[id] = true;
-            const positionObject = {
+            const positionObject: ioBroker.StateObject = {
                 _id: id,
                 common: {
                     name: 'GPS Position',
@@ -486,10 +547,10 @@ class Main extends utils.Adapter {
             // detect time zone
             const timeZone = find(data.fields.Latitude, data.fields.Longitude);  // ['America/Los_Angeles']
             if (timeZone && timeZone[0]) {
-                const timeZoneID = `${this.createsChannelAndStates[data.pgn].Id}.timeZone`;
+                const timeZoneID = `${this.pgn2entry[data.pgn].Id}.timeZone`;
                 if (!this.createsChannelAndStates[timeZoneID]) {
                     this.createsChannelAndStates[timeZoneID] = true;
-                    const positionObject = {
+                    const positionObject: ioBroker.StateObject = {
                         _id: timeZoneID,
                         common: {
                             name: 'Current Time Zone',
@@ -513,14 +574,11 @@ class Main extends utils.Adapter {
             }
         }
 
-        if (!this.values[id] || val !== this.values[id].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[id].ts >= this.config.updateAtLeastEveryMs) {
-            this.values[id] = { val, ts: Date.now() };
-            await this.setState(id, val, true);
-        }
+        await this.writeState(id, val);
     }
 
-    setSystemTimeZone(zone) {
-        if (zone !== Intl.DateTimeFormat().resolvedOptions().timeZone && this.config.applyGpsTimeZoneToSystem) {
+    setSystemTimeZone(zone: string): void {
+        if (zone !== Intl.DateTimeFormat().resolvedOptions().timeZone && this.nmConfig.applyGpsTimeZoneToSystem) {
             if (process.platform === 'linux') {
                 cp.exec(`timedatectl set-timezone ${zone}`, (error, stdout, stderr) => {
                     if (error || stderr) {
@@ -536,17 +594,17 @@ class Main extends utils.Adapter {
         }
     }
 
-    async processMagneticVariation(data, withReference) {
+    async processMagneticVariation(data: PgnDataEvent, withReference: string[]): Promise<void> {
         for (let r = 0; r < withReference.length; r++) {
             const name = withReference[r];
-            const pgnObj = this.createsChannelAndStates[data.pgn];
-            const field = pgnObj.Fields.find(f => f.Name === name);
+            const pgnObj = this.pgn2entry[data.pgn];
+            const field = pgnObj?.Fields.find(f => f.Name === name);
             if (!field) {
                 continue;
             }
-            const mId = `${this.createsChannelAndStates[data.pgn].Id}.${field.Id}True`;
+            const mId = `${this.pgn2entry[data.pgn].Id}.${field.Id}True`;
             if (!this.createsChannelAndStates[mId]) {
-                const headingObject = {
+                const headingObject: ioBroker.StateObject = {
                     _id: mId,
                     common: {
                         name: `${field.Name} with correction`,
@@ -562,35 +620,31 @@ class Main extends utils.Adapter {
                 await this.updateObject(headingObject);
                 this.createsChannelAndStates[mId] = true;
             }
-            let val = this.values[`${this.createsChannelAndStates[data.pgn].Id}.${field.Id}`].val;
-            let referenceVal = this.values[`${this.createsChannelAndStates[data.pgn].Id}.${field.Id}Reference`];
+            let val: number = this.values[`${this.pgn2entry[data.pgn].Id}.${field.Id}`].val as number;
+            let referenceVal = this.values[`${this.pgn2entry[data.pgn].Id}.${field.Id}Reference`];
             if (!referenceVal) {
-                referenceVal = this.values[`${this.createsChannelAndStates[data.pgn].Id}.reference`];
+                referenceVal = this.values[`${this.pgn2entry[data.pgn].Id}.reference`];
             }
             if (referenceVal && referenceVal.val === 'Magnetic') {
-                val = val + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val;
+                val = val + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number);
             }
-
-            if (!this.values[mId] || this.values[mId].val !== val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[mId].ts >= this.config.updateAtLeastEveryMs) {
-                this.values[mId] = { val, ts: Date.now() };
-                await this.setStateAsync(mId, val, true);
-            }
+            await this.writeState(mId, val);
         }
     }
 
-    static nameToId(name) {
+    static nameToId(name: string): string {
         const parts = name.split(' ');
         return parts.map(p => p[0].toUpperCase() + p.substring(1).toLowerCase()).join('_');
     }
 
-    async processPressureEvent(data) {
+    async processPressureEvent(data: PgnDataEvent): Promise<void> {
         // check what the type of event it is
         if (data.fields.Source) {
             // create the according pressure
-            const pressureId = `${this.createsChannelAndStates[data.pgn].Id}.pressure${Main.nameToId(data.fields.Source)}`;
+            const pressureId = `${this.pgn2entry[data.pgn].Id}.pressure${NmeaAdapter.nameToId(data.fields.Source)}`;
             if (!this.createsChannelAndStates[pressureId]) {
                 this.createsChannelAndStates[pressureId] = true;
-                const pressureObject = {
+                const pressureObject: ioBroker.StateObject = {
                     _id: pressureId,
                     common: {
                         name: `Pressure ${data.fields.Source}`,
@@ -607,18 +661,18 @@ class Main extends utils.Adapter {
                 await this.updateObject(pressureObject);
             }
 
-            this.setState(pressureId, Math.round(data.fields.Pressure / 100), true);
+            await this.setState(pressureId, Math.round(data.fields.Pressure / 100), true);
         }
     }
 
-    async processTemperatureEvent(data) {
+    async processTemperatureEvent(data: PgnDataEvent): Promise<void> {
         // check what the type of event it is
         if (data.fields['Temperature Source']) {
             // create the according pressure
-            const tempId = `${this.createsChannelAndStates[data.pgn].Id}.temperature${Main.nameToId(data.fields['Temperature Source'])}`;
+            const tempId = `${this.pgn2entry[data.pgn].Id}.temperature${NmeaAdapter.nameToId(data.fields['Temperature Source'])}`;
             if (!this.createsChannelAndStates[tempId]) {
                 this.createsChannelAndStates[tempId] = true;
-                const tempObject = {
+                const tempObject: ioBroker.StateObject = {
                     _id: tempId,
                     common: {
                         name: `Temperature ${data.fields['Temperature Source']}`,
@@ -635,19 +689,19 @@ class Main extends utils.Adapter {
                 await this.updateObject(tempObject);
             }
 
-            this.setState(tempId, Math.round((data.fields.Temperature - 273.15) * 10) / 10, true);
+            await this.setState(tempId, Math.round((data.fields.Temperature - 273.15) * 10) / 10, true);
         }
     }
 
-    async processActualTemperatureEvent(data) {
+    async processActualTemperatureEvent(data: PgnDataEvent): Promise<void> {
         // check what the type of event it is
         // (data.fields['Actual Temperature'] && data.fields.Source) {
         if (data.fields.Source) {
             // create the according pressure
-            const tempId = `${this.createsChannelAndStates[data.pgn].Id}.actualTemperature${Main.nameToId(data.fields.Source)}`;
+            const tempId = `${this.pgn2entry[data.pgn].Id}.actualTemperature${NmeaAdapter.nameToId(data.fields.Source)}`;
             if (!this.createsChannelAndStates[tempId]) {
                 this.createsChannelAndStates[tempId] = true;
-                const tempObject = {
+                const tempObject: ioBroker.StateObject = {
                     _id: tempId,
                     common: {
                         name: `Temperature ${data.fields.Source}`,
@@ -664,16 +718,16 @@ class Main extends utils.Adapter {
                 await this.updateObject(tempObject);
             }
 
-            this.setState(tempId, Math.round((data.fields['Actual Temperature'] - 273.15) * 10) / 10, true);
+            await this.setState(tempId, Math.round((data.fields['Actual Temperature'] - 273.15) * 10) / 10, true);
         }
     }
 
-    static nameToID(name) {
+    static nameToID(name: string): string {
         return name.replace(/[.\s]/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
     }
 
-    cleanAisNames() {
-        if (this.lastCleanNames && Date.now() - this.lastCleanNames < this.config.deleteAisAfter) {
+    cleanAisNames(): void {
+        if (this.lastCleanNames && Date.now() - this.lastCleanNames < this.nmConfig.deleteAisAfter) {
             return;
         }
         this.lastCleanNames = Date.now();
@@ -684,40 +738,40 @@ class Main extends utils.Adapter {
         });
 
         // delete all AIS data older than one hour
-        setTimeout(async () => {
+        setTimeout(async(): Promise<void> => {
             const groups = [...WELL_KNOWN_AIS_GROUPS, this.aisGroups];
             for (let l = 0; l < groups.length; l++) {
                 const states = await this.getStatesAsync(`${this.namespace}.${groups[l]}.*`);
                 const ids = Object.keys(states);
                 for (let s = 0; s < ids.length; s++) {
-                    const val = ids[s];
-                    if (!states[ids[s]] || states[ids[s]].ts > Date.now() - this.config.deleteAisAfter * 1000) {
+                    const id = ids[s];
+                    if (!states[id] || states[id].ts > Date.now() - this.nmConfig.deleteAisAfter * 1000) {
                         // delete object
-                        await this.delObjectAsync(ids[s]);
+                        await this.delObjectAsync(id);
                     }
                 }
             }
         }, 1000);
     }
 
-    async processAisData(data) {
-        const aisId = `${this.createsChannelAndStates[data.pgn].Id}.${Main.nameToID(data.fields['User ID'])}`;
-        if (data.field.name) {
-            this.userId2Name[data.fields['User ID']] = { name: data.field.name, ts: Date.now() };
+    async processAisData(data: PgnDataEvent): Promise<void> {
+        const aisId = `${this.pgn2entry[data.pgn].Id}.${data.fields['User ID']}`;
+        if (data.fields.Name) {
+            this.userId2Name[data.fields['User ID']] = { name: data.fields.Name as string, ts: Date.now() };
         }
-        if (!this.aisGroups.includes(this.createsChannelAndStates[data.pgn].Id)) {
-            this.aisGroups.push(this.createsChannelAndStates[data.pgn].Id);
+        if (!this.aisGroups.includes(this.pgn2entry[data.pgn].Id)) {
+            this.aisGroups.push(this.pgn2entry[data.pgn].Id);
         }
 
         this.cleanAisNames();
 
         if (!this.createsChannelAndStates[aisId]) {
             this.createsChannelAndStates[aisId] = true;
-            const aisObject = {
+            const aisObject: ioBroker.StateObject = {
                 _id: aisId,
                 common: {
-                    name: data.fields.name || this.userId2Name[data.fields['User ID']] || '',
-                    type: 'json',
+                    name: data.fields.Name as string || this.userId2Name[data.fields['User ID']]?.name || '',
+                    type: 'object',
                     role: 'value',
                     read: true,
                     write: false,
@@ -729,24 +783,29 @@ class Main extends utils.Adapter {
             await this.updateObject(aisObject);
         }
 
-        this.setState(aisId, JSON.stringify(data.fields), true);
+        if (data.fields.SID) {
+            // @ts-expect-error no idea why this is not working
+            delete data.fields.SID;
+        }
+
+        await this.setState(aisId, JSON.stringify(data.fields), true);
     }
 
-    onData = async data => {
+    onData = async(data: PgnDataEvent): Promise<void> => {
         this.lastMessageReceived = Date.now();
 
         if (!this.connectedInterval) {
-            this.setState('info.connection', true, true);
-            this.connectedInterval = this.setInterval(() => {
+            await this.setState('info.connection', true, true);
+            this.connectedInterval = this.setInterval(async() => {
                 if (!this.lastMessageReceived || Date.now() - this.lastMessageReceived >= 10000) {
-                    this.setState('info.connection', false, true);
+                    await this.setState('info.connection', false, true);
                     this.clearInterval(this.connectedInterval);
                     this.connectedInterval = null;
                     this.sendEnvironmentInterval && this.clearInterval(this.sendEnvironmentInterval);
                     this.sendEnvironmentInterval = null;
                 }
             }, 5000);
-            if (this.config.simulationEnabled) {
+            if (this.nmConfig.simulationEnabled) {
                 this.sendEnvironmentInterval = this.setInterval(() => this.sendEnvironment(), 1000);
             }
         }
@@ -754,7 +813,7 @@ class Main extends utils.Adapter {
         if (data.pgn && data.fields) {
             if (await this.createNmeaChannel(data.pgn, data.src)) {
                 const keys = Object.keys(data.fields);
-                const withReference = [];
+                const withReference: string[] = [];
                 if (!data.fields['User ID']) {
                     for (let k = 0; k < keys.length; k++) {
                         if (keys[k] === 'SID') {
@@ -769,10 +828,7 @@ class Main extends utils.Adapter {
                         const options = { pgn: data.pgn, name: keys[k], value: val };
                         const id = await this.createNmeaState(options);
                         if (id) {
-                            if (!this.values[id] || options.value !== this.values[id].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[id].ts >= this.config.updateAtLeastEveryMs) {
-                                this.values[id] = { val: options.value, ts: Date.now() };
-                                await this.setState(id, options.value, true);
-                            }
+                            await this.writeState(id, options.value);
                         }
                     }
                 }
@@ -780,7 +836,7 @@ class Main extends utils.Adapter {
                     await this.processWindEvent(data);
                 } else if (data.fields.Longitude && data.fields.Latitude) {
                     await this.processPositionEvent(data);
-                } else if (withReference.length && this.values[this.config.magneticVariation || 'magneticVariation.variation']) {
+                } else if (withReference.length && this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation']) {
                     await this.processMagneticVariation(data, withReference);
                 } else if (data.fields.Pressure && data.fields.Source) {
                     await this.processPressureEvent(data);
@@ -793,39 +849,42 @@ class Main extends utils.Adapter {
                 }
             }
         }
-    }
+    };
 
-    async onReady() {
-        if ((await this.getStateAsync('info.connection')).val) {
-            await this.setStateAsync('info.connection', false, true);
+    async onReady(): Promise<void> {
+        this.nmConfig = this.config as NmeaConfig;
+
+        const connectionState = await this.getStateAsync('info.connection');
+        if (connectionState?.val) {
+            await this.setState('info.connection', false, true);
         }
-        if (this.config.updateAtLeastEveryMs === undefined) {
-            this.config.updateAtLeastEveryMs = 60000;
+        if (this.nmConfig.updateAtLeastEveryMs === undefined) {
+            this.nmConfig.updateAtLeastEveryMs = 60000;
         }
 
-        this.config.approximateMs = parseInt(this.config.approximateMs, 10) || 10000;
-        this.config.deleteAisAfter = parseInt(this.config.deleteAisAfter, 10) || 3600;
+        this.nmConfig.approximateMs = parseInt(this.nmConfig.approximateMs as any as string, 10) || 10000;
+        this.nmConfig.deleteAisAfter = parseInt(this.nmConfig.deleteAisAfter as any as string, 10) || 3600;
 
         await this.subscribeStatesAsync('test.rawString');
 
-        if (this.config.type === 'ngt1') {
-            this.nmeaDriver = new (require('./lib/ngt1'))(this, this.config, this.onData);
-        } else if (this.config.type === 'picanm') {
-            this.nmeaDriver = new (require('./lib/picanM'))(this, this.config, this.onData);
+        if (this.nmConfig.type === 'ngt1') {
+            this.nmeaDriver = new NGT1(this, this.nmConfig, this.onData);
+        } else if (this.nmConfig.type === 'picanm') {
+            this.nmeaDriver = new PicanM(this, this.nmConfig, this.onData);
         } else {
-            this.log.error(`Unknown driver type: ${this.config.type}`);
+            this.log.error(`Unknown driver type: ${this.nmConfig.type}`);
             return;
         }
 
-        this.nmeaDriver.start();
+        this.nmeaDriver?.start();
     }
 
-    async createNmeaChannel(pgn, srcAddress) {
-        if (this.createsChannelAndStates[pgn]) {
-            return this.createsChannelAndStates[pgn];
+    async createNmeaChannel(pgn: number, srcAddress: number): Promise<boolean> {
+        if (this.pgn2entry[pgn]) {
+            return true;
         }
 
-        const obj = PGNS.PGNs.find(p => p.PGN === pgn);
+        const obj: PGNEntry | undefined = PGNS.PGNs.find(p => p.PGN === pgn);
         if (obj) {
             await this.setObjectNotExistsAsync(obj.Id, {
                 common: {
@@ -839,22 +898,23 @@ class Main extends utils.Adapter {
                     transmissionIrregular: obj.TransmissionIrregular,
                 },
             });
-            this.createsChannelAndStates[pgn] = obj;
+            this.pgn2entry[pgn] = obj;
 
             // if seatalk1PilotMode
-            if (pgn === 126720) {
-                this.autoPilot = new AutoPilot(this, this.config, this.nmeaDriver, srcAddress);
+            if (pgn === 126720 && this.nmeaDriver) {
+                this.autoPilot = new AutoPilot(this, this.nmConfig, this.nmeaDriver, srcAddress, this.values);
             }
-        } else {
-            this.log.warn(`Unknown pgn: ${pgn}`);
-            return false;
+            return true;
         }
+
+        this.log.warn(`Unknown pgn: ${pgn}`);
+        return false;
     }
 
-    async updateObject(stateObj) {
-        let existingObject;
+    async updateObject(stateObj: ioBroker.StateObject): Promise<void> {
+        let existingObject: ioBroker.StateObject | undefined;
         try {
-            existingObject = await this.getObjectAsync(stateObj._id);
+            existingObject = (await this.getObjectAsync(stateObj._id)) as ioBroker.StateObject;
         } catch (e) {
             // ignore
         }
@@ -862,8 +922,8 @@ class Main extends utils.Adapter {
             // try to update all settings
             let changed = false;
             Object.keys(stateObj.common).forEach(attr => {
-                if (JSON.stringify(stateObj.common[attr]) !== JSON.stringify(existingObject.common[attr])) {
-                    existingObject.common[attr] = stateObj.common[attr];
+                if (JSON.stringify((stateObj.common as Record<string, any>)[attr]) !== JSON.stringify((existingObject.common as Record<string, any>)[attr])) {
+                    (existingObject.common as Record<string, any>)[attr] = (stateObj.common as Record<string, any>)[attr];
                     changed = true;
                 }
             });
@@ -875,21 +935,20 @@ class Main extends utils.Adapter {
         }
     }
 
-    async createNmeaState(options) {
+    async createNmeaState(options: { pgn: number, name: string, value: number | string }): Promise<string | false> {
         const { pgn, name, value } = options;
-        const pgnObj = this.createsChannelAndStates[pgn];
+        const pgnObj = this.pgn2entry[pgn];
         const field = pgnObj.Fields.find(f => f.Name === name);
         let id;
         let states;
         let role;
-        let commonType;
+        let commonType: ioBroker.CommonType | undefined;
         let unit;
         if (!field) {
             id = `${pgnObj.Id}.${name}`;
-            commonType = typeof value;
+            commonType = typeof value as ioBroker.CommonType;
             if (commonType === 'object') {
                 options.value = JSON.stringify(value);
-                commonType = 'json';
             }
         } else {
             id = `${pgnObj.Id}.${field.Id}`;
@@ -898,8 +957,7 @@ class Main extends utils.Adapter {
         if (field) {
             if (field.FieldType === 'STRING_FIX' || field.FieldType === 'STRING_LAU') {
                 commonType = 'string';
-            } else
-            if (field.FieldType === 'LOOKUP' && field.LookupEnumeration) {
+            } else if (field.FieldType === 'LOOKUP' && field.LookupEnumeration) {
                 commonType = 'string';
                 const lookUp = PGNS.LookupEnumerations.find(l => l.Name === field.LookupEnumeration);
                 if (lookUp) {
@@ -924,10 +982,10 @@ class Main extends utils.Adapter {
                 commonType = 'number';
                 role = 'value';
             } else if (field.FieldType === 'BINARY') {
-                commonType = typeof value;
+                commonType = typeof value as ioBroker.CommonType;
                 role = 'value';
             } else if (field.FieldType === 'SPARE') {
-                commonType = typeof value;
+                commonType = typeof value as ioBroker.CommonType;
                 role = 'value';
             } else if (field.FieldType === 'RESERVED') {
                 // skip
@@ -941,37 +999,38 @@ class Main extends utils.Adapter {
             commonType = 'string';
         }
 
-        // try to find meta data
+        // try to find meta-data
         let metaData = META_DATA[id];
         if (!metaData) {
-            const fieldId = id.split('.').pop();
+            const fieldId: string = id.split('.').pop() as string;
             metaData = META_DATA[fieldId];
         }
         if (metaData) {
             role = metaData.role || role;
             unit = metaData.unit;
+            const valueNum = parseFloat(value as string);
             if (metaData.radians) {
-                options.value = value * 180 / Math.PI;
+                options.value = valueNum * 180 / Math.PI;
             } else if (metaData.meterPerSecond) {
-                options.value = value * 1.9438444924574;
+                options.value = valueNum * 1.9438444924574;
             }
             if (metaData.factor) {
-                options.value = value * metaData.factor;
+                options.value = options.value as number * metaData.factor;
             }
-            if (options.offset !== undefined) {
-                options.value += options.offset;
+            if (metaData.offset !== undefined) {
+                options.value = options.value as number + metaData.offset;
             }
             // round value to X digits
-            if (options.round !== undefined) {
-                options.value = Math.round(options.value * options.round) / options.round;
+            if (metaData.round !== undefined) {
+                options.value = Math.round(options.value as number * metaData.round) / metaData.round;
             }
 
             if (metaData.applyMagneticVariation) {
-                if (this.values[this.config.magneticVariation || 'magneticVariation.variation']) {
-                    const val = options.value + this.values[this.config.magneticVariation || 'magneticVariation.variation'].val;
+                if (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation']) {
+                    const val = options.value as number + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number);
                     // create state with magnetic variation
-                    let mId = `${id}True`;
-                    const stateObj = {
+                    const mId = `${id}True`;
+                    const stateObj: ioBroker.StateObject = {
                         _id: mId,
                         common: {
                             name: `${field ? field.Name : name} with magnetic variation`,
@@ -983,13 +1042,12 @@ class Main extends utils.Adapter {
                         },
                         type: 'state',
                         native: {
-                        }
-                    }
+                        },
+                    };
+
                     await this.updateObject(stateObj);
-                    if (!this.values[mId] || val !== this.values[mId].val || !this.config.updateAtLeastEveryMs || Date.now() - this.values[mId].ts >= this.config.updateAtLeastEveryMs) {
-                        this.values[mId] = { val, ts: Date.now() };
-                        await this.setStateAsync(mId, val, true);
-                    }
+
+                    await this.writeState(mId, val);
                 }
             }
         }
@@ -1002,7 +1060,7 @@ class Main extends utils.Adapter {
             return id;
         }
 
-        const stateObj = {
+        const stateObj: ioBroker.StateObject = {
             _id: id,
             common: {
                 name: field ? field.Name : name,
@@ -1015,7 +1073,7 @@ class Main extends utils.Adapter {
             type: 'state',
             native: {
             }
-        }
+        };
         if (unit) {
             stateObj.common.unit = unit;
         }
@@ -1024,7 +1082,7 @@ class Main extends utils.Adapter {
         }
         if (states) {
             stateObj.native.states = states;
-            const texts = {};
+            const texts: Record<string, string> = {};
             Object.keys(states).forEach(s => texts[states[s]] = states[s]);
             stateObj.common.states = texts;
         }
@@ -1033,12 +1091,8 @@ class Main extends utils.Adapter {
         return id;
     }
 
-    /**
-     * @param {string} id
-     * @param {ioBroker.State | null | undefined} state
-     */
-    async onStateChange(id, state) {
-        if (id.endsWith('.test.rawString') && !state.ack && state.val && typeof state.val === 'string') {
+    async onStateChange(id: string, state?: ioBroker.State | null): Promise<void> {
+        if (id.endsWith('.test.rawString') && state?.val && !state.ack && typeof state.val === 'string') {
             let lines = [];
             if (state.val.endsWith('.txt')) {
                 if (fs.existsSync(`${__dirname}/test/${state.val}`)) {
@@ -1065,20 +1119,17 @@ class Main extends utils.Adapter {
                 }
             }
         }
-        if (this.config.simulate) {
-            for (let s = 0; s < this.config.simulate.length; s++) {
-                if (this.config.simulate[s].oid === id) {
-                    this.simulationsValues[id] = state ? state.val : null;
+        if (this.nmConfig.simulate) {
+            for (let s = 0; s < this.nmConfig.simulate.length; s++) {
+                if (this.nmConfig.simulate[s].oid === id) {
+                    this.simulationsValues[id] = state ? state.val as number : null;
                 }
             }
         }
         this.autoPilot && this.autoPilot.onStateChange(id, state);
     }
 
-    /**
-     * @param {ioBroker.Message} obj
-     */
-    onMessage(obj) {
+    onMessage(obj: ioBroker.Message): void {
         if (!obj || !obj.command) {
             return;
         }
@@ -1087,26 +1138,34 @@ class Main extends utils.Adapter {
             case 'list':
                 if (obj.callback) {
                     try {
-                        const { SerialPort } = require('serialport');
-                        if (SerialPort) {
-                            // read all found serial ports
-                            SerialPort.list()
-                                .then(ports => {
-                                    this.log.info(`List of port: ${JSON.stringify(ports)}`);
-                                    this.sendTo(obj.from, obj.command, ports.map(item => ({
-                                        label: item.path,
-                                        value: item.path
-                                    })), obj.callback);
-                                })
-                                .catch(e => {
-                                    this.sendTo(obj.from, obj.command, [], obj.callback);
-                                    this.log.error(e)
-                                });
-                        } else {
-                            this.log.warn('Module serialport is not available');
-                            this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
-                        }
+                        import('serialport')
+                            .then(def => {
+                                const SerialPort = def.SerialPort;
+                                if (SerialPort) {
+                                    // read all found serial ports
+                                    SerialPort.list()
+                                        .then(ports => {
+                                            this.log.info(`List of port: ${JSON.stringify(ports)}`);
+
+                                            this.sendTo(obj.from, obj.command, ports.map(item => ({
+                                                label: item.path,
+                                                value: item.path
+                                            })), obj.callback);
+                                        })
+                                        .catch((e: string) => {
+                                            this.sendTo(obj.from, obj.command, [], obj.callback);
+                                            this.log.error(e);
+                                        });
+                                } else {
+                                    this.log.warn('Module "serialport" is not available');
+                                    this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
+                                }
+                            }).catch((e: string) => {
+                                this.log.error(`Cannot list serial ports: ${e}`);
+                                this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
+                            });
                     } catch (e) {
+                        this.log.error(`Cannot list serial ports: ${e}`);
                         this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
                     }
                 }
@@ -1117,44 +1176,49 @@ class Main extends utils.Adapter {
                 if (obj.callback) {
                     try {
                         // cmd: ip link show
-                        const { exec } = require('child_process');
+                        import ('child_process')
+                            .then(def => {
+                                const exec = def.exec;
+                                // Output of "ip link show"
+                                // ~$ ip link show
+                                // 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+                                // link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+                                // 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+                                // link/ether 00:0c:29:35:8c:af brd ff:ff:ff:ff:ff:ff
+                                // 3: can0: <NOARP,ECHO> mtu 16 qdisc noop state DOWN mode DEFAULT group default qlen 10
+                                // link/can
 
-                        // Output of "ip link show"
-                        // ~$ ip link show
-                        // 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
-                        // link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-                        // 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
-                        // link/ether 00:0c:29:35:8c:af brd ff:ff:ff:ff:ff:ff
-                        // 3: can0: <NOARP,ECHO> mtu 16 qdisc noop state DOWN mode DEFAULT group default qlen 10
-                        // link/can
+                                exec('ip link show', (error: ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => {
+                                    if (error) {
+                                        this.log.error(`error: ${error.message}`);
+                                        return;
+                                    }
+                                    if (stderr) {
+                                        this.log.error(`stderr: ${stderr}`);
+                                        return;
+                                    }
+                                    // analyse stdout
+                                    const lines = (stdout || '').toString().split('\n');
+                                    const ports: { label: string; value: string }[] = [];
 
-                        exec('ip link show', (error, stdout, stderr) => {
-                            if (error) {
-                                this.log.error(`error: ${error.message}`);
-                                return;
-                            }
-                            if (stderr) {
-                                this.log.error(`stderr: ${stderr}`);
-                                return;
-                            }
-                            // analyse stdout
-                            const lines = stdout.split('\n');
-                            const ports = [];
-                            for (let l = 0; l < lines.length; l++) {
-                                const line = lines[l].trim();
-                                const m = line.match(/^\d+: (can\d+): /);
-                                if (m) {
-                                    ports.push({
-                                        label: m[1],
-                                        value: m[1],
-                                    });
-                                }
-                            }
-                            this.sendTo(obj.from, obj.command, ports.map(item => ({
-                                label: item.path,
-                                value: item.path,
-                            })), obj.callback);
-                        });
+                                    for (let l = 0; l < lines.length; l++) {
+                                        const line = lines[l].trim();
+                                        const m = line.match(/^\d+: (can\d+): /);
+                                        if (m) {
+                                            ports.push({
+                                                label: m[1],
+                                                value: m[1],
+                                            });
+                                        }
+                                    }
+
+                                    this.sendTo(obj.from, obj.command, ports, obj.callback);
+                                });
+                            })
+                            .catch((e: string) => {
+                                this.log.error(`Cannot list CAN ports: ${e}`);
+                                this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
+                            });
                     } catch (e) {
                         this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
                     }
@@ -1168,10 +1232,7 @@ class Main extends utils.Adapter {
         }
     }
 
-    /**
-     * @param {() => void} callback
-     */
-    async onUnload(callback) {
+    async onUnload(callback: () => void): Promise<void> {
         try {
             this.autoPilot && this.autoPilot.stop();
             this.autoPilot = null;
@@ -1179,8 +1240,9 @@ class Main extends utils.Adapter {
             this.connectedInterval = null;
             this.sendEnvironmentInterval && this.clearInterval(this.sendEnvironmentInterval);
             this.sendEnvironmentInterval = null;
-            this.setState('info.connection', false, true);
-            this.nmeaDriver && this.nmeaDriver.stop();
+            this.setState('info.connection', false, true)
+                .catch(e => this.log.error(`Cannot set info.connection to false: ${e}`));
+            this.nmeaDriver?.stop();
             callback();
         } catch (e) {
             callback();
@@ -1190,11 +1252,8 @@ class Main extends utils.Adapter {
 
 if (require.main !== module) {
     // Export the constructor in compact mode
-    /**
-     * @param {Partial<utils.AdapterOptions>} [options={}]
-     */
-    module.exports = (options) => new Main(options);
+    module.exports = (options: Partial<utils.AdapterOptions>) => new NmeaAdapter(options);
 } else {
     // otherwise start the instance directly
-    new Main();
+    new NmeaAdapter();
 }

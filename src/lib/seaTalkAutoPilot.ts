@@ -1,4 +1,6 @@
-const { encodeActisense } = require('@canboat/canboatjs/lib/stringMsg');
+// @ts-expect-error no types
+import { encodeActisense } from '@canboat/canboatjs/lib/stringMsg';
+import { GenericDriver, NmeaConfig } from '../types';
 /*
 //
 // N2k
@@ -104,12 +106,34 @@ void SetRaymarineKeyCommandPGN126720(tN2kMsg& N2kMsg, uint8_t destinationAddress
     N2kMsg.AddByte(0xc8);
 }
  */
-
+type AutoPilotMode = 'Standby' | 'Auto' | 'Wind' | 'Track';
 
 class SeaTalkAutoPilot {
-    constructor(adapter, config, nmeaDriver, autoPilotAddress) {
+    private readonly adapter: ioBroker.Adapter;
+
+    private readonly config: NmeaConfig;
+
+    private readonly nmeaDriver: GenericDriver;
+
+    private readonly autoPilotAddress: number;
+
+    private currentMode: AutoPilotMode | null = null;
+
+    private currentTargetHeading: number | null = null;
+
+    private values: Record<string, { val: ioBroker.StateValue, ts: number }>;
+
+    constructor(
+        adapter: ioBroker.Adapter,
+        config: NmeaConfig,
+        nmeaDriver: GenericDriver,
+        autoPilotAddress: number,
+        values: Record<string, { val: ioBroker.StateValue, ts: number }>,
+    ) {
         this.adapter = adapter;
         this.config = config;
+        this.values = values;
+
         // create states
         this.adapter.setObjectNotExists('autoPilot', {
             type: 'channel',
@@ -231,27 +255,27 @@ class SeaTalkAutoPilot {
                 autoPilotAddress,
             },
         });
+
         this.adapter.subscribeStates('autoPilot.*');
         this.adapter.subscribeStates('seatalk1PilotMode.pilotMode');
         // this.adapter.subscribeStates('seatalkPilotMode.*');
         this.adapter.subscribeStates('seatalkPilotLockedHeading.*');
+
         this.nmeaDriver = nmeaDriver;
         this.autoPilotAddress = autoPilotAddress;
-        this.currentMode = null;
-        this.currentTargetHeading = null;
     }
 
-    stop() {
+    stop(): void {
         this.adapter.unsubscribeStates('autoPilot.*');
         this.adapter.unsubscribeStates('seatalk1PilotMode.pilotMode');
         this.adapter.unsubscribeStates('seatalkPilotLockedHeading.targetHeadingMagneticTrue');
     }
 
-    onStateChange(id, state) {
+    onStateChange(id: string, state?: ioBroker.State | null) {
         if (state) {
             if (id.endsWith('seatalk1PilotMode.pilotMode') && state.ack) {
                 if (this.currentMode !== state.val) {
-                    this.currentMode = state.val;
+                    this.currentMode = state.val as AutoPilotMode;
                     if (state.val === 'Auto') {
                         this.adapter.setState('autoPilot.state', 1, true); // Auto
                     } else if (state.val === 'Wind') {
@@ -267,7 +291,7 @@ class SeaTalkAutoPilot {
             } else if (id.endsWith('seatalkPilotLockedHeading.targetHeadingMagneticTrue') && state.ack) {
                 if (this.currentTargetHeading !== state.val) {
                     this.adapter.setState('autoPilot.heading', state.val, true);
-                    this.currentTargetHeading = state.val;
+                    this.currentTargetHeading = state.val as any as number;
                 }
             } if (id.endsWith('autoPilot.state') && !state.ack) {
                 if (state.val === 0 || state.val === '0') {
@@ -336,7 +360,7 @@ class SeaTalkAutoPilot {
                     this.adapter.log.warn('Cannot set locked heading when not in Auto mode');
                     return;
                 }
-                let newHeading = Math.round(state.val % 360);
+                let newHeading = Math.round((state.val as any as number) % 360);
                 if (newHeading < 0) {
                     newHeading += 360;
                 }
@@ -349,7 +373,7 @@ class SeaTalkAutoPilot {
                     return;
                 }
                 this.adapter.log.info(`Set autoPilot wind angle to ${state.val}°`);
-                this.setWindAngle(parseInt(state.val, 10));
+                this.setWindAngle(parseInt(state.val as string, 10) as (1 | -1 | 10 | -10));
             }
         }
     }
@@ -360,27 +384,28 @@ class SeaTalkAutoPilot {
     // "Z,3,126208,7,204, 14,01,50,ff,00,f8,03,01,3b,07,03,04,06,00,00"; // set 0 magnetic
     // "Z,3,126208,7,204, 14,01,50,ff,00,f8,03,01,3b,07,03,04,06,9f,3e"; // set 92 magnetic
     // "Z,3,126208,7,204, 14,01,50,ff,00,f8,03,01,3b,07,03,04,06,4e,3f"; // set 93 magnetic
-    setStandby() {
+    setStandby(): void {
         const data = encodeActisense({ prio: 3, pgn: 126208, src: 7, dst: this.autoPilotAddress, data: Buffer.from([0x01,0x63,0xff,0x00,0xf8,0x04,0x01,0x3b,0x07,0x03,0x04,0x04,0x00,0x00,0x05,0xff,0xff]) });
         this.nmeaDriver.write(data);
     }
-    setAuto() {
+    setAuto(): void {
         const data = encodeActisense({ prio: 3, pgn: 126208, src: 7, dst: this.autoPilotAddress, data: Buffer.from([0x01,0x63,0xff,0x00,0xf8,0x04,0x01,0x3b,0x07,0x03,0x04,0x04,0x40,0x00,0x05,0xff,0xff]) });
         this.nmeaDriver.write(data);
     }
-    setAutoWind() {
+    setAutoWind(): void {
         const data = encodeActisense({ prio: 3, pgn: 126208, src: 7, dst: this.autoPilotAddress, data: Buffer.from([0x01,0x63,0xff,0x00,0xf8,0x04,0x01,0x3b,0x07,0x03,0x04,0x04,0x00,0x01,0x05,0xff,0xff]) });
         this.nmeaDriver.write(data);
     }
-    setAutoTrack() {
+    setAutoTrack(): void {
         const data = encodeActisense({ prio: 3, pgn: 126208, src: 7, dst: this.autoPilotAddress, data: Buffer.from([0x01,0x63,0xff,0x00,0xf8,0x04,0x01,0x3b,0x07,0x03,0x04,0x04,0x80,0x01,0x05,0xff,0xff]) });
         this.nmeaDriver.write(data);
     }
-    setLockedHeading(angle) {
+    setLockedHeading(angle: number): void {
         // remove magnetic variation
-        if (this.adapter.values[this.config.magneticVariation || 'magneticVariation.variation'] &&
-            this.adapter.values[this.config.magneticVariation || 'magneticVariation.variation'].val) {
-            angle -= this.adapter.values[this.config.magneticVariation || 'magneticVariation.variation'].val;
+        if (this.values[this.config.magneticVariation || 'magneticVariation.variation'] &&
+            this.values[this.config.magneticVariation || 'magneticVariation.variation'].val
+        ) {
+            angle -= this.values[this.config.magneticVariation || 'magneticVariation.variation'].val as number;
         }
 
         const rad = angle * Math.PI / 180;
@@ -393,22 +418,23 @@ class SeaTalkAutoPilot {
     // increment 1:  0x07F8
     // increment 10: 0x08F7
 
-    setWindAngle(command) {
+    setWindAngle(command: 1 | -1 | 10 | -10): void {
+        let angleCommand: number;
         if (command === 1) {
-            command = 0x07F8;
+            angleCommand = 0x07F8;
         } else if (command === -1) {
-            command = 0x05FA;
+            angleCommand = 0x05FA;
         } else if (command === 10) {
-            command = 0x08F7;
+            angleCommand = 0x08F7;
         } else if (command === -10) {
-            command = 0x06F9;
+            angleCommand = 0x06F9;
         } else {
             this.adapter.log.warn('Invalid wind angle command');
             return;
         }
-        const data = encodeActisense({ prio: 3, pgn: 126720, src: 7, dst: this.autoPilotAddress, data: Buffer.from([0x3b, 0x9f, 0xf0, 0x81, 0x86, 0x21, command & 0xFF, (command >> 8) & 0xFF, 0xff, 0xff, 0xff, 0xff, 0xff, 0xc1, 0xc2, 0xcd, 0x66, 0x80, 0xd3, 0x42, 0xb1, 0xc8]) });
+        const data = encodeActisense({ prio: 3, pgn: 126720, src: 7, dst: this.autoPilotAddress, data: Buffer.from([0x3b, 0x9f, 0xf0, 0x81, 0x86, 0x21, angleCommand & 0xFF, (angleCommand >> 8) & 0xFF, 0xff, 0xff, 0xff, 0xff, 0xff, 0xc1, 0xc2, 0xcd, 0x66, 0x80, 0xd3, 0x42, 0xb1, 0xc8]) });
         this.nmeaDriver.write(data);
     }
 }
 
-module.exports = SeaTalkAutoPilot;
+export default SeaTalkAutoPilot;

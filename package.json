@@ -23,37 +23,42 @@
     "@alcalzone/release-script": "^3.7.0",
     "@alcalzone/release-script-plugin-iobroker": "^3.7.0",
     "@alcalzone/release-script-plugin-license": "^3.7.0",
+    "@iobroker/types": "^6.0.1-alpha.0-20240603-8378eb65c",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
     "eslint": "^8.57.0",
     "gulp": "^4.0.2",
     "mocha": "^10.4.0",
     "@iobroker/vis-2-widgets-react-dev": "^1.0.7",
-    "@iobroker/vis-2-widgets-testing": "^1.0.3"
+    "@iobroker/vis-2-widgets-testing": "^1.0.3",
+    "typescript": "~5.4.5"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.nmea/issues"
   },
-  "main": "main.js",
+  "main": "build/main.js",
   "files": [
     "admin/",
-    "main.js",
     "img/widgetExamples.png",
     "LICENSE",
     "widgets",
     "io-package.json",
-    "lib/"
+    "build/"
   ],
   "scripts": {
-    "test": "mocha ./test/*.engine.js --exit",
     "test-gui": "mocha ./test/*.gui.js --exit",
     "release": "release-script",
-    "build": "gulp",
     "prepublishOnly": "npm run build",
     "release-patch": "release-script patch --yes",
     "release-minor": "release-script minor --yes",
     "release-major": "release-script major --yes",
     "translate": "translate-adapter",
     "update-packages": "ncu --upgrade && cd src-widgets && ncu --upgrade",
-    "npm": "npm i && cd src-widgets && npm i -f"
+    "npm": "npm i && cd src-widgets && npm i -f",
+    "test": "mocha --exit",
+    "lint": "eslint --ext .ts src/",
+    "build": "npm run build:ts && npm run build:gui",
+    "build:gui": "gulp",
+    "build:ts": "tsc -p tsconfig.build.json"
   },
   "engines": {
     "node": ">=16"
