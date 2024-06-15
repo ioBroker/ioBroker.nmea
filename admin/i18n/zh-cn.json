@@ -57,5 +57,13 @@
   "Altimeter Setting": "高度计设置",
   "Oil": "油",
   "Fuel": "燃料",
-  "Object ID": "对象ID"
+  "Object ID": "对象ID",
+  "ms. Only for average and max values": "毫秒。仅适用于平均值和最大值",
+  "Approximation time": "近似时间",
+  "Use GPS time zone for system": "使用 GPS 时区作为系统时区",
+  "Delete AIS data if older than": "删除 AIS 数据（如果超过",
+  "mbar, set alert flag": "mbar，设置警报标志",
+  "In period of time": "在一段时间内",
+  "minutes": "分钟",
+  "If pressure changes more than": "如果压力变化超过"
 }

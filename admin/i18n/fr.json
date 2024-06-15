@@ -57,5 +57,13 @@
   "Altimeter Setting": "Calage altimétrique",
   "Oil": "Huile",
   "Fuel": "Carburant",
-  "Object ID": "ID d'objet"
+  "Object ID": "ID d'objet",
+  "ms. Only for average and max values": "MS. Uniquement pour les valeurs moyennes et maximales",
+  "Approximation time": "Temps d'approximation",
+  "Use GPS time zone for system": "Utiliser le fuseau horaire GPS pour le système",
+  "Delete AIS data if older than": "Supprimez les données AIS si elles sont plus anciennes que",
+  "mbar, set alert flag": "mbar, définir le drapeau d'alerte",
+  "In period of time": "Dans la période de temps",
+  "minutes": "minutes",
+  "If pressure changes more than": "Si la pression change plus de"
 }

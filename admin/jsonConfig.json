@@ -49,6 +49,7 @@
                     "hidden": "data.type !== 'picanm'"
                 },
                 "updateAtLeastEveryMs": {
+                    "newLine": true,
                     "label": "Update states at least every",
                     "help": "ms",
                     "type": "select",
@@ -135,7 +136,7 @@
                     "lg": 4
                 },
                 "approximateMs": {
-                    "label": "Approximate time",
+                    "label": "Approximation time",
                     "help": "ms. Only for average and max values",
                     "type": "number",
                     "default": 10000,
@@ -156,6 +157,28 @@
                     "type": "number",
                     "min": 60,
                     "max": 604800,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 4
+                },
+                "pressureAlertDiff": {
+                    "newLine": true,
+                    "label": "If pressure changes more than",
+                    "help": "mbar, set alert flag",
+                    "type": "number",
+                    "min": 1,
+                    "max": 50,
+                    "sm": 12,
+                    "md": 6,
+                    "lg": 4
+                },
+                "pressureAlertMinutes": {
+                    "newLine": true,
+                    "label": "In period of time",
+                    "help": "minutes",
+                    "type": "number",
+                    "min": 1,
+                    "max": 50,
                     "sm": 12,
                     "md": 6,
                     "lg": 4

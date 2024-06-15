@@ -57,5 +57,13 @@
   "Altimeter Setting": "Налаштування висотоміра",
   "Oil": "олія",
   "Fuel": "паливо",
-  "Object ID": "ID об'єкта"
+  "Object ID": "ID об'єкта",
+  "ms. Only for average and max values": "РС. Тільки для середніх і максимальних значень",
+  "Approximation time": "Час апроксимації",
+  "Use GPS time zone for system": "Використовуйте часовий пояс GPS для системи",
+  "Delete AIS data if older than": "Видаліть дані AIS, якщо вони старіші ніж",
+  "mbar, set alert flag": "mbar, встановити позначку сповіщення",
+  "In period of time": "У період часу",
+  "minutes": "хвилин",
+  "If pressure changes more than": "Якщо тиск змінюється більше ніж"
 }

@@ -57,5 +57,13 @@
   "Altimeter Setting": "Altimeter Setting",
   "Oil": "Oil",
   "Fuel": "Fuel",
-  "Object ID": "Object ID"
+  "Object ID": "Object ID",
+  "ms. Only for average and max values": "ms. Only for average and max values",
+  "Approximation time": "Approximation time",
+  "Use GPS time zone for system": "Use GPS time zone for system",
+  "Delete AIS data if older than": "Delete AIS data if older than",
+  "mbar, set alert flag": "mbar, set alert flag",
+  "In period of time": "In period of time",
+  "minutes": "minutes",
+  "If pressure changes more than": "If pressure changes more than"
 }

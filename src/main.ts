@@ -8,6 +8,19 @@ import META_DATA from './lib/metaData';
 import AutoPilot from './lib/seaTalkAutoPilot';
 // @ts-expect-error no types
 import { FromPgn } from '@canboat/canboatjs';
+import moment from 'moment';
+import 'moment/locale/en';
+import 'moment/locale/de';
+import 'moment/locale/ru';
+import 'moment/locale/it';
+import 'moment/locale/fr';
+import 'moment/locale/pl';
+import 'moment/locale/pt';
+import 'moment/locale/nl';
+import 'moment/locale/es';
+import 'moment/locale/uk';
+import 'moment/locale/zh-cn';
+
 import {
     PGNType, NmeaConfig,
     GenericDriver, PgnDataEvent, PGNEntry,
@@ -15,6 +28,7 @@ import {
 
 import NGT1 from './lib/ngt1';
 import PicanM from './lib/picanM';
+import t from './lib/i18n';
 
 const PGNS: PGNType = JSON.parse(fs.readFileSync(require.resolve('@canboat/pgns/canboat.json'), 'utf8'));
 
@@ -66,6 +80,12 @@ export class NmeaAdapter extends utils.Adapter {
 
     private currentTimeZone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    private pressureHistory: Record<string, { val: number, ts: number }[]> = {};
+
+    private pressureAlerts: Record<string, string> = {};
+
+    private lang: ioBroker.Languages = 'en';
+
     constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
@@ -91,7 +111,9 @@ export class NmeaAdapter extends utils.Adapter {
             simulateAddress: 204,
             approximateMs: 10000,
             applyGpsTimeZoneToSystem: false,
-            deleteAisAfter: 3600
+            deleteAisAfter: 3600,
+            pressureAlertDiff: 4,
+            pressureAlertMinutes: 240,
         };
     }
 
@@ -638,10 +660,13 @@ export class NmeaAdapter extends utils.Adapter {
     }
 
     async processPressureEvent(data: PgnDataEvent): Promise<void> {
+        const source: string = data.fields.Source || '';
+        const pressure = Math.round(data.fields.Pressure / 10) / 10;
+        const pressureId = `${this.pgn2entry[data.pgn].Id}.pressure${NmeaAdapter.nameToId(source)}`;
+
         // check what the type of event it is
-        if (data.fields.Source) {
+        if (source) {
             // create the according pressure
-            const pressureId = `${this.pgn2entry[data.pgn].Id}.pressure${NmeaAdapter.nameToId(data.fields.Source)}`;
             if (!this.createsChannelAndStates[pressureId]) {
                 this.createsChannelAndStates[pressureId] = true;
                 const pressureObject: ioBroker.StateObject = {
@@ -655,13 +680,126 @@ export class NmeaAdapter extends utils.Adapter {
                         write: false,
                     },
                     type: 'state',
-                    native: {
-                    }
+                    native: {}
                 };
                 await this.updateObject(pressureObject);
             }
+            await this.setState(pressureId, Math.round(pressure), true);
+        }
 
-            await this.setState(pressureId, Math.round(data.fields.Pressure / 100), true);
+        // create the alert flag
+        const pressureAlertTextId = `${this.pgn2entry[data.pgn].Id}.pressure${NmeaAdapter.nameToId(data.fields.Source)}AlertText`;
+        if (!this.createsChannelAndStates[pressureAlertTextId]) {
+            this.createsChannelAndStates[pressureAlertTextId] = true;
+            const pressureAlertTextObject: ioBroker.StateObject = {
+                _id: pressureAlertTextId,
+                common: {
+                    name: `Pressure ${data.fields.Source} Alert`,
+                    type: 'string',
+                    role: 'value',
+                    read: true,
+                    write: false,
+                },
+                type: 'state',
+                native: {}
+            };
+            await this.updateObject(pressureAlertTextObject);
+        }
+
+        const pressureAlertId = `${this.pgn2entry[data.pgn].Id}.pressure${NmeaAdapter.nameToId(data.fields.Source)}Alert`;
+        if (!this.createsChannelAndStates[pressureAlertId]) {
+            this.createsChannelAndStates[pressureAlertId] = true;
+            const pressureAlertObject: ioBroker.StateObject = {
+                _id: pressureAlertId,
+                common: {
+                    name: `Pressure ${data.fields.Source} Alert`,
+                    type: 'boolean',
+                    role: 'indicator.alarm',
+                    read: true,
+                    write: false,
+                },
+                type: 'state',
+                native: {
+                }
+            };
+            await this.updateObject(pressureAlertObject);
+        }
+
+        // create the according flag
+        const pressureAlertHistoryId = `${this.pgn2entry[data.pgn].Id}.pressure${NmeaAdapter.nameToId(data.fields.Source)}AlertHistory`;
+        if (!this.createsChannelAndStates[pressureAlertHistoryId]) {
+            this.createsChannelAndStates[pressureAlertHistoryId] = true;
+            const pressureHistoryObject: ioBroker.StateObject = {
+                _id: pressureAlertHistoryId,
+                common: {
+                    name: `Pressure ${data.fields.Source} Alert History`,
+                    type: 'array',
+                    role: 'state',
+                    read: true,
+                    write: false,
+                },
+                type: 'state',
+                native: {
+                }
+            };
+            await this.updateObject(pressureHistoryObject);
+
+            // read history
+            const history = await this.getStateAsync(pressureAlertHistoryId);
+            if (history?.val) {
+                try {
+                    this.pressureHistory[pressureId] = JSON.parse(history.val as string);
+                } catch (e) {
+                    this.pressureHistory[pressureId] = [];
+                }
+            }
+        }
+
+        const history = this.pressureHistory[pressureId];
+        if (history) {
+            // do not make the calculations too often (every minute is enough)
+            // delete all entries older than this.config.pressureAlertMinutes
+            for (let h = 0; h < history.length; h++) {
+                if (Date.now() - history[h].ts > this.nmConfig.pressureAlertMinutes * 60000) {
+                    history.splice(h, 1);
+                }
+            }
+            if (!history.length || history[history.length - 1].ts - Date.now() > 60000) {
+                history.push({ val: pressure, ts: Date.now() });
+                await this.setState(pressureAlertHistoryId, JSON.stringify(history), true);
+                // find out if the pressure is falling on more than 4 mbar in 4 hours
+                let min: { val: number, ts: number } | undefined;
+                let max: { val: number, ts: number } | undefined;
+                for (let i = 0; i < history.length; i++) {
+                    if (!min || min.val > history[i].val) {
+                        min = history[i];
+                    }
+                    if (!max || max.val < history[i].val) {
+                        max = history[i];
+                    }
+                }
+                if (min && max && min.ts > max.ts) {
+                    const diff = max.val - min.val;
+                    if (diff > this.nmConfig.pressureAlertDiff) {
+                        const minTs = moment(new Date(min.ts));
+                        const maxTs = moment(new Date(max.ts));
+                        const tsDiff = minTs.from(maxTs);
+
+                        const alertText = t(`Pressure is falling by %s mbar in %s`, this.lang, diff, tsDiff);
+                        if (this.pressureAlerts[pressureId] !== alertText) {
+                            if (!this.pressureAlerts[pressureId]) {
+                                await this.setState(pressureAlertId, true, true);
+                            }
+                            this.pressureAlerts[pressureId] = alertText;
+                            await this.setState(pressureAlertTextId, alertText, true);
+                        }
+                    } else if (this.pressureAlerts[pressureId]) {
+                        this.pressureAlerts[pressureId] = '';
+                        await this.setState(pressureAlertTextId, '', true);
+                        await this.setState(pressureAlertId, false, true);
+                    }
+                }
+            }
         }
     }
 
@@ -864,6 +1002,13 @@ export class NmeaAdapter extends utils.Adapter {
 
         this.nmConfig.approximateMs = parseInt(this.nmConfig.approximateMs as any as string, 10) || 10000;
         this.nmConfig.deleteAisAfter = parseInt(this.nmConfig.deleteAisAfter as any as string, 10) || 3600;
+        this.nmConfig.pressureAlertDiff = parseInt(this.nmConfig.pressureAlertDiff as any as string, 10) || 4;
+        this.nmConfig.pressureAlertMinutes = parseInt(this.nmConfig.pressureAlertMinutes as any as string, 10) || 240;
+
+        const systemConfig: ioBroker.SystemConfigObject | null | undefined = await this.getForeignObjectAsync('system.config');
+
+        this.lang = systemConfig?.common?.language || 'en';
+        moment.locale(this.lang); // set default locale
 
         await this.subscribeStatesAsync('test.rawString');
 

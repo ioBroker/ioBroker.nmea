@@ -57,5 +57,13 @@
   "Altimeter Setting": "Hoogtemeter instelling",
   "Oil": "Olie",
   "Fuel": "Brandstof",
-  "Object ID": "Object-ID"
+  "Object ID": "Object-ID",
+  "ms. Only for average and max values": "Mevr. Alleen voor gemiddelde en maximale waarden",
+  "Approximation time": "Benaderingstijd",
+  "Use GPS time zone for system": "Gebruik GPS-tijdzone voor systeem",
+  "Delete AIS data if older than": "Verwijder AIS-gegevens indien ouder dan",
+  "mbar, set alert flag": "mbar, stel de waarschuwingsvlag in",
+  "In period of time": "In een tijdsbestek",
+  "minutes": "minuten",
+  "If pressure changes more than": "Als de druk meer dan verandert"
 }

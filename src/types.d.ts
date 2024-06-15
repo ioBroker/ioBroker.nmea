@@ -54,6 +54,8 @@ export interface NmeaConfig extends ioBroker.AdapterConfig {
     approximateMs: number;
     applyGpsTimeZoneToSystem: false,
     deleteAisAfter: number;
+    pressureAlertDiff: number;
+    pressureAlertMinutes: number;
 }
 
 export interface PGNMessage {

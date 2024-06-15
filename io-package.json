@@ -183,7 +183,9 @@
     "simulateAddress": 204,
     "approximateMs": 10000,
     "applyGpsTimeZoneToSystem": false,
-    "deleteAisAfter": 3600
+    "deleteAisAfter": 3600,
+    "pressureAlertDiff": 4,
+    "pressureAlertMinutes": 240
   },
   "objects": [],
   "instanceObjects": [
