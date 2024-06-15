@@ -80,7 +80,7 @@ iobroker ALL=(ALL) timedatectl set-timezone
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.2.0 (2024-06-15)
 * (bluefox) Backend was rewritten on TypeScript
 * (bluefox) Support for AIS added
 * (bluefox) Valid processing of temperature, pressure and humidity
