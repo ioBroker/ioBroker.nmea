@@ -9,7 +9,6 @@ import AutoPilot from './lib/seaTalkAutoPilot';
 // @ts-expect-error no types
 import { FromPgn } from '@canboat/canboatjs';
 import moment from 'moment';
-import 'moment/locale/en';
 import 'moment/locale/de';
 import 'moment/locale/ru';
 import 'moment/locale/it';

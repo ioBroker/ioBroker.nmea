@@ -3,19 +3,6 @@
     "name": "nmea",
     "version": "0.2.0",
     "news": {
-      "0.2.0": {
-        "en": "Backend was rewritten on TypeScript\nSupport for AIS added\nValid processing of temperature, pressure and humidity",
-        "de": "Backend wurde auf TypeScript neu geschrieben\nUnterstützung für AIS hinzugefügt\nGültige Verarbeitung von Temperatur, Druck und Feuchtigkeit",
-        "ru": "Backend был переписан на TypeScript\nПоддержка добавленной AIS\nПроверка температуры, давления и влажности",
-        "pt": "Backend foi reescrito no TypeScript\nSuporte para AIS adicionado\nProcessamento válido de temperatura, pressão e umidade",
-        "nl": "Backend is herschreven op TypeScript\nOndersteuning voor AIS toegevoegd\nGeldige verwerking van temperatuur, druk en vochtigheid",
-        "fr": "Backend a été réécrit sur TypeScript\nSoutien à l'AIS ajouté\nTraitement valide de la température, de la pression et de l'humidité",
-        "it": "Backend è stato riscritto su TypeScript\nSupporto per AIS aggiunto\nElaborazione valida di temperatura, pressione e umidità",
-        "es": "Backend fue reescrito en TipoScript\nSupport for AIS added\nTratamiento válido de temperatura, presión y humedad",
-        "pl": "Backend został przepisany na TypeScript\nWsparcie dla AIS dodano\nWażna obróbka temperatury, ciśnienia i wilgotności",
-        "uk": "Backend був написаний на TypeScript\nПідтримка додано AIS\nДійсно оброблення температури, тиску і вологості",
-        "zh-cn": "在 TypeScript 上重写了后端\n增加了对AIS的支持\n有效处理温度、压力和湿度"
-      },
       "0.1.8": {
         "en": "Corrected vis-2 widgets",
         "de": "Korrigierte vis-2 Widgets",
