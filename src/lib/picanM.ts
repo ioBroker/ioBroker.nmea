@@ -1,28 +1,16 @@
-import EventEmitter from 'node:events';
 import { Transform } from 'node:stream';
 // @ts-expect-error no types
 import CanPort from '@canboat/canboatjs/lib/canbus';
 // @ts-expect-error no types
 import { FromPgn } from '@canboat/canboatjs';
 import {
-    GenericDriver,
-    NmeaConfig, PgnDataEvent,
-    PGNMessage, WritePgnData,
+    type NmeaConfig, type PgnDataEvent,
+    type PGNMessage, type WritePgnData,
 } from '../types';
-
-interface ExtendedEmitter extends EventEmitter {
-    setProviderStatus: (id: string, msg: string) => void;
-    setProviderError: (id: string, msg: string) => void;
-}
+import { GenericDriver } from './genericDriver';
 
 class PicanM extends GenericDriver {
-    private readonly adapter: ioBroker.Adapter;
-
     private readonly canPort: string;
-
-    private readonly app: ExtendedEmitter;
-
-    private readonly onData: (event: PgnDataEvent) => void;
 
     private readonly pgnErrors: Record<string, boolean>;
 
@@ -30,11 +18,8 @@ class PicanM extends GenericDriver {
 
     constructor(adapter: ioBroker.Adapter, settings: NmeaConfig, onData: (event: PgnDataEvent) => void) {
         super(adapter, settings, onData);
-        this.adapter = adapter;
         this.canPort = settings.canPort;
-        this.app = new EventEmitter() as ExtendedEmitter;
         this.serial = null;
-        this.onData = onData;
         this.pgnErrors = {};
 
         this.app.setProviderStatus = (id: string, msg: string) => {

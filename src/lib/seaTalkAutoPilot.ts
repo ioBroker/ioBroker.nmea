@@ -1,6 +1,7 @@
 // @ts-expect-error no types
 import { encodeActisense } from '@canboat/canboatjs/lib/stringMsg';
-import { GenericDriver, NmeaConfig } from '../types';
+import { NmeaConfig } from '../types';
+import { GenericDriver } from './genericDriver';
 /*
 //
 // N2k

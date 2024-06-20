@@ -91,13 +91,3 @@ export interface PgnDataEvent {
         [key: string]: number | string;
     };
 }
-
-export abstract class GenericDriver {
-    protected constructor(adapter: ioBroker.Adapter, settings: NmeaConfig, onData: (event: PgnDataEvent) => void);
-
-    abstract start(): void;
-
-    abstract write(data: WritePgnData): void;
-
-    abstract stop(): void;
-}

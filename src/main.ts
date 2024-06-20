@@ -22,12 +22,13 @@ import 'moment/locale/zh-cn';
 
 import {
     PGNType, NmeaConfig,
-    GenericDriver, PgnDataEvent, PGNEntry,
+    PgnDataEvent, PGNEntry,
 } from './types';
 
 import NGT1 from './lib/ngt1';
 import PicanM from './lib/picanM';
 import t from './lib/i18n';
+import { GenericDriver } from './lib/genericDriver';
 
 const PGNS: PGNType = JSON.parse(fs.readFileSync(require.resolve('@canboat/pgns/canboat.json'), 'utf8'));
 
