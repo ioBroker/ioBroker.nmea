@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@mui/styles';
 
 import {
     Button, Card,
@@ -19,7 +18,7 @@ import Rudder from './Components/Rudder';
 import Autopilot from './Components/Autopilot';
 import ItemsEditorDialog from './Components/ItemsEditorDialog';
 
-const styles = theme => ({
+const styles = {
     indicatorNumber: {
         fontSize: 40,
         display: 'inline-block',
@@ -75,20 +74,9 @@ const styles = theme => ({
         maxHeight: '100%',
     },
     newValue: {
-        animation: '$newValueAnimation 2s ease-in-out',
+        animation: 'nmea-newValueAnimation 2s ease-in-out',
     },
-    '@keyframes newValueAnimation': {
-        '0%': {
-            color: '#00f900',
-        },
-        '80%': {
-            color: '#008000',
-        },
-        '100%': {
-            color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-        },
-    },
-});
+};
 
 const POSSIBLE_NAMES = {
     oid_tws: ['windData.windSpeedTrue'],
@@ -551,12 +539,11 @@ class Nmea extends Generic {
 
         return <Card
             key={i}
-            style={{ color: item.color }}
-            className={this.props.classes.indicatorCard}
+            style={{ ...styles.indicatorCard, color: item.color }}
         >
-            <div className={this.props.classes.indicatorName}>{item.name || ''}</div>
-            <div className={this.props.classes.indicatorNumberContainer}>
-                <div className={Utils.clsx(this.props.classes.indicatorNumber, item.changes && this.props.classes.newValue)}>
+            <div style={styles.indicatorName}>{item.name || ''}</div>
+            <div style={styles.indicatorNumberContainer}>
+                <div style={{ ...styles.indicatorNumber, ...(item.changes ? styles.newValue : undefined) }}>
                     {item.showPlus && val > 0 ? '+' : ''}
                     {val === null || val === undefined ? '---' : (Number.isNaN(parseFloat(val)) ? val : Generic.zeroBeforeAfterComma(
                         val || 0,
@@ -565,7 +552,7 @@ class Nmea extends Generic {
                         this.props.context.systemConfig.common.isFloatComma,
                     ))}
                 </div>
-                {item.afterComma ? item.unit : <span className={this.props.classes.indicatorNumber}>{item.unit}</span>}
+                {item.afterComma ? item.unit : <span style={styles.indicatorNumber}>{item.unit}</span>}
             </div>
         </Card>;
     }
@@ -703,36 +690,54 @@ class Nmea extends Generic {
         }
 
         const content = <div
-            style={vertical ? {
-                gridTemplateRows: 'min-content auto min-content min-content',
-                gridTemplateColumns: 'auto',
-                gridTemplateAreas: '"left" "main" "right" "bottom"',
-            } :
-                {
-                    gridTemplateColumns: 'min-content auto min-content',
-                    gridTemplateRows: 'auto min-content',
-                    gridTemplateAreas: '"left main right" "bottom bottom bottom"',
-                }}
-            className={this.props.classes.content}
+            style={{
+                ...styles.content,
+                ...(vertical ?
+                    {
+                        gridTemplateRows: 'min-content auto min-content min-content',
+                        gridTemplateColumns: 'auto',
+                        gridTemplateAreas: '"left" "main" "right" "bottom"',
+                    }
+                    :
+                    {
+                        gridTemplateColumns: 'min-content auto min-content',
+                        gridTemplateRows: 'auto min-content',
+                        gridTemplateAreas: '"left main right" "bottom bottom bottom"',
+                    }),
+            }}
             ref={this.contentRef}
         >
+            <style>
+                {`
+@keyframes nmea-newValueAnimation {
+    0% {
+        color: #00f900;
+    }
+    80% {
+        color: #008000;
+    }
+    100% {
+        color: ${this.props.themeType === 'dark' ? '#fff' : '#000'};
+    }
+}               
+`}
+            </style>
             <div
-                style={{ flexDirection: vertical ? 'row' : 'column' }}
-                className={this.props.classes.leftPanel}
+                style={{ ...styles.leftPanel, flexDirection: vertical ? 'row' : 'column' }}
             >
                 {this.renderIndicatorsBlock(items, 'left')}
             </div>
-            <div className={this.props.classes.mainPanel}>
+            <div style={styles.mainPanel}>
                 <div
                     style={{
+                        ...styles.carousel,
                         transform: `translate3d(0px, ${-currentWindow * 100}%, 0px)`,
                         transition: this.state.nextIndex !== undefined || this.state.prevIndex !== undefined ? undefined : 'none',
                     }}
-                    className={this.props.classes.carousel}
                 >
                     {[this.state.prevIndex, this.state.index, this.state.nextIndex].map((windowIndex, i) => <div
                         key={windowIndex === undefined ? 1000 + i : windowIndex}
-                        className={this.props.classes.windowPanel}
+                        style={styles.windowPanel}
                     >
                         {windowIndex === undefined || !windows[windowIndex] ? null : windows[windowIndex]()}
                     </div>)}
@@ -740,10 +745,10 @@ class Nmea extends Generic {
             </div>
             <div
                 style={{
+                    ...styles.rightPanel,
                     flexDirection: vertical ? 'row' : 'column',
                     marginBottom: vertical && windows.length > 1 ? 24 : 0,
                 }}
-                className={this.props.classes.rightPanel}
             >
                 {this.renderIndicatorsBlock(items, 'right')}
             </div>
@@ -762,4 +767,4 @@ Nmea.propTypes = {
     data: PropTypes.object,
 };
 
-export default withStyles(styles)(Nmea);
+export default Nmea;

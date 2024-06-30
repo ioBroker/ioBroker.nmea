@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@mui/styles';
 
 import {
     Button,
@@ -15,7 +14,7 @@ import { Utils } from '@iobroker/adapter-react-v5';
 import Generic from './Generic';
 import ItemsEditorDialog from './Components/ItemsEditorDialog';
 
-const styles = theme => ({
+const styles = {
     content: {
         width: '100%',
         height: '100%',
@@ -73,20 +72,9 @@ const styles = theme => ({
         justifyContent: 'center',
     },
     newValue: {
-        animation: '$newValueAnimation 2s ease-in-out',
+        animation: 'nmea-newValueAnimation 2s ease-in-out',
     },
-    '@keyframes newValueAnimation': {
-        '0%': {
-            color: '#00f900',
-        },
-        '80%': {
-            color: '#008000',
-        },
-        '100%': {
-            color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-        },
-    },
-});
+};
 
 const ItemsEditor = props => {
     const [open, setOpen] = useState(false);
@@ -302,15 +290,15 @@ class Instrument extends Generic {
 
         return <div
             key={index}
-            style={item.color ? { color: item.color } : null}
-            className={this.props.classes.indicatorCard}
+            style={{ ...styles.indicatorCard, color: item.color ? item.color : null }}
         >
-            <div className={this.props.classes.name} style={{ fontSize: this.fontSize[nameKey] }}>{item.name}</div>
-            <div className={this.props.classes.numberContainer}>
+            <div style={{ ...styles.name, fontSize: this.fontSize[nameKey] }}>{item.name}</div>
+            <div style={styles.numberContainer}>
                 <div
                     key={valKey}
-                    className={Utils.clsx(this.props.classes.number, item.changes && this.props.classes.newValue)}
                     style={{
+                        ...styles.number,
+                        ...(item.changes ? styles.newValue : undefined),
                         fontSize: this.fontSize[valKey],
                         height: height * 0.7,
                     }}
@@ -324,7 +312,7 @@ class Instrument extends Generic {
                         this.fontSize[valKey] / 1.2,
                     ))}
                 </div>
-                {item.unit ? <div className={this.props.classes.unit} style={{ fontSize: this.fontSize[valKey] / 2 }}>{item.unit}</div> : null}
+                {item.unit ? <div style={{ ...styles.unit, fontSize: this.fontSize[valKey] / 2 }}>{item.unit}</div> : null}
             </div>
         </div>;
     }
@@ -362,21 +350,36 @@ class Instrument extends Generic {
             currentIndex = 0;
         }
 
-        const content = <div className={this.props.classes.content}>
-            <div className={this.props.classes.mainPanel}>
+        const content = <div style={styles.content}>
+            <style>
+                {`
+@keyframes nmea-newValueAnimation {
+    0% {
+        color: #00f900;
+    }
+    80% {
+        color: #008000;
+    }
+    100% {
+        color: ${this.props.themeType === 'dark' ? '#fff' : '#000'};
+    }
+}               
+`}
+            </style>
+            <div style={styles.mainPanel}>
                 <div
                     style={{
+                        ...styles.carousel,
                         transform: `translate3d(0px, ${-currentIndex * 100}%, 0px)`,
                         transition: this.state.nextIndex !== undefined || this.state.prevIndex !== undefined ? undefined : 'none',
                         width: '100%',
                         height: '100%',
                     }}
-                    className={this.props.classes.carousel}
                     ref={this.contentRef}
                 >
                     {[this.state.prevIndex, this.state.index, this.state.nextIndex].map((index, i) => <div
                         key={i}
-                        className={this.props.classes.windowPanel}
+                        style={styles.windowPanel}
                     >
                         {index === undefined || !items[index] ? null : this.renderInstrument(items[index], index)}
                     </div>)}
@@ -397,4 +400,4 @@ Instrument.propTypes = {
     data: PropTypes.object,
 };
 
-export default withStyles(styles)(Instrument);
+export default Instrument;

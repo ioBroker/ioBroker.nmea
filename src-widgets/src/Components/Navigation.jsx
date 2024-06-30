@@ -1,4 +1,3 @@
-import { withStyles } from '@mui/styles';
 import {
     useMemo,
 } from 'react';
@@ -105,11 +104,11 @@ const Navigation = props => {
 
     const compassDirection = getCompassDirection(props.cog).short;
 
-    return <div className={props.classes.content}>
-        <div className={props.classes.header}>
+    return <div style={styles.content}>
+        <div style={styles.header}>
             {Generic.t('Navigation')}
         </div>
-        <div className={props.classes.contentInner}>
+        <div style={styles.contentInner}>
             <SvgContainer angle={0} height={RADIUS + 30}>
                 <foreignObject width={RADIUS * 2} height={RADIUS * 2}>
                     {props.twd !== null && props.twd !== undefined ? <BigArrow
@@ -120,13 +119,13 @@ const Navigation = props => {
                         {compass}
                     </SvgContainer>
                     <SvgContainer scale={2}>
-                        <Ship className={props.classes.ship} />
+                        <Ship style={styles.ship} />
                     </SvgContainer>
                     <CenterText>
-                        <div className={props.classes.centerTextInner}>
+                        <div style={styles.centerTextInner}>
                             {`${props.cog === null || props.cog === undefined || Number.isNaN(parseFloat(props.cog)) ? '---' : Math.round(parseFloat(props.cog)).toString().padStart(3, '0')}°`}
                         </div>
-                        <div className={props.classes.centerTextBig}>
+                        <div style={styles.centerTextBig}>
                             {compassDirection !== '--' ? Generic.t(getCompassDirection(props.cog).short) : compassDirection}
                         </div>
                     </CenterText>
@@ -144,4 +143,4 @@ Navigation.propTypes = {
     themeType: PropTypes.string,
 };
 
-export default withStyles(styles)(Navigation);
+export default Navigation;

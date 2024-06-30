@@ -1,7 +1,6 @@
 import React from 'react';
-import { withStyles } from '@mui/styles';
 
-import { Checkbox, TextField } from '@mui/material';
+import { Box, Checkbox, TextField } from '@mui/material';
 
 import WidgetDemoApp from '@iobroker/vis-2-widgets-react-dev/widgetDemoApp';
 import { I18n } from '@iobroker/adapter-react-v5';
@@ -9,16 +8,16 @@ import { I18n } from '@iobroker/adapter-react-v5';
 import Nmea from './Nmea';
 import translations from './translations';
 
-const styles = theme => ({
-    app: {
+const styles = {
+    app: theme => ({
         backgroundColor: theme?.palette?.background.default,
         color: theme?.palette?.text.primary,
         height: '100%',
         width: '100%',
         overflow: 'auto',
         display: 'flex',
-    },
-});
+    }),
+};
 
 const fields = ['name', 'withoutTitle'];
 
@@ -82,7 +81,7 @@ class App extends WidgetDemoApp {
             />,
         };
 
-        return <div className={this.props.classes.app}>
+        return <Box component="div" sx={styles.app}>
             <div>
                 {Object.keys(widgets).map(key => <div key={key} style={{ display: 'flex', alignItems: 'center' }}>
                     <Checkbox
@@ -107,8 +106,8 @@ class App extends WidgetDemoApp {
                 />)}
             </div>
             {Object.keys(widgets).map(key => (this.state.disabled[key] ? null : widgets[key]))}
-        </div>;
+        </Box>;
     }
 }
 
-export default withStyles(styles)(App);
+export default App;

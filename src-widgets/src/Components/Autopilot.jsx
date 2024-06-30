@@ -1,7 +1,6 @@
 import {
     Button, Select, MenuItem,
 } from '@mui/material';
-import { withStyles } from '@mui/styles';
 import {
     useMemo, useRef,
 } from 'react';
@@ -157,19 +156,19 @@ const Autopilot = props => {
         buttonsVisible = false;
     }
 
-    return <div className={props.classes.content}>
-        <div className={props.classes.header}>
+    return <div style={styles.content}>
+        <div style={styles.header}>
             {Generic.t('Autopilot')}
         </div>
         {props.rudder === false ? null : <div>
-            <div className={props.classes.rudderContainer}>
+            <div style={styles.rudderContainer}>
                 <SvgContainer height={30} style={{ padding: 4 }}>
                     <Rudder rudder={props.rudder} y={0} />
                 </SvgContainer>
             </div>
         </div>}
-        <div className={props.classes.contentInner}>
-            {props.mode !== false && props.modeId && autopilotStates ? <div className={props.classes.mode}>
+        <div style={styles.contentInner}>
+            {props.mode !== false && props.modeId && autopilotStates ? <div style={styles.mode}>
                 <Select
                     style={{ width: '100%' }}
                     value={props.mode || 0}
@@ -230,7 +229,7 @@ const Autopilot = props => {
                     </SvgContainer>
                     <SvgContainer angle={headingAngle}>
                         <line
-                            className={props.classes.orangeLine}
+                            style={styles.orangeLine}
                             strokeWidth={4}
                             x1={RADIUS}
                             y1={20}
@@ -239,18 +238,18 @@ const Autopilot = props => {
                         />
                     </SvgContainer>
                     <SvgContainer scale={2}>
-                        <Ship className={props.classes.ship} />
+                        <Ship style={styles.ship} />
                     </SvgContainer>
-                    <CenterText className={props.classes.centerText}>
-                        <div className={props.classes.centerTextInner}>
+                    <CenterText style={styles.centerText}>
+                        <div style={styles.centerTextInner}>
                             {`${props.heading === null || props.heading === undefined || Number.isNaN(parseFloat(props.heading)) ? '---' : Math.round(parseFloat(props.heading)).toString().padStart(3, '0')}°`}
                         </div>
                     </CenterText>
                 </foreignObject>
             </SvgContainer>
         </div>
-        {buttonsVisible ? <div className={props.classes.bottomPanel}>
-            <div className={props.classes.bottomPanelButtons}>
+        {buttonsVisible ? <div style={styles.bottomPanel}>
+            <div style={styles.bottomPanelButtons}>
                 {[
                     { id: props.minus10Id, name: '-10' },
                     { id: props.minus1Id, name: '-1' },
@@ -285,4 +284,4 @@ Autopilot.propTypes = {
     themeType: PropTypes.string,
 };
 
-export default withStyles(styles)(Autopilot);
+export default Autopilot;

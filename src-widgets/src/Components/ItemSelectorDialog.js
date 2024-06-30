@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@mui/styles';
 
 import {
     Accordion,
@@ -19,7 +18,7 @@ import {
 
 import Generic from '../Generic';
 
-const styles = theme => ({
+const styles = {
     itemsCount: {
         marginLeft: 10,
         opacity: 0.5,
@@ -33,10 +32,10 @@ const styles = theme => ({
     tooltip: {
         pointerEvents: 'none',
     },
-    used: {
+    used: theme => ({
         color: theme.palette.primary.main,
-    },
-});
+    }),
+};
 
 class ItemsSelectorDialog extends Component {
     constructor(props) {
@@ -122,7 +121,7 @@ class ItemsSelectorDialog extends Component {
         }
 
         return <MenuItem
-            className={this.props.usedIds.includes(id) ? this.props.classes.used : ''}
+            sx={this.props.usedIds.includes(id) ? styles.used : undefined}
             style={{
                 opacity: opacity ? 1 : 0.3,
                 padding: '0 8px 0 2px',
@@ -144,16 +143,16 @@ class ItemsSelectorDialog extends Component {
                 <Checkbox checked={this.state.selectedStates.includes(id)} />
             </ListItemIcon>
             <ListItemText>{this.state.states[id].name}</ListItemText>
-            {title ? <Tooltip title={title} size="small" classes={{ popper: this.props.classes.tooltip }}>
-                <div className={this.props.classes.value}>
+            {title ? <Tooltip title={title} size="small" componentsProps={{ popper: { sx: styles.tooltip } }}>
+                <div style={styles.value}>
                     {val}
                     {this.state.states[id].common.unit ?
-                        <span className={this.props.classes.unit}>{this.state.states[id].common.unit}</span> : null}
+                        <span style={styles.unit}>{this.state.states[id].common.unit}</span> : null}
                 </div>
-            </Tooltip> : <div className={this.props.classes.value}>
+            </Tooltip> : <div style={styles.value}>
                 {val}
                 {this.state.states[id].common.unit ?
-                    <span className={this.props.classes.unit}>{this.state.states[id].common.unit}</span> : null}
+                    <span style={styles.unit}>{this.state.states[id].common.unit}</span> : null}
             </div>}
         </MenuItem>;
     }
@@ -262,7 +261,7 @@ class ItemsSelectorDialog extends Component {
                 }}
             >
                 {this.state.channels[channelId].name}
-                <span className={this.props.classes.itemsCount}>
+                <span style={styles.itemsCount}>
                     [
                     {this.state.channels[channelId].count}
                     ]

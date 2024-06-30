@@ -1,4 +1,3 @@
-import { withStyles } from '@mui/styles';
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -71,11 +70,11 @@ const Wind = props => {
         />)}
     </>, [props.themeType]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return <div className={props.classes.content}>
-        <div className={props.classes.header}>
+    return <div style={styles.content}>
+        <div style={styles.header}>
             {Generic.t('Wind')}
         </div>
-        <div className={props.classes.contentInner}>
+        <div style={styles.contentInner}>
             <BigArrow
                 angle={twdAngle}
                 zIndex={3}
@@ -88,14 +87,14 @@ const Wind = props => {
                 {compass}
             </SvgContainer>
             <SvgContainer scale={2}>
-                <Ship className={props.classes.ship} />
+                <Ship style={styles.ship} />
             </SvgContainer>
-            <CenterText className={props.classes.centerTextContainer}>
+            <CenterText style={styles.centerTextContainer}>
                 <div onClick={() => setText(_text => (_text === 'tws' ? 'aws' : 'tws'))}>
-                    <div className={props.classes.centerText}>
+                    <div style={styles.centerText}>
                         {Generic.t(text).toUpperCase()}
                     </div>
-                    <div className={props.classes.centerText2}>
+                    <div style={styles.centerText2}>
                         {Number.isNaN(props[text]) || props[text] === null || props[text] === undefined ? '---' : Math.round(props[text] * 10) / 10}
                     </div>
                     <div>{Generic.t('kts')}</div>
@@ -115,4 +114,4 @@ Wind.propTypes = {
     themeType: PropTypes.string,
 };
 
-export default withStyles(styles)(Wind);
+export default Wind;

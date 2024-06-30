@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@mui/styles';
 import { v4 as uuid } from 'uuid';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
@@ -28,10 +27,6 @@ import { ColorPicker, SelectID, I18n } from '@iobroker/adapter-react-v5';
 
 import Generic from '../Generic';
 import ItemSelectorDialog from './ItemSelectorDialog';
-
-const styles = () => ({
-
-});
 
 class ItemsEditorDialog extends Component {
     constructor(props) {
@@ -513,4 +508,4 @@ ItemsEditorDialog.propTypes = {
     language: PropTypes.string,
 };
 
-export default withStyles(styles)(ItemsEditorDialog);
+export default ItemsEditorDialog;

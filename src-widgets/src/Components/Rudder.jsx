@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
 import { IconButton } from '@mui/material';
@@ -95,11 +94,11 @@ const Rudder = props => {
         <ellipse cx={RADIUS} cy={RADIUS} rx={40} ry={40} fill="grey" />
     </>, [props.themeType, zoomActive, factor]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return <div className={props.classes.content}>
-        <div className={props.classes.header}>
+    return <div style={styles.content}>
+        <div style={styles.header}>
             {Generic.t('Rudder')}
         </div>
-        <div className={props.classes.contentInner}>
+        <div style={styles.contentInner}>
             <IconButton
                 size="small"
                 disableRipple
@@ -148,7 +147,7 @@ const Rudder = props => {
                 <path
                     d="M -8 -40 L -4 -200 L 4 -200 L 8 -40 Z"
                     fill="#FF0000AA"
-                    className={props.classes.arrow}
+                    style={styles.arrow}
                 />
             </SvgContainer> : null}
         </div>
@@ -163,4 +162,4 @@ Rudder.propTypes = {
     themeType: PropTypes.string,
 };
 
-export default withStyles(styles)(Rudder);
+export default Rudder;
