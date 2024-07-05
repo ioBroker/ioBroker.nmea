@@ -9,8 +9,6 @@ import {
     Edit,
 } from '@mui/icons-material';
 
-import { Utils } from '@iobroker/adapter-react-v5';
-
 import Generic from './Generic';
 import ItemsEditorDialog from './Components/ItemsEditorDialog';
 

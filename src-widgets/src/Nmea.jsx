@@ -9,7 +9,6 @@ import {
 } from '@mui/material';
 
 import { Edit } from '@mui/icons-material';
-import { Utils } from '@iobroker/adapter-react-v5';
 
 import Generic from './Generic';
 import Wind from './Components/Wind';
