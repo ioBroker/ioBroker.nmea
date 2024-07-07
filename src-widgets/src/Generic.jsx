@@ -200,8 +200,8 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         }
     }
 
-    renderNextPrevButtons(maxIndex) {
-        return <div style={styles.bottomPanel}>
+    renderNextPrevButtons(maxIndex, stylesBottomPanel) {
+        return <div style={stylesBottomPanel}>
             <IconButton
                 size="large"
                 onClick={() => {

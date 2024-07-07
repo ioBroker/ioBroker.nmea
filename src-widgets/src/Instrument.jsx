@@ -383,7 +383,7 @@ class Instrument extends Generic {
                     </div>)}
                 </div>
             </div>
-            {items.length > 1 ? this.renderNextPrevButtons(items.length) : null}
+            {items.length > 1 ? this.renderNextPrevButtons(items.length, styles.bottomPanel) : null}
         </div>;
 
         return this.wrapContent(content);

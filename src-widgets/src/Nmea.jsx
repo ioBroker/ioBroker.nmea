@@ -751,7 +751,7 @@ class Nmea extends Generic {
             >
                 {this.renderIndicatorsBlock(items, 'right')}
             </div>
-            {windows.length > 1 ? this.renderNextPrevButtons(windows.length) : null}
+            {windows.length > 1 ? this.renderNextPrevButtons(windows.length, styles.bottomPanel) : null}
         </div>;
 
         return this.wrapContent(content);
