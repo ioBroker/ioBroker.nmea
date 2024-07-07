@@ -375,4 +375,4 @@ ItemsSelectorDialog.propTypes = {
     usedIds: PropTypes.array,
 };
 
-export default withStyles(styles)(ItemsSelectorDialog);
+export default ItemsSelectorDialog;
