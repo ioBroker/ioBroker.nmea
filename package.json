@@ -17,7 +17,7 @@
   "dependencies": {
     "@canboat/canboatjs": "^2.6.0",
     "@iobroker/adapter-core": "^3.1.6",
-    "geo-tz": "^8.0.2",
+    "geo-tz": "^8.1.1",
     "moment": "^2.30.1"
   },
   "devDependencies": {
