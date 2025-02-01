@@ -9,7 +9,7 @@
         "@emotion/styled": "^11.11.5",
         "@iobroker/adapter-react-v5": "^6.0.13",
         "@iobroker/vis-2-widgets-react-dev": "^2.0.1",
-        "@mui/icons-material": "^5.15.21",
+        "@mui/icons-material": "^6.4.2",
         "@mui/material": "^5.15.21",
         "color": "^4.2.3",
         "craco-esbuild": "^0.6.1",
