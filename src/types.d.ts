@@ -10,7 +10,18 @@ export type PGNFieldEntry = {
     Signed: boolean;
     RangeMin: number;
     RangeMax: number;
-    FieldType: 'NUMBER' | 'LOOKUP' | 'RESERVED' | 'STRING_FIX' | 'STRING_LAU' | 'DATE' | 'TIME' | 'MMSI' | 'INDIRECT_LOOKUP' | 'BINARY' | 'SPARE';
+    FieldType:
+        | 'NUMBER'
+        | 'LOOKUP'
+        | 'RESERVED'
+        | 'STRING_FIX'
+        | 'STRING_LAU'
+        | 'DATE'
+        | 'TIME'
+        | 'MMSI'
+        | 'INDIRECT_LOOKUP'
+        | 'BINARY'
+        | 'SPARE';
     LookupEnumeration?: string;
 };
 export type PGNEntry = {
@@ -18,7 +29,7 @@ export type PGNEntry = {
     Id: string;
     Description: string;
     Explanation: string;
-    Type: 'Single' | 'ISO'
+    Type: 'Single' | 'ISO';
     Complete: boolean;
     FieldCount: number;
     Length: number;
@@ -29,7 +40,7 @@ export type PGNEntry = {
 export type PGNLookupEnumeration = {
     Name: string;
     MaxValue: number;
-    EnumValues: { Name: string; Value: number }[]
+    EnumValues: { Name: string; Value: number }[];
 };
 
 export type PGNType = {
@@ -43,23 +54,23 @@ export interface NmeaConfig extends ioBroker.AdapterConfig {
     canPort: string;
     updateAtLeastEveryMs: number;
     magneticVariation: string;
-    simulationEnabled: false,
-    combinedEnvironment: false,
+    simulationEnabled: false;
+    combinedEnvironment: false;
     simulate: {
         oid: string;
         type: 'temperature' | 'humidity' | 'pressure';
         subType: string;
-    }[],
+    }[];
     simulateAddress: number;
     approximateMs: number;
-    applyGpsTimeZoneToSystem: false,
+    applyGpsTimeZoneToSystem: false;
     deleteAisAfter: number;
     pressureAlertDiff: number;
     pressureAlertMinutes: number;
 }
 
 export interface PGNMessage {
-    pgn: number
+    pgn: number;
 }
 
 export interface WritePgnData {
@@ -69,7 +80,7 @@ export interface WritePgnData {
     fields: {
         SID: number;
         [key: string]: number | string;
-    },
+    };
     src: number;
 }
 

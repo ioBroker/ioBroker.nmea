@@ -1,13 +1,16 @@
-const META_DATA: Record<string, {
-    unit: string;
-    role?: string;
-    radians?: boolean;
-    applyMagneticVariation?: boolean;
-    round?: number;
-    factor?: number;
-    meterPerSecond?: boolean;
-    offset?: number;
-}> = {
+const META_DATA: Record<
+    string,
+    {
+        unit: string;
+        role?: string;
+        radians?: boolean;
+        applyMagneticVariation?: boolean;
+        round?: number;
+        factor?: number;
+        meterPerSecond?: boolean;
+        offset?: number;
+    }
+> = {
     headingMagnetic: {
         unit: '°',
         radians: true,
@@ -63,7 +66,7 @@ const META_DATA: Record<string, {
         unit: 'kn',
         role: 'value.speed.overground',
     },
-    'directionData.set':{
+    'directionData.set': {
         unit: '°',
         radians: true,
         role: 'value.direction',
@@ -104,27 +107,27 @@ const META_DATA: Record<string, {
         round: 10,
     },
     altitude: {
-        unit: 'm'
+        unit: 'm',
     },
     beam: {
-        unit: 'm'
+        unit: 'm',
     },
     length: {
-        unit: 'm'
+        unit: 'm',
     },
     positionReferenceFromBow: {
-        unit: 'm'
+        unit: 'm',
     },
     positionReferenceFromStarboard: {
-        unit: 'm'
+        unit: 'm',
     },
     'distanceLog.log': {
         unit: 'm',
-        role: 'value.distance'
+        role: 'value.distance',
     },
     'distanceLog.tripLog': {
         unit: 'm',
-        role: 'value.distance'
+        role: 'value.distance',
     },
     targetHeadingMagnetic: {
         unit: '°',
@@ -171,7 +174,7 @@ const META_DATA: Record<string, {
     distanceToWaypoint: {
         unit: 'nm',
         role: 'value.distance',
-        factor: 1 / 1852,   // meters to nautical miles conversion
+        factor: 1 / 1852, // meters to nautical miles conversion
         round: 100,
     },
     waypointClosingVelocity: {

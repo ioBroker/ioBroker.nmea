@@ -1,8 +1,6 @@
-'use strict';
-
 import * as utils from '@iobroker/adapter-core';
 import fs from 'node:fs';
-import cp, { ExecException } from 'node:child_process';
+import cp, { type ExecException } from 'node:child_process';
 import { find } from 'geo-tz';
 import META_DATA from './lib/metaData';
 import AutoPilot from './lib/seaTalkAutoPilot';
@@ -20,15 +18,12 @@ import 'moment/locale/es';
 import 'moment/locale/uk';
 import 'moment/locale/zh-cn';
 
-import {
-    PGNType, NmeaConfig,
-    PgnDataEvent, PGNEntry,
-} from './types';
+import type { PGNType, NmeaConfig, PgnDataEvent, PGNEntry } from './types';
 
 import NGT1 from './lib/ngt1';
 import PicanM from './lib/picanM';
 import t from './lib/i18n';
-import { GenericDriver } from './lib/genericDriver';
+import type { GenericDriver } from './lib/genericDriver';
 
 const PGNS: PGNType = JSON.parse(fs.readFileSync(require.resolve('@canboat/pgns/canboat.json'), 'utf8'));
 
@@ -46,9 +41,9 @@ export class NmeaAdapter extends utils.Adapter {
 
     private pgn2entry: Record<number, PGNEntry> = {};
 
-    private userId2Name: Record<string, { name: string, ts: number }> = {};
+    private userId2Name: Record<string, { name: string; ts: number }> = {};
 
-    private values: Record<string, { val: ioBroker.StateValue, ts: number }> = {};
+    private values: Record<string, { val: ioBroker.StateValue; ts: number }> = {};
 
     private lastMessageReceived = 0;
 
@@ -70,9 +65,9 @@ export class NmeaAdapter extends utils.Adapter {
 
     private nmeaDriver: GenericDriver | null = null;
 
-    private windSpeeds: { tws: number, ts: number }[] | null = null;
+    private windSpeeds: { tws: number; ts: number }[] | null = null;
 
-    private windDirs: { twd: number, ts: number }[] | null = null;
+    private windDirs: { twd: number; ts: number }[] | null = null;
 
     private trueWindSpeedError = 0;
 
@@ -80,7 +75,7 @@ export class NmeaAdapter extends utils.Adapter {
 
     private currentTimeZone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    private pressureHistory: Record<string, { val: number, ts: number }[]> = {};
+    private pressureHistory: Record<string, { val: number; ts: number }[]> = {};
 
     private pressureAlerts: Record<string, string> = {};
 
@@ -125,9 +120,9 @@ export class NmeaAdapter extends utils.Adapter {
             fields: {
                 SID: 0,
                 'Temperature Source': 'Outside Temperature',
-                'Temperature': 0,
+                Temperature: 0,
                 'Atmospheric Pressure': 0,
-                'Humidity': 50,
+                Humidity: 50,
                 'Humidity Source': 'Outside',
             },
             src: this.nmConfig.simulateAddress || 204,
@@ -137,7 +132,7 @@ export class NmeaAdapter extends utils.Adapter {
             const sim = this.nmConfig.simulate[s];
             if (sim.type === 'temperature') {
                 if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                    obj.fields.Temperature = Math.round(this.simulationsValues[sim.oid] as number + 273.15);
+                    obj.fields.Temperature = Math.round((this.simulationsValues[sim.oid] as number) + 273.15);
                     obj.fields['Temperature Source'] = sim.subType || 'Outside Temperature';
                 }
             } else if (sim.type === 'humidity') {
@@ -260,7 +255,8 @@ export class NmeaAdapter extends utils.Adapter {
 
     async writeState(id: string, val: ioBroker.StateValue): Promise<void> {
         if (val !== undefined) {
-            if (!this.values[id] ||
+            if (
+                !this.values[id] ||
                 val !== this.values[id].val ||
                 !this.nmConfig.updateAtLeastEveryMs ||
                 Date.now() - this.values[id].ts >= this.nmConfig.updateAtLeastEveryMs
@@ -296,7 +292,7 @@ export class NmeaAdapter extends utils.Adapter {
 
             if (trueSog !== undefined) {
                 // convert from radian to degree
-                const windAngle: number = data.fields['Wind Angle'] * 180 / Math.PI;
+                const windAngle: number = (data.fields['Wind Angle'] * 180) / Math.PI;
                 // convert frm m/s to kn
                 const windSpeed: number = data.fields['Wind Speed'] * 1.9438444924574;
 
@@ -316,10 +312,14 @@ export class NmeaAdapter extends utils.Adapter {
                     //   twd = 360+twd;
                     // }
                     const apparentWindDirection = (windAngle + trueCog) % 360;
-                    const u = (trueSog * Math.sin(trueCog * Math.PI / 180)) - (windSpeed * Math.sin(apparentWindDirection * Math.PI/180));
-                    const v = (trueSog * Math.cos(trueCog * Math.PI / 180)) - (windSpeed * Math.cos(apparentWindDirection * Math.PI/180));
+                    const u =
+                        trueSog * Math.sin((trueCog * Math.PI) / 180) -
+                        windSpeed * Math.sin((apparentWindDirection * Math.PI) / 180);
+                    const v =
+                        trueSog * Math.cos((trueCog * Math.PI) / 180) -
+                        windSpeed * Math.cos((apparentWindDirection * Math.PI) / 180);
                     const trueWindSpeed = Math.sqrt(u * u + v * v);
-                    const trueWindDirection = v ? Math.atan(u / v) * 180 / Math.PI : 0;
+                    const trueWindDirection = v ? (Math.atan(u / v) * 180) / Math.PI : 0;
 
                     trueWindDirectionRounded = Math.round(trueWindDirection * 10) / 10;
                     trueWindSpeedRounded = Math.round(trueWindSpeed * 100) / 100;
@@ -327,7 +327,12 @@ export class NmeaAdapter extends utils.Adapter {
                     apparentWindSpeedRounded = Math.round(windSpeed * 100) / 100;
                 } else if (data.fields.Reference && data.fields.Reference.includes('Magnetic')) {
                     trueWindSpeedRounded = windSpeed;
-                    trueWindDirectionRounded = (trueCog + windAngle + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number)) % 360;
+                    trueWindDirectionRounded =
+                        (trueCog +
+                            windAngle +
+                            (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation']
+                                .val as number)) %
+                        360;
                     apparentWindDirectionRounded = Math.round((trueCog - trueWindDirectionRounded) * 10) / 10;
                     // TODO!!
                     apparentWindSpeedRounded = 0;
@@ -356,8 +361,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(trueWindAngleObject);
                 }
@@ -376,8 +380,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(trueWindSpeedObject);
                 }
@@ -396,8 +399,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(averageWindAngleObject);
                 }
@@ -416,8 +418,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(averageWindSpeedObject);
                 }
@@ -436,8 +437,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(maxWindSpeedObject);
                 }
@@ -456,8 +456,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(apparentWindDirectionObject);
                 }
@@ -476,8 +475,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.updateObject(apparentWindSpeedObject);
                 }
@@ -509,11 +507,11 @@ export class NmeaAdapter extends utils.Adapter {
                         maxSpeed = w.tws;
                     }
                 });
-                sumSpeed = Math.round(sumSpeed / this.windSpeeds.length * 100) / 100;
+                sumSpeed = Math.round((sumSpeed / this.windSpeeds.length) * 100) / 100;
 
                 let sumDirection = 0;
-                this.windDirs.forEach(w => sumDirection += w.twd);
-                sumDirection = Math.round(sumDirection / this.windDirs.length * 100) / 100;
+                this.windDirs.forEach(w => (sumDirection += w.twd));
+                sumDirection = Math.round((sumDirection / this.windDirs.length) * 100) / 100;
 
                 await this.writeState(twdId, trueWindDirectionRounded);
                 await this.writeState(twsId, trueWindSpeedRounded);
@@ -560,14 +558,13 @@ export class NmeaAdapter extends utils.Adapter {
                     write: false,
                 },
                 type: 'state',
-                native: {
-                }
+                native: {},
             };
             await this.setObjectNotExistsAsync(id, positionObject);
         }
         if (data.fields.Time) {
             // detect time zone
-            const timeZone = find(data.fields.Latitude, data.fields.Longitude);  // ['America/Los_Angeles']
+            const timeZone = find(data.fields.Latitude, data.fields.Longitude); // ['America/Los_Angeles']
             if (timeZone && timeZone[0]) {
                 const timeZoneID = `${this.pgn2entry[data.pgn].Id}.timeZone`;
                 if (!this.createsChannelAndStates[timeZoneID]) {
@@ -582,8 +579,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        }
+                        native: {},
                     };
                     await this.setObjectNotExistsAsync(id, positionObject);
                 }
@@ -604,8 +600,13 @@ export class NmeaAdapter extends utils.Adapter {
             if (process.platform === 'linux') {
                 cp.exec(`timedatectl set-timezone ${zone}`, (error, stdout, stderr) => {
                     if (error || stderr) {
-                        error && this.log.error(`timedatectl set-timezone ${zone} error: ${error}`);
-                        stderr && this.log.error(`timedatectl set-timezone ${zone} error: ${stderr}`);
+                        if (error) {
+                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                            this.log.error(`timedatectl set-timezone ${zone} error: ${error.toString()}`);
+                        }
+                        if (stderr) {
+                            this.log.error(`timedatectl set-timezone ${zone} error: ${stderr}`);
+                        }
                     } else {
                         this.log.info(`Time Zone changed to ${zone}`);
                     }
@@ -637,7 +638,7 @@ export class NmeaAdapter extends utils.Adapter {
                         write: false,
                     },
                     type: 'state',
-                    native: {}
+                    native: {},
                 };
                 await this.updateObject(headingObject);
                 this.createsChannelAndStates[mId] = true;
@@ -648,7 +649,8 @@ export class NmeaAdapter extends utils.Adapter {
                 referenceVal = this.values[`${this.pgn2entry[data.pgn].Id}.reference`];
             }
             if (referenceVal && referenceVal.val === 'Magnetic') {
-                val = val + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number);
+                val =
+                    val + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number);
             }
             await this.writeState(mId, val);
         }
@@ -680,7 +682,7 @@ export class NmeaAdapter extends utils.Adapter {
                         write: false,
                     },
                     type: 'state',
-                    native: {}
+                    native: {},
                 };
                 await this.updateObject(pressureObject);
             }
@@ -701,7 +703,7 @@ export class NmeaAdapter extends utils.Adapter {
                     write: false,
                 },
                 type: 'state',
-                native: {}
+                native: {},
             };
             await this.updateObject(pressureAlertTextObject);
         }
@@ -719,8 +721,7 @@ export class NmeaAdapter extends utils.Adapter {
                     write: false,
                 },
                 type: 'state',
-                native: {
-                }
+                native: {},
             };
             await this.updateObject(pressureAlertObject);
         }
@@ -739,8 +740,7 @@ export class NmeaAdapter extends utils.Adapter {
                     write: false,
                 },
                 type: 'state',
-                native: {
-                }
+                native: {},
             };
             await this.updateObject(pressureHistoryObject);
 
@@ -749,7 +749,7 @@ export class NmeaAdapter extends utils.Adapter {
             if (history?.val) {
                 try {
                     this.pressureHistory[pressureId] = JSON.parse(history.val as string);
-                } catch (e) {
+                } catch {
                     this.pressureHistory[pressureId] = [];
                 }
             }
@@ -768,8 +768,8 @@ export class NmeaAdapter extends utils.Adapter {
                 history.push({ val: pressure, ts: Date.now() });
                 await this.setState(pressureAlertHistoryId, JSON.stringify(history), true);
                 // find out if the pressure is falling on more than 4 mbar in 4 hours
-                let min: { val: number, ts: number } | undefined;
-                let max: { val: number, ts: number } | undefined;
+                let min: { val: number; ts: number } | undefined;
+                let max: { val: number; ts: number } | undefined;
                 for (let i = 0; i < history.length; i++) {
                     if (!min || min.val > history[i].val) {
                         min = history[i];
@@ -821,8 +821,7 @@ export class NmeaAdapter extends utils.Adapter {
                         write: false,
                     },
                     type: 'state',
-                    native: {
-                    },
+                    native: {},
                 };
                 await this.updateObject(tempObject);
             }
@@ -850,8 +849,7 @@ export class NmeaAdapter extends utils.Adapter {
                         write: false,
                     },
                     type: 'state',
-                    native: {
-                    },
+                    native: {},
                 };
                 await this.updateObject(tempObject);
             }
@@ -876,8 +874,8 @@ export class NmeaAdapter extends utils.Adapter {
         });
 
         // delete all AIS data older than one hour
-        setTimeout(async(): Promise<void> => {
-            const groups = [...WELL_KNOWN_AIS_GROUPS, this.aisGroups];
+        setTimeout(async (): Promise<void> => {
+            const groups = [...WELL_KNOWN_AIS_GROUPS, ...this.aisGroups];
             for (let l = 0; l < groups.length; l++) {
                 const states = await this.getStatesAsync(`${this.namespace}.${groups[l]}.*`);
                 const ids = Object.keys(states);
@@ -908,15 +906,14 @@ export class NmeaAdapter extends utils.Adapter {
             const aisObject: ioBroker.StateObject = {
                 _id: aisId,
                 common: {
-                    name: data.fields.Name as string || this.userId2Name[data.fields['User ID']]?.name || '',
+                    name: (data.fields.Name as string) || this.userId2Name[data.fields['User ID']]?.name || '',
                     type: 'object',
                     role: 'value',
                     read: true,
                     write: false,
                 },
                 type: 'state',
-                native: {
-                }
+                native: {},
             };
             await this.updateObject(aisObject);
         }
@@ -929,12 +926,12 @@ export class NmeaAdapter extends utils.Adapter {
         await this.setState(aisId, JSON.stringify(data.fields), true);
     }
 
-    onData = async(data: PgnDataEvent): Promise<void> => {
+    onData = async (data: PgnDataEvent): Promise<void> => {
         this.lastMessageReceived = Date.now();
 
         if (!this.connectedInterval) {
             await this.setState('info.connection', true, true);
-            this.connectedInterval = this.setInterval(async() => {
+            this.connectedInterval = this.setInterval(async () => {
                 if (!this.lastMessageReceived || Date.now() - this.lastMessageReceived >= 10000) {
                     await this.setState('info.connection', false, true);
                     this.clearInterval(this.connectedInterval);
@@ -974,7 +971,10 @@ export class NmeaAdapter extends utils.Adapter {
                     await this.processWindEvent(data);
                 } else if (data.fields.Longitude && data.fields.Latitude) {
                     await this.processPositionEvent(data);
-                } else if (withReference.length && this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation']) {
+                } else if (
+                    withReference.length &&
+                    this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation']
+                ) {
                     await this.processMagneticVariation(data, withReference);
                 } else if (data.fields.Pressure && data.fields.Source) {
                     await this.processPressureEvent(data);
@@ -1005,7 +1005,8 @@ export class NmeaAdapter extends utils.Adapter {
         this.nmConfig.pressureAlertDiff = parseInt(this.nmConfig.pressureAlertDiff as any as string, 10) || 4;
         this.nmConfig.pressureAlertMinutes = parseInt(this.nmConfig.pressureAlertMinutes as any as string, 10) || 240;
 
-        const systemConfig: ioBroker.SystemConfigObject | null | undefined = await this.getForeignObjectAsync('system.config');
+        const systemConfig: ioBroker.SystemConfigObject | null | undefined =
+            await this.getForeignObjectAsync('system.config');
 
         this.lang = systemConfig?.common?.language || 'en';
         moment.locale(this.lang); // set default locale
@@ -1060,15 +1061,20 @@ export class NmeaAdapter extends utils.Adapter {
         let existingObject: ioBroker.StateObject | undefined;
         try {
             existingObject = (await this.getObjectAsync(stateObj._id)) as ioBroker.StateObject;
-        } catch (e) {
+        } catch {
             // ignore
         }
         if (existingObject) {
             // try to update all settings
             let changed = false;
             Object.keys(stateObj.common).forEach(attr => {
-                if (JSON.stringify((stateObj.common as Record<string, any>)[attr]) !== JSON.stringify((existingObject.common as Record<string, any>)[attr])) {
-                    (existingObject.common as Record<string, any>)[attr] = (stateObj.common as Record<string, any>)[attr];
+                if (
+                    JSON.stringify((stateObj.common as Record<string, any>)[attr]) !==
+                    JSON.stringify((existingObject.common as Record<string, any>)[attr])
+                ) {
+                    (existingObject.common as Record<string, any>)[attr] = (stateObj.common as Record<string, any>)[
+                        attr
+                    ];
                     changed = true;
                 }
             });
@@ -1080,7 +1086,7 @@ export class NmeaAdapter extends utils.Adapter {
         }
     }
 
-    async createNmeaState(options: { pgn: number, name: string, value: number | string }): Promise<string | false> {
+    async createNmeaState(options: { pgn: number; name: string; value: number | string }): Promise<string | false> {
         const { pgn, name, value } = options;
         const pgnObj = this.pgn2entry[pgn];
         const field = pgnObj.Fields.find(f => f.Name === name);
@@ -1107,7 +1113,7 @@ export class NmeaAdapter extends utils.Adapter {
                 const lookUp = PGNS.LookupEnumerations.find(l => l.Name === field.LookupEnumeration);
                 if (lookUp) {
                     states = {};
-                    lookUp.EnumValues.forEach(v => states[v.Value] = v.Name);
+                    lookUp.EnumValues.forEach(v => (states[v.Value] = v.Name));
                 }
             } else if (field.FieldType === 'NUMBER') {
                 commonType = 'number';
@@ -1123,7 +1129,7 @@ export class NmeaAdapter extends utils.Adapter {
             } else if (field.FieldType === 'MMSI') {
                 commonType = 'number';
                 role = 'value';
-            }  else if (field.FieldType === 'INDIRECT_LOOKUP') {
+            } else if (field.FieldType === 'INDIRECT_LOOKUP') {
                 commonType = 'number';
                 role = 'value';
             } else if (field.FieldType === 'BINARY') {
@@ -1155,24 +1161,26 @@ export class NmeaAdapter extends utils.Adapter {
             unit = metaData.unit;
             const valueNum = parseFloat(value as string);
             if (metaData.radians) {
-                options.value = valueNum * 180 / Math.PI;
+                options.value = (valueNum * 180) / Math.PI;
             } else if (metaData.meterPerSecond) {
                 options.value = valueNum * 1.9438444924574;
             }
             if (metaData.factor) {
-                options.value = options.value as number * metaData.factor;
+                options.value = (options.value as number) * metaData.factor;
             }
             if (metaData.offset !== undefined) {
-                options.value = options.value as number + metaData.offset;
+                options.value = (options.value as number) + metaData.offset;
             }
             // round value to X digits
             if (metaData.round !== undefined) {
-                options.value = Math.round(options.value as number * metaData.round) / metaData.round;
+                options.value = Math.round((options.value as number) * metaData.round) / metaData.round;
             }
 
             if (metaData.applyMagneticVariation) {
                 if (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation']) {
-                    const val = options.value as number + (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number);
+                    const val =
+                        (options.value as number) +
+                        (this.values[this.nmConfig.magneticVariation || 'magneticVariation.variation'].val as number);
                     // create state with magnetic variation
                     const mId = `${id}True`;
                     const stateObj: ioBroker.StateObject = {
@@ -1186,8 +1194,7 @@ export class NmeaAdapter extends utils.Adapter {
                             write: false,
                         },
                         type: 'state',
-                        native: {
-                        },
+                        native: {},
                     };
 
                     await this.updateObject(stateObj);
@@ -1216,8 +1223,7 @@ export class NmeaAdapter extends utils.Adapter {
                 write: false,
             },
             type: 'state',
-            native: {
-            }
+            native: {},
         };
         if (unit) {
             stateObj.common.unit = unit;
@@ -1228,7 +1234,7 @@ export class NmeaAdapter extends utils.Adapter {
         if (states) {
             stateObj.native.states = states;
             const texts: Record<string, string> = {};
-            Object.keys(states).forEach(s => texts[states[s]] = states[s]);
+            Object.keys(states).forEach(s => (texts[states[s]] = states[s]));
             stateObj.common.states = texts;
         }
         await this.updateObject(stateObj);
@@ -1259,7 +1265,7 @@ export class NmeaAdapter extends utils.Adapter {
                     } else {
                         this.log.warn(`Cannot decode line: ${lines[i]}, ${JSON.stringify(json)}`);
                     }
-                } catch (e) {
+                } catch {
                     this.log.warn(`Cannot decode line: ${lines[i]}`);
                 }
             }
@@ -1267,7 +1273,7 @@ export class NmeaAdapter extends utils.Adapter {
         if (this.nmConfig.simulate) {
             for (let s = 0; s < this.nmConfig.simulate.length; s++) {
                 if (this.nmConfig.simulate[s].oid === id) {
-                    this.simulationsValues[id] = state ? state.val as number : null;
+                    this.simulationsValues[id] = state ? (state.val as number) : null;
                 }
             }
         }
@@ -1292,10 +1298,15 @@ export class NmeaAdapter extends utils.Adapter {
                                         .then(ports => {
                                             this.log.info(`List of port: ${JSON.stringify(ports)}`);
 
-                                            this.sendTo(obj.from, obj.command, ports.map(item => ({
-                                                label: item.path,
-                                                value: item.path
-                                            })), obj.callback);
+                                            this.sendTo(
+                                                obj.from,
+                                                obj.command,
+                                                ports.map(item => ({
+                                                    label: item.path,
+                                                    value: item.path,
+                                                })),
+                                                obj.callback,
+                                            );
                                         })
                                         .catch((e: string) => {
                                             this.sendTo(obj.from, obj.command, [], obj.callback);
@@ -1303,11 +1314,22 @@ export class NmeaAdapter extends utils.Adapter {
                                         });
                                 } else {
                                     this.log.warn('Module "serialport" is not available');
-                                    this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
+                                    this.sendTo(
+                                        obj.from,
+                                        obj.command,
+                                        [{ label: 'Not available', value: '' }],
+                                        obj.callback,
+                                    );
                                 }
-                            }).catch((e: string) => {
+                            })
+                            .catch((e: string) => {
                                 this.log.error(`Cannot list serial ports: ${e}`);
-                                this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
+                                this.sendTo(
+                                    obj.from,
+                                    obj.command,
+                                    [{ label: 'Not available', value: '' }],
+                                    obj.callback,
+                                );
                             });
                     } catch (e) {
                         this.log.error(`Cannot list serial ports: ${e}`);
@@ -1321,7 +1343,7 @@ export class NmeaAdapter extends utils.Adapter {
                 if (obj.callback) {
                     try {
                         // cmd: ip link show
-                        import ('child_process')
+                        import('child_process')
                             .then(def => {
                                 const exec = def.exec;
                                 // Output of "ip link show"
@@ -1333,38 +1355,46 @@ export class NmeaAdapter extends utils.Adapter {
                                 // 3: can0: <NOARP,ECHO> mtu 16 qdisc noop state DOWN mode DEFAULT group default qlen 10
                                 // link/can
 
-                                exec('ip link show', (error: ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => {
-                                    if (error) {
-                                        this.log.error(`error: ${error.message}`);
-                                        return;
-                                    }
-                                    if (stderr) {
-                                        this.log.error(`stderr: ${stderr}`);
-                                        return;
-                                    }
-                                    // analyse stdout
-                                    const lines = (stdout || '').toString().split('\n');
-                                    const ports: { label: string; value: string }[] = [];
-
-                                    for (let l = 0; l < lines.length; l++) {
-                                        const line = lines[l].trim();
-                                        const m = line.match(/^\d+: (can\d+): /);
-                                        if (m) {
-                                            ports.push({
-                                                label: m[1],
-                                                value: m[1],
-                                            });
+                                exec(
+                                    'ip link show',
+                                    (error: ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => {
+                                        if (error) {
+                                            this.log.error(`error: ${error.message}`);
+                                            return;
                                         }
-                                    }
+                                        if (stderr) {
+                                            this.log.error(`stderr: ${stderr.toString()}`);
+                                            return;
+                                        }
+                                        // analyse stdout
+                                        const lines = (stdout || '').toString().split('\n');
+                                        const ports: { label: string; value: string }[] = [];
 
-                                    this.sendTo(obj.from, obj.command, ports, obj.callback);
-                                });
+                                        for (let l = 0; l < lines.length; l++) {
+                                            const line = lines[l].trim();
+                                            const m = line.match(/^\d+: (can\d+): /);
+                                            if (m) {
+                                                ports.push({
+                                                    label: m[1],
+                                                    value: m[1],
+                                                });
+                                            }
+                                        }
+
+                                        this.sendTo(obj.from, obj.command, ports, obj.callback);
+                                    },
+                                );
                             })
                             .catch((e: string) => {
                                 this.log.error(`Cannot list CAN ports: ${e}`);
-                                this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
+                                this.sendTo(
+                                    obj.from,
+                                    obj.command,
+                                    [{ label: 'Not available', value: '' }],
+                                    obj.callback,
+                                );
                             });
-                    } catch (e) {
+                    } catch {
                         this.sendTo(obj.from, obj.command, [{ label: 'Not available', value: '' }], obj.callback);
                     }
                 }
@@ -1377,7 +1407,7 @@ export class NmeaAdapter extends utils.Adapter {
         }
     }
 
-    async onUnload(callback: () => void): Promise<void> {
+    onUnload(callback: () => void): void {
         try {
             this.autoPilot && this.autoPilot.stop();
             this.autoPilot = null;
@@ -1385,11 +1415,12 @@ export class NmeaAdapter extends utils.Adapter {
             this.connectedInterval = null;
             this.sendEnvironmentInterval && this.clearInterval(this.sendEnvironmentInterval);
             this.sendEnvironmentInterval = null;
-            this.setState('info.connection', false, true)
-                .catch(e => this.log.error(`Cannot set info.connection to false: ${e}`));
+            this.setState('info.connection', false, true).catch(e =>
+                this.log.error(`Cannot set info.connection to false: ${e}`),
+            );
             this.nmeaDriver?.stop();
             callback();
-        } catch (e) {
+        } catch {
             callback();
         }
     }

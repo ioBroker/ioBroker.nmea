@@ -14,7 +14,7 @@ export abstract class GenericDriver {
 
     protected readonly app: ExtendedEmitter;
 
-    protected  constructor(adapter: ioBroker.Adapter, settings: NmeaConfig, onData: (event: PgnDataEvent) => void) {
+    protected constructor(adapter: ioBroker.Adapter, settings: NmeaConfig, onData: (event: PgnDataEvent) => void) {
         this.adapter = adapter;
         this.onData = onData;
         this.app = new EventEmitter() as ExtendedEmitter;

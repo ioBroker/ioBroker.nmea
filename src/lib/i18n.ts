@@ -12,7 +12,19 @@ import zh from '../i18n/zh-cn.json';
 
 const words: { [word: string]: Record<ioBroker.Languages, string> } = {};
 
-const languages: Record<ioBroker.Languages, Record<string, string>> = { en, ru, de, fr, es, it, pt, nl, pl, uk, 'zh-cn': zh };
+const languages: Record<ioBroker.Languages, Record<string, string>> = {
+    en,
+    ru,
+    de,
+    fr,
+    es,
+    it,
+    pt,
+    nl,
+    pl,
+    uk,
+    'zh-cn': zh,
+};
 
 Object.keys(languages).forEach((lang: string) => {
     Object.keys(languages[lang as ioBroker.Languages]).forEach(word => {

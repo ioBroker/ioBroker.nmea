@@ -1,264 +1,254 @@
 {
-  "common": {
-    "name": "nmea",
-    "version": "0.2.2",
-    "news": {
-      "0.2.2": {
-        "en": "Backend was rewritten on TypeScript\nSupport for AIS added\nValid processing of temperature, pressure and humidity",
-        "de": "Backend wurde auf TypeScript neu geschrieben\nUnterstützung für AIS hinzugefügt\nGültige Verarbeitung von Temperatur, Druck und Feuchtigkeit",
-        "ru": "Backend был переписан на TypeScript\nПоддержка добавленной AIS\nПроверка температуры, давления и влажности",
-        "pt": "Backend foi reescrito no TypeScript\nSuporte para AIS adicionado\nProcessamento válido de temperatura, pressão e umidade",
-        "nl": "Backend is herschreven op TypeScript\nOndersteuning voor AIS toegevoegd\nGeldige verwerking van temperatuur, druk en vochtigheid",
-        "fr": "Backend a été réécrit sur TypeScript\nSoutien à l'AIS ajouté\nTraitement valide de la température, de la pression et de l'humidité",
-        "it": "Backend è stato riscritto su TypeScript\nSupporto per AIS aggiunto\nElaborazione valida di temperatura, pressione e umidità",
-        "es": "Backend fue reescrito en TipoScript\nSupport for AIS added\nTratamiento válido de temperatura, presión y humedad",
-        "pl": "Backend został przepisany na TypeScript\nWsparcie dla AIS dodano\nWażna obróbka temperatury, ciśnienia i wilgotności",
-        "uk": "Backend був написаний на TypeScript\nПідтримка додано AIS\nДійсно оброблення температури, тиску і вологості",
-        "zh-cn": "在 TypeScript 上重写了后端\n增加了对AIS的支持\n有效处理温度、压力和湿度"
-      },
-      "0.1.8": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
-      },
-      "0.1.7": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
-      },
-      "0.1.6": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
-      },
-      "0.1.1": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
-      },
-      "0.1.0": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
-      },
-      "0.0.4": {
-        "en": "Fixed CI tests",
-        "de": "Feste CI-Tests",
-        "ru": "Испытания CI",
-        "pt": "Testes de IC fixos",
-        "nl": "Vaste CI-tests",
-        "fr": "Essais d'IC fixes",
-        "it": "Test CI fissi",
-        "es": "Pruebas de CI fijas",
-        "pl": "Stałe badania CI",
-        "uk": "Виправлені тести CI",
-        "zh-cn": "固定CI测试"
-      }
-    },
-    "titleLang": {
-      "en": "NMEA 2000 - connect boat",
-      "de": "NMEA 2000 - Boot verbinden",
-      "ru": "NMEA 2000 - подключить лодку",
-      "pt": "NMEA 2000 - conectar barco",
-      "nl": "NMEA 2000 - boot verbinden",
-      "fr": "NMEA 2000 - connecter le bateau",
-      "it": "NMEA 2000 - collegare la barca",
-      "es": "NMEA 2000 - conectar barco",
-      "pl": "NMEA 2000 - połącz łódź",
-      "uk": "NMEA 2000 - підключити човен",
-      "zh-cn": "NMEA 2000 - 连接船"
-    },
-    "desc": {
-      "en": "This adapter allows to connect your NMEA 2000 devices on the boat to ioBroker",
-      "de": "Dieser Adapter ermöglicht es, Ihre NMEA 2000-Geräte auf dem Boot mit ioBroker zu verbinden",
-      "ru": "Этот адаптер позволяет подключать ваши устройства NMEA 2000 на лодке к ioBroker",
-      "pt": "Este adaptador permite conectar seus dispositivos NMEA 2000 no barco ao ioBroker",
-      "nl": "Deze adapter maakt het mogelijk om uw NMEA 2000-apparaten op de boot aan te sluiten op ioBroker",
-      "fr": "Cet adaptateur permet de connecter vos appareils NMEA 2000 sur le bateau à ioBroker",
-      "it": "Questo adattatore consente di collegare i dispositivi NMEA 2000 sulla barca a ioBroker",
-      "es": "Este adaptador permite conectar sus dispositivos NMEA 2000 en el barco a ioBroker",
-      "pl": "Ten adapter pozwala podłączyć urządzenia NMEA 2000 na łodzi do ioBroker",
-      "uk": "Цей адаптер дозволяє підключати ваші пристрої NMEA 2000 на човні до ioBroker",
-      "zh-cn": "此适配器允许将船上的NMEA 2000设备连接到ioBroker"
-    },
-    "authors": [
-      "bluefox <dogafox@gmail.com>"
-    ],
-    "licenseInformation": {
-      "license": "MIT",
-      "type": "free",
-      "link": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md"
-    },
-    "license": "MIT",
-    "platform": "Javascript/Node.js",
-    "mode": "daemon",
-    "compact": true,
-    "messagebox": true,
-    "readme": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md",
-    "loglevel": "info",
-    "icon": "nmea.png",
-    "enabled": true,
-    "keywords": [
-      "notification",
-      "MQTT",
-      "message"
-    ],
-    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.nmea/master/admin/nmea.png",
-    "type": "protocols",
-    "plugins": {
-      "sentry": {
-        "dsn": "https://24ff815f40154cb587c896460581c81b@sentry.iobroker.net/246"
-      }
-    },
-    "restartAdapters": [
-      "vis-2"
-    ],
-    "visWidgets": {
-      "vis2Nmea": {
-        "i18n": "component",
-        "name": "vis2Nmea",
-        "url": "nmea/customWidgets.js",
-        "components": [
-          "Nmea",
-          "Instrument"
-        ]
-      }
-    },
-    "tier": 3,
-    "connectionType": "local",
-    "dataSource": "push",
-    "adminUI": {
-      "config": "json"
-    }
-  },
-  "native": {
-    "serialPort": "COM3",
-    "type": "ngt1",
-    "canPort": "can0",
-    "updateAtLeastEveryMs": 60000,
-    "magneticVariation": "magneticVariation.variation",
-    "simulationEnabled": false,
-    "combinedEnvironment": false,
-    "simulate": [],
-    "simulateAddress": 204,
-    "approximateMs": 10000,
-    "applyGpsTimeZoneToSystem": false,
-    "deleteAisAfter": 3600,
-    "pressureAlertDiff": 4,
-    "pressureAlertMinutes": 240
-  },
-  "objects": [],
-  "instanceObjects": [
-    {
-      "_id": "info",
-      "type": "channel",
-      "common": {
-        "name": {
-          "en": "Information",
-          "de": "Information",
-          "ru": "Информация",
-          "pt": "Em formação",
-          "nl": "Informatie",
-          "fr": "Informations",
-          "it": "Informazione",
-          "es": "Información",
-          "pl": "Informacja",
-          "uk": "Інформація",
-          "zh-cn": "信息"
-        }
-      },
-      "native": {}
-    },
-    {
-      "_id": "info.connection",
-      "type": "state",
-      "common": {
-        "name": {
-          "en": "Connected client for NMEA",
-          "de": "Verbundener Client für NMEA",
-          "ru": "Подключенный клиент для NMEA",
-          "pt": "Cliente conectado para NMEA",
-          "nl": "Geconnecteerd cliënt voor NMEA",
-          "fr": "Client connecté pour NMEA",
-          "it": "Client collegato per NMEA",
-          "es": "Cliente conectado para NMEA",
-          "pl": "Kliencki klient dla NMEA",
-          "uk": "Підключений клієнт для NMEA",
-          "zh-cn": "NMEA的客户"
+    "common": {
+        "name": "nmea",
+        "version": "0.2.2",
+        "news": {
+            "0.2.2": {
+                "en": "Backend was rewritten on TypeScript\nSupport for AIS added\nValid processing of temperature, pressure and humidity",
+                "de": "Backend wurde auf TypeScript neu geschrieben\nUnterstützung für AIS hinzugefügt\nGültige Verarbeitung von Temperatur, Druck und Feuchtigkeit",
+                "ru": "Backend был переписан на TypeScript\nПоддержка добавленной AIS\nПроверка температуры, давления и влажности",
+                "pt": "Backend foi reescrito no TypeScript\nSuporte para AIS adicionado\nProcessamento válido de temperatura, pressão e umidade",
+                "nl": "Backend is herschreven op TypeScript\nOndersteuning voor AIS toegevoegd\nGeldige verwerking van temperatuur, druk en vochtigheid",
+                "fr": "Backend a été réécrit sur TypeScript\nSoutien à l'AIS ajouté\nTraitement valide de la température, de la pression et de l'humidité",
+                "it": "Backend è stato riscritto su TypeScript\nSupporto per AIS aggiunto\nElaborazione valida di temperatura, pressione e umidità",
+                "es": "Backend fue reescrito en TipoScript\nSupport for AIS added\nTratamiento válido de temperatura, presión y humedad",
+                "pl": "Backend został przepisany na TypeScript\nWsparcie dla AIS dodano\nWażna obróbka temperatury, ciśnienia i wilgotności",
+                "uk": "Backend був написаний на TypeScript\nПідтримка додано AIS\nДійсно оброблення температури, тиску і вологості",
+                "zh-cn": "在 TypeScript 上重写了后端\n增加了对AIS的支持\n有效处理温度、压力和湿度"
+            },
+            "0.1.8": {
+                "en": "Corrected vis-2 widgets",
+                "de": "Korrigierte vis-2 Widgets",
+                "ru": "Исправленные виджеты vis-2",
+                "pt": "Vis-2 widgets corrigidos",
+                "nl": "Gecorrigeerde vis-2 widgets",
+                "fr": "Widgets corrigés vis-à-vis de 2",
+                "it": "Corretti widget vis-2",
+                "es": "Widgets corregidos vis-2",
+                "pl": "Poprawione widżety vis-2",
+                "uk": "Виправлено vis-2 віджети",
+                "zh-cn": "已校正的2个部件"
+            },
+            "0.1.7": {
+                "en": "Corrected vis-2 widgets",
+                "de": "Korrigierte vis-2 Widgets",
+                "ru": "Исправленные виджеты vis-2",
+                "pt": "Vis-2 widgets corrigidos",
+                "nl": "Gecorrigeerde vis-2 widgets",
+                "fr": "Widgets corrigés vis-à-vis de 2",
+                "it": "Corretti widget vis-2",
+                "es": "Widgets corregidos vis-2",
+                "pl": "Poprawione widżety vis-2",
+                "uk": "Виправлено vis-2 віджети",
+                "zh-cn": "已校正的2个部件"
+            },
+            "0.1.6": {
+                "en": "Corrected vis-2 widgets",
+                "de": "Korrigierte vis-2 Widgets",
+                "ru": "Исправленные виджеты vis-2",
+                "pt": "Vis-2 widgets corrigidos",
+                "nl": "Gecorrigeerde vis-2 widgets",
+                "fr": "Widgets corrigés vis-à-vis de 2",
+                "it": "Corretti widget vis-2",
+                "es": "Widgets corregidos vis-2",
+                "pl": "Poprawione widżety vis-2",
+                "uk": "Виправлено vis-2 віджети",
+                "zh-cn": "已校正的2个部件"
+            },
+            "0.1.1": {
+                "en": "Corrected vis-2 widgets",
+                "de": "Korrigierte vis-2 Widgets",
+                "ru": "Исправленные виджеты vis-2",
+                "pt": "Vis-2 widgets corrigidos",
+                "nl": "Gecorrigeerde vis-2 widgets",
+                "fr": "Widgets corrigés vis-à-vis de 2",
+                "it": "Corretti widget vis-2",
+                "es": "Widgets corregidos vis-2",
+                "pl": "Poprawione widżety vis-2",
+                "uk": "Виправлено vis-2 віджети",
+                "zh-cn": "已校正的2个部件"
+            },
+            "0.1.0": {
+                "en": "Corrected vis-2 widgets",
+                "de": "Korrigierte vis-2 Widgets",
+                "ru": "Исправленные виджеты vis-2",
+                "pt": "Vis-2 widgets corrigidos",
+                "nl": "Gecorrigeerde vis-2 widgets",
+                "fr": "Widgets corrigés vis-à-vis de 2",
+                "it": "Corretti widget vis-2",
+                "es": "Widgets corregidos vis-2",
+                "pl": "Poprawione widżety vis-2",
+                "uk": "Виправлено vis-2 віджети",
+                "zh-cn": "已校正的2个部件"
+            },
+            "0.0.4": {
+                "en": "Fixed CI tests",
+                "de": "Feste CI-Tests",
+                "ru": "Испытания CI",
+                "pt": "Testes de IC fixos",
+                "nl": "Vaste CI-tests",
+                "fr": "Essais d'IC fixes",
+                "it": "Test CI fissi",
+                "es": "Pruebas de CI fijas",
+                "pl": "Stałe badania CI",
+                "uk": "Виправлені тести CI",
+                "zh-cn": "固定CI测试"
+            }
         },
-        "type": "boolean",
-        "role": "indicator.reachable",
-        "read": true,
-        "write": false,
-        "def": false
-      },
-      "native": {}
-    },
-    {
-      "_id": "test",
-      "type": "channel",
-      "common": {
-        "expert": true,
-        "name": {
-          "en": "Test"
-        }
-      },
-      "native": {}
-    },
-    {
-      "_id": "test.rawString",
-      "type": "state",
-      "common": {
-        "name": {
-          "en": "Test nmea 2000 commands"
+        "titleLang": {
+            "en": "NMEA 2000 - connect boat",
+            "de": "NMEA 2000 - Boot verbinden",
+            "ru": "NMEA 2000 - подключить лодку",
+            "pt": "NMEA 2000 - conectar barco",
+            "nl": "NMEA 2000 - boot verbinden",
+            "fr": "NMEA 2000 - connecter le bateau",
+            "it": "NMEA 2000 - collegare la barca",
+            "es": "NMEA 2000 - conectar barco",
+            "pl": "NMEA 2000 - połącz łódź",
+            "uk": "NMEA 2000 - підключити човен",
+            "zh-cn": "NMEA 2000 - 连接船"
         },
-        "expert": true,
-        "type": "string",
-        "role": "state",
-        "read": false,
-        "write": true
-      },
-      "native": {}
-    }
-  ]
+        "desc": {
+            "en": "This adapter allows to connect your NMEA 2000 devices on the boat to ioBroker",
+            "de": "Dieser Adapter ermöglicht es, Ihre NMEA 2000-Geräte auf dem Boot mit ioBroker zu verbinden",
+            "ru": "Этот адаптер позволяет подключать ваши устройства NMEA 2000 на лодке к ioBroker",
+            "pt": "Este adaptador permite conectar seus dispositivos NMEA 2000 no barco ao ioBroker",
+            "nl": "Deze adapter maakt het mogelijk om uw NMEA 2000-apparaten op de boot aan te sluiten op ioBroker",
+            "fr": "Cet adaptateur permet de connecter vos appareils NMEA 2000 sur le bateau à ioBroker",
+            "it": "Questo adattatore consente di collegare i dispositivi NMEA 2000 sulla barca a ioBroker",
+            "es": "Este adaptador permite conectar sus dispositivos NMEA 2000 en el barco a ioBroker",
+            "pl": "Ten adapter pozwala podłączyć urządzenia NMEA 2000 na łodzi do ioBroker",
+            "uk": "Цей адаптер дозволяє підключати ваші пристрої NMEA 2000 на човні до ioBroker",
+            "zh-cn": "此适配器允许将船上的NMEA 2000设备连接到ioBroker"
+        },
+        "authors": ["bluefox <dogafox@gmail.com>"],
+        "licenseInformation": {
+            "license": "MIT",
+            "type": "free",
+            "link": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md"
+        },
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "mode": "daemon",
+        "compact": true,
+        "messagebox": true,
+        "readme": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md",
+        "loglevel": "info",
+        "icon": "nmea.png",
+        "enabled": true,
+        "keywords": ["notification", "MQTT", "message"],
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.nmea/master/admin/nmea.png",
+        "type": "protocols",
+        "plugins": {
+            "sentry": {
+                "dsn": "https://24ff815f40154cb587c896460581c81b@sentry.iobroker.net/246"
+            }
+        },
+        "restartAdapters": ["vis-2"],
+        "visWidgets": {
+            "vis2Nmea": {
+                "i18n": "component",
+                "name": "vis2Nmea",
+                "url": "nmea/customWidgets.js",
+                "bundlerType": "module",
+                "components": ["Nmea", "Instrument"]
+            }
+        },
+        "tier": 3,
+        "connectionType": "local",
+        "dataSource": "push",
+        "adminUI": {
+            "config": "json"
+        }
+    },
+    "native": {
+        "serialPort": "COM3",
+        "type": "ngt1",
+        "canPort": "can0",
+        "updateAtLeastEveryMs": 60000,
+        "magneticVariation": "magneticVariation.variation",
+        "simulationEnabled": false,
+        "combinedEnvironment": false,
+        "simulate": [],
+        "simulateAddress": 204,
+        "approximateMs": 10000,
+        "applyGpsTimeZoneToSystem": false,
+        "deleteAisAfter": 3600,
+        "pressureAlertDiff": 4,
+        "pressureAlertMinutes": 240
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": {
+                    "en": "Information",
+                    "de": "Information",
+                    "ru": "Информация",
+                    "pt": "Em formação",
+                    "nl": "Informatie",
+                    "fr": "Informations",
+                    "it": "Informazione",
+                    "es": "Información",
+                    "pl": "Informacja",
+                    "uk": "Інформація",
+                    "zh-cn": "信息"
+                }
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Connected client for NMEA",
+                    "de": "Verbundener Client für NMEA",
+                    "ru": "Подключенный клиент для NMEA",
+                    "pt": "Cliente conectado para NMEA",
+                    "nl": "Geconnecteerd cliënt voor NMEA",
+                    "fr": "Client connecté pour NMEA",
+                    "it": "Client collegato per NMEA",
+                    "es": "Cliente conectado para NMEA",
+                    "pl": "Kliencki klient dla NMEA",
+                    "uk": "Підключений клієнт для NMEA",
+                    "zh-cn": "NMEA的客户"
+                },
+                "type": "boolean",
+                "role": "indicator.reachable",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "test",
+            "type": "channel",
+            "common": {
+                "expert": true,
+                "name": {
+                    "en": "Test"
+                }
+            },
+            "native": {}
+        },
+        {
+            "_id": "test.rawString",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Test nmea 2000 commands"
+                },
+                "expert": true,
+                "type": "string",
+                "role": "state",
+                "read": false,
+                "write": true
+            },
+            "native": {}
+        }
+    ]
 }

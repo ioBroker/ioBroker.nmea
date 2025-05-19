@@ -3,10 +3,7 @@ import { Transform } from 'node:stream';
 import SerialPort from '@canboat/canboatjs/lib/serial';
 // @ts-expect-error no types
 import { FromPgn } from '@canboat/canboatjs';
-import {
-    type NmeaConfig, type PgnDataEvent,
-    type PGNMessage, type WritePgnData,
-} from '../types';
+import { type NmeaConfig, type PgnDataEvent, type PGNMessage, type WritePgnData } from '../types';
 import { GenericDriver } from './genericDriver';
 
 class NGT1 extends GenericDriver {
@@ -72,7 +69,7 @@ class NGT1 extends GenericDriver {
                 }
 
                 callback();
-            }
+            },
         });
 
         this.serial.pipe(toStringTr);

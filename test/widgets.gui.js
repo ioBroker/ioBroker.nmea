@@ -2,7 +2,7 @@ const helper = require('@iobroker/vis-2-widgets-testing');
 const adapterName = require('../package.json').name.split('.').pop();
 
 describe('nmea widgets', () => {
-    before(async function (){
+    before(async function () {
         this.timeout(180000);
         // install js-controller, web and vis-2-beta
         await helper.startIoBroker();

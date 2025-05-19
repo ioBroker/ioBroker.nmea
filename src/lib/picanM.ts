@@ -3,10 +3,7 @@ import { Transform } from 'node:stream';
 import CanPort from '@canboat/canboatjs/lib/canbus';
 // @ts-expect-error no types
 import { FromPgn } from '@canboat/canboatjs';
-import {
-    type NmeaConfig, type PgnDataEvent,
-    type PGNMessage, type WritePgnData,
-} from '../types';
+import { type NmeaConfig, type PgnDataEvent, type PGNMessage, type WritePgnData } from '../types';
 import { GenericDriver } from './genericDriver';
 
 class PicanM extends GenericDriver {
@@ -51,7 +48,7 @@ class PicanM extends GenericDriver {
             device: this.canPort,
             plainText: true,
             disableSetTransmitPGNs: true,
-            outputOnly: false
+            outputOnly: false,
         });
 
         const adapter = this.adapter;
@@ -72,14 +69,14 @@ class PicanM extends GenericDriver {
                 }
 
                 callback();
-            }
+            },
         });
 
         this.serial.pipe(toStringTr);
     }
 
     write(data: WritePgnData): void {
-        this.adapter.log.debug(`Sending ${typeof data === 'object' ? JSON.stringify(data) : data } to PicanM`);
+        this.adapter.log.debug(`Sending ${typeof data === 'object' ? JSON.stringify(data) : data} to PicanM`);
         this.app && this.app.emit('nmea2000out', data);
     }
 

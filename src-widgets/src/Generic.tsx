@@ -1,19 +1,49 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import { IconButton } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
-import { VisRxWidget } from '@iobroker/vis-2-widgets-react-dev';
+import type { VisRxWidgetProps, VisRxWidgetState } from '@iobroker/types-vis-2';
+import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
-class Generic extends (window.visRxWidget || VisRxWidget) {
-    getPropertyValue = stateName => this.state.values[`${this.state.rxData[stateName]}.val`];
+export interface GenericState extends VisRxWidgetState {
+    index: number;
+    prevIndex: number | undefined;
+    nextIndex: number | undefined;
+}
 
-    static getI18nPrefix() {
+export default class Generic<
+    RxData extends Record<string, any>,
+    State extends Partial<GenericState> = GenericState,
+> extends (window.visRxWidget as typeof VisRxWidget)<RxData, State> {
+    private widgetStateId: string | null = null;
+    private subscribeInited = false;
+
+    constructor(props: VisRxWidgetProps) {
+        super(props);
+        this.state = {
+            ...this.state,
+            index: 0,
+        };
+    }
+
+    getPropertyValue = (stateName: string): any => this.state.values[`${(this.state.rxData as any)[stateName]}.val`];
+
+    static getI18nPrefix(): string {
         return 'nmea_';
     }
 
-    static DATA = {
+    static DATA: Record<
+        string,
+        {
+            indicatorDigitsBeforeComma?: number;
+            indicatorDigitsAfterComma: number;
+            indicatorShowPlus?: true;
+            unit?: string;
+            changes?: boolean;
+            name?: string;
+        }
+    > = {
         heading: { indicatorDigitsBeforeComma: 3, indicatorDigitsAfterComma: 0 },
         headingTrue: { indicatorDigitsBeforeComma: 3, indicatorDigitsAfterComma: 0 },
         drift: { indicatorDigitsAfterComma: 1 },
@@ -36,19 +66,33 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         windSpeedTrue: { indicatorDigitsAfterComma: 1 },
     };
 
-    static zeroBeforeAfterComma(num, beforeLength, afterLength, useComma, fontSizeAfterComma) {
-        const numParts = num.toString().split('.');
+    static zeroBeforeAfterComma(
+        num: number,
+        beforeLength?: number,
+        afterLength?: number,
+        useComma?: boolean,
+        fontSizeAfterComma?: number | false,
+    ): (React.JSX.Element | string)[] {
+        const numParts: (React.JSX.Element | string)[] = num.toString().split('.');
         if (beforeLength) {
-            numParts[0] = numParts[0].padStart(beforeLength, '0');
+            numParts[0] = (numParts[0] as string).padStart(beforeLength, '0');
         }
         if (afterLength) {
-            numParts[0] += useComma ? ',' : '.';
+            (numParts[0] as string) += useComma ? ',' : '.';
             if (fontSizeAfterComma === false) {
-                numParts[1] = parseFloat(num).toFixed(afterLength).split('.')[1];
+                numParts[1] = parseFloat(num as unknown as string)
+                    .toFixed(afterLength)
+                    .split('.')[1];
             } else {
-                numParts[1] = <span style={{ fontSize: fontSizeAfterComma || 30 }}>
-                    {parseFloat(num).toFixed(afterLength).split('.')[1]}
-                </span>;
+                numParts[1] = (
+                    <span style={{ fontSize: fontSizeAfterComma || 30 }}>
+                        {
+                            parseFloat(num as unknown as string)
+                                .toFixed(afterLength)
+                                .split('.')[1]
+                        }
+                    </span>
+                );
             }
         } else {
             numParts.splice(1, 1);
@@ -57,17 +101,17 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         return numParts;
     }
 
-    async getParentObject(id) {
+    async getParentObject(id: string): Promise<ioBroker.Object | null> {
         const parts = id.split('.');
         parts.pop();
         const parentOID = parts.join('.');
-        return this.props.context.socket.getObject(parentOID);
+        return await this.props.context.socket.getObject(parentOID);
     }
 
-    static getObjectIcon(obj, id, imagePrefix) {
-        imagePrefix = imagePrefix || '../..'; // http://localhost:8081';
+    static getObjectIcon(obj: ioBroker.Object, id: string, imagePrefix?: string): string | null {
+        imagePrefix ||= '../..'; // http://localhost:8081';
         let src = '';
-        const common = obj && obj.common;
+        const common = obj?.common;
 
         if (common) {
             const cIcon = common.icon;
@@ -76,7 +120,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
                     if (cIcon.includes('.')) {
                         let instance;
                         if (obj.type === 'instance' || obj.type === 'adapter') {
-                            src = `${imagePrefix}/adapter/${common.name}/${cIcon}`;
+                            src = `${imagePrefix}/adapter/${common.name as string}/${cIcon}`;
                         } else if (id && id.startsWith('system.adapter.')) {
                             instance = id.split('.', 3);
                             if (cIcon[0] === '/') {
@@ -106,18 +150,22 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         return src || null;
     }
 
-    onWidgetStateUpdate = (id, state) => {
+    onWidgetStateUpdate = (id: string, state: ioBroker.State | null | undefined): void => {
         if (id === this.widgetStateId && state?.val && !state.ack) {
-            let index;
-            if (state.val.startsWith('-')) {
-                index = parseInt(state.val.replace('-', ''), 10);
+            let index: number;
+            if (state.val.toString().startsWith('-')) {
+                index = parseInt(state.val.toString().replace('-', ''), 10);
                 if (this.state.index !== index && this.state.prevIndex !== index) {
                     if (this.subscribeInited) {
                         this.setState({ prevIndex: index });
-                        setTimeout(() => this.setState({
-                            index,
-                            prevIndex: undefined,
-                        }), 500);
+                        setTimeout(
+                            () =>
+                                this.setState({
+                                    index,
+                                    prevIndex: undefined,
+                                }),
+                            500,
+                        );
                     } else {
                         this.setState({ index });
                         this.subscribeInited = true;
@@ -127,15 +175,19 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
                     this.subscribeInited = true;
                 }
             } else {
-                index = parseInt(state.val.replace('+', ''), 10);
+                index = parseInt(state.val.toString().replace('+', ''), 10);
                 if (this.state.index !== index && this.state.nextIndex !== index) {
                     window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
                     if (this.subscribeInited) {
                         this.setState({ nextIndex: index });
-                        setTimeout(() => this.setState({
-                            index,
-                            nextIndex: undefined,
-                        }), 500);
+                        setTimeout(
+                            () =>
+                                this.setState({
+                                    index,
+                                    nextIndex: undefined,
+                                }),
+                            500,
+                        );
                     } else {
                         this.setState({ index });
                         this.subscribeInited = true;
@@ -147,12 +199,12 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         }
     };
 
-    async componentDidMount() {
-        await super.componentDidMount();
+    async componentDidMount(): Promise<void> {
+        super.componentDidMount();
         await this.initSync();
     }
 
-    async initSync() {
+    async initSync(): Promise<void> {
         let syncObj;
         if (this.state.rxData.sync && !this.widgetStateId) {
             // Check if the sync object exists
@@ -160,7 +212,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
             try {
                 syncObj = await this.props.context.socket.getObject(this.widgetStateId);
             } catch (e) {
-                console.error(`Cannot get sync object: ${e}`);
+                console.error(`Cannot get sync object: ${e as Error}`);
             }
             if (!syncObj) {
                 await this.props.context.socket.setObject(this.widgetStateId, {
@@ -183,7 +235,7 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
             try {
                 syncObj = await this.props.context.socket.getObject(this.widgetStateId);
             } catch (e) {
-                console.error(`Cannot get sync object: ${e}`);
+                console.error(`Cannot get sync object: ${e as Error}`);
             }
             if (syncObj) {
                 await this.props.context.socket.delObject(this.widgetStateId);
@@ -192,61 +244,62 @@ class Generic extends (window.visRxWidget || VisRxWidget) {
         }
     }
 
-    async componentWillUnmount() {
-        await super.componentWillUnmount();
+    componentWillUnmount(): void {
+        super.componentWillUnmount();
         if (this.widgetStateId) {
             this.props.context.socket.unsubscribeState(this.widgetStateId, this.onWidgetStateUpdate);
             this.widgetStateId = null;
         }
     }
 
-    renderNextPrevButtons(maxIndex, stylesBottomPanel) {
-        return <div style={stylesBottomPanel}>
-            <IconButton
-                size="large"
-                onClick={() => {
-                    const index = this.state.index === 0 ? maxIndex - 1 : this.state.index - 1;
-                    this.setState({ prevIndex: index }, () => {
-                        if (this.widgetStateId) {
-                            this.props.context.setValue(this.widgetStateId, `-${index}`);
-                        }
-                    });
-                    window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
-                    setTimeout(() => this.setState({
-                        index,
-                        prevIndex: undefined,
-                    }), 500);
-                }}
-            >
-                <KeyboardArrowUp />
-            </IconButton>
-            <IconButton
-                size="large"
-                onClick={() => {
-                    const index = this.state.index >= maxIndex - 1 ? 0 : this.state.index + 1;
-                    this.setState({ nextIndex: index }, () => {
-                        if (this.widgetStateId) {
-                            this.props.context.setValue(this.widgetStateId, `+${index}`);
-                        }
-                    });
-                    window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
-                    setTimeout(() => this.setState({
-                        index,
-                        nextIndex: undefined,
-                    }), 500);
-                }}
-            >
-                <KeyboardArrowDown />
-            </IconButton>
-        </div>;
+    renderNextPrevButtons(maxIndex: number, stylesBottomPanel?: React.CSSProperties): React.JSX.Element | null {
+        return (
+            <div style={stylesBottomPanel}>
+                <IconButton
+                    size="large"
+                    onClick={() => {
+                        const index = this.state.index === 0 ? maxIndex - 1 : this.state.index! - 1;
+                        this.setState({ prevIndex: index }, () => {
+                            if (this.widgetStateId) {
+                                this.props.context.setValue(this.widgetStateId, `-${index}`);
+                            }
+                        });
+                        window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
+                        setTimeout(
+                            () =>
+                                this.setState({
+                                    index,
+                                    prevIndex: undefined,
+                                }),
+                            500,
+                        );
+                    }}
+                >
+                    <KeyboardArrowUp />
+                </IconButton>
+                <IconButton
+                    size="large"
+                    onClick={() => {
+                        const index = this.state.index! >= maxIndex - 1 ? 0 : this.state.index! + 1;
+                        this.setState({ nextIndex: index }, () => {
+                            if (this.widgetStateId) {
+                                this.props.context.setValue(this.widgetStateId, `+${index}`);
+                            }
+                        });
+                        window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
+                        setTimeout(
+                            () =>
+                                this.setState({
+                                    index,
+                                    nextIndex: undefined,
+                                }),
+                            500,
+                        );
+                    }}
+                >
+                    <KeyboardArrowDown />
+                </IconButton>
+            </div>
+        );
     }
 }
-
-Generic.propTypes = {
-    context: PropTypes.object,
-    themeType: PropTypes.string,
-    style: PropTypes.object,
-    data: PropTypes.object,
-};
-
-export default Generic;
