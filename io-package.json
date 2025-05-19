@@ -144,6 +144,9 @@
                 "dsn": "https://24ff815f40154cb587c896460581c81b@sentry.iobroker.net/246"
             }
         },
+        "ifInstalledDependencies": {
+            "vis-2": ">=2.12.8"
+        },
         "restartAdapters": ["vis-2"],
         "visWidgets": {
             "vis2Nmea": {
