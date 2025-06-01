@@ -15,7 +15,7 @@
         "NMEA0183"
     ],
     "dependencies": {
-        "@canboat/canboatjs": "^2.11.1",
+        "@canboat/canboatjs": "^2.12.0",
         "@iobroker/adapter-core": "^3.2.3",
         "geo-tz": "^8.1.4",
         "moment": "^2.30.1"
