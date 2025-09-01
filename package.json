@@ -28,7 +28,7 @@
     "@iobroker/build-tools": "^2.0.15",
     "@iobroker/eslint-config": "^2.0.3",
     "@iobroker/vis-2-widgets-testing": "^1.0.6",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.2"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.nmea/issues"
