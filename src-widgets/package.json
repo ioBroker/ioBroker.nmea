@@ -16,7 +16,7 @@
         "@types/react-beautiful-dnd": "^13.1.8",
         "@types/react-dom": "^18.3.7",
         "@vitejs/plugin-react": "^5.0.2",
-        "color": "^5.0.0",
+        "color": "^5.0.2",
         "date-fns": "^4.1.0",
         "moment": "^2.30.1",
         "react": "^18.3.1",
