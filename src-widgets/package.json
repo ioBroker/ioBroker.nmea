@@ -12,7 +12,7 @@
         "@mui/material": "^7.3.5",
         "@originjs/vite-plugin-federation": "^1.4.1",
         "@types/color": "^4.2.0",
-        "@types/react": "^18.3.23",
+        "@types/react": "^19.2.7",
         "@types/react-beautiful-dnd": "^13.1.8",
         "@types/react-dom": "^18.3.7",
         "@vitejs/plugin-react": "^5.1.1",
