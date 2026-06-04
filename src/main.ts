@@ -989,6 +989,7 @@ export class NmeaAdapter extends Adapter {
         // delete all AIS data older than one hour
         setTimeout(async (): Promise<void> => {
             const groups = [...WELL_KNOWN_AIS_GROUPS, ...this.aisGroups];
+            const prefix = `${this.namespace}.`;
             for (let l = 0; l < groups.length; l++) {
                 const states = await this.getStatesAsync(`${this.namespace}.${groups[l]}.*`);
                 const ids = Object.keys(states);
@@ -997,6 +998,14 @@ export class NmeaAdapter extends Adapter {
                     if (!states[id] || states[id].ts < Date.now() - this.config.deleteAisAfter * 1000) {
                         // delete object
                         await this.delObjectAsync(id);
+                        // Invalidate the in-memory create-cache flag so the next packet
+                        // for this MMSI recreates the object. Without this, processAisData
+                        // would skip the create path (flag still true) and setState would
+                        // warn "State X has no existing object" on every subsequent packet.
+                        // delObjectAsync uses the namespaced id; createsChannelAndStates
+                        // keys are relative — strip the prefix to match.
+                        const cacheKey = id.startsWith(prefix) ? id.substring(prefix.length) : id;
+                        delete this.createsChannelAndStates[cacheKey];
                     }
                 }
             }

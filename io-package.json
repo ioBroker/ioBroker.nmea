@@ -383,7 +383,7 @@
                 "role": "value.gps",
                 "read": true,
                 "write": true,
-                "def": 50
+                "def": ""
             },
             "native": {}
         }
