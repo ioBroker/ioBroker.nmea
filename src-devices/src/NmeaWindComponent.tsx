@@ -1325,8 +1325,9 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                 {/* STW bottom-left (blue — same hue as the SET arrow, so the reader associates it
                     with water-frame motion). "STW" mirrors the three-letter "SOG" label on the
                     right; the dial narrows enough at y≈825..940 for a header / value / unit stack
-                    just like the top blocks. */}
-                {!compact && (
+                    just like the top blocks. Hidden when this widget is rendered as a companion
+                    next to the autopilot — the autopilot already shows STW + SOG, no duplicates. */}
+                {!compact && !this.props.settings._renderInline && (
                     <g>
                         <text
                             x={95}
@@ -1365,8 +1366,8 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                 )}
 
                 {/* SOG bottom-right (pink — matches the COG bug on the rose, so ground-frame info
-                    shares a colour). */}
-                {!compact && (
+                    shares a colour). Same hide-in-companion rule as STW above. */}
+                {!compact && !this.props.settings._renderInline && (
                     <g>
                         <text
                             x={905}
