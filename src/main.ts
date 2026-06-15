@@ -6,15 +6,25 @@ import { FromPgn } from '@canboat/canboatjs';
 import type { PGN } from '@canboat/ts-pgns';
 
 import moment from 'moment';
+// @ts-expect-error no types
 import 'moment/locale/de';
+// @ts-expect-error no types
 import 'moment/locale/ru';
+// @ts-expect-error no types
 import 'moment/locale/it';
+// @ts-expect-error no types
 import 'moment/locale/fr';
+// @ts-expect-error no types
 import 'moment/locale/pl';
+// @ts-expect-error no types
 import 'moment/locale/pt';
+// @ts-expect-error no types
 import 'moment/locale/nl';
+// @ts-expect-error no types
 import 'moment/locale/es';
+// @ts-expect-error no types
 import 'moment/locale/uk';
+// @ts-expect-error no types
 import 'moment/locale/zh-cn';
 
 import type { PGNType, NmeaConfig, PGNEntry, WritePgnData } from './types';
@@ -1111,7 +1121,7 @@ export class NmeaAdapter extends Adapter {
 
         if (data.pgn && ENGINE_J1939_PGNS.has(data.pgn)) {
             // J1939 engine PGNs aren't in canboat's definition set — handle the raw 8-byte frame directly.
-            await processEngineJ1939(this, data as PGN & { rawData?: number[] | Buffer; src?: number });
+            await processEngineJ1939(this, data);
             return;
         }
 

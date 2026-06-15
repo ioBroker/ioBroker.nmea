@@ -5,15 +5,15 @@
 // NOT part of the production bundle. Only loaded by src/index.tsx (Vite dev server).
 
 import React, { useEffect, useState } from 'react';
-import { Connection } from '@iobroker/adapter-react-v5';
+import { Connection, type ThemeType } from '@iobroker/adapter-react-v5';
 import type { IStateContext, StateChangeListener, ObjectChangeListener } from '@iobroker/dm-widgets';
 import NmeaWindCompass from './NmeaWindComponent';
 import NmeaHistoryChartComponent from './NmeaHistoryChartComponent';
 import NmeaAutopilotComponent from './NmeaAutopilotComponent';
 import NmeaAisRadarComponent from './NmeaAisRadarComponent';
-import NmeaAnchorPositionComponent, { AnchorPositionSettings } from './NmeaAnchorPositionComponent';
+import NmeaAnchorPositionComponent, { type AnchorPositionSettings } from './NmeaAnchorPositionComponent';
 
-const IOB_HOST = 'localhost';
+const IOB_HOST = '192.168.1.129';
 const IOB_PORT = 8081;
 const DEFAULT_INSTANCE = 'nmea.0';
 
@@ -143,6 +143,7 @@ class DevStateContext implements IStateContext {
     isFloatComma = true;
     dateFormat = 'DD.MM.YYYY';
     imagePrefix = '../../files/';
+    themeType: ThemeType = 'dark';
 
     constructor(socket: Connection) {
         this.socket = socket;
@@ -625,7 +626,7 @@ export default function App(): React.JSX.Element {
                     <DevWindCompass
                         key="wind"
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={windSettings as any}
                         onHide={() => {}}
                     />
@@ -633,7 +634,7 @@ export default function App(): React.JSX.Element {
                     <DevAutopilot
                         key="autopilot"
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={autopilotSettings as any}
                         onHide={() => {}}
                     />
@@ -641,7 +642,7 @@ export default function App(): React.JSX.Element {
                     <DevAisRadar
                         key="aisradar"
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={aisRadarSettings as any}
                         onHide={() => {}}
                     />
@@ -649,15 +650,15 @@ export default function App(): React.JSX.Element {
                     <DevAnchorPosition
                         key="anchor"
                         widget={widget as any}
-                        stateContext={ctx as any}
-                        settings={anchorSettings as any}
+                        stateContext={ctx}
+                        settings={anchorSettings}
                         onHide={() => {}}
                     />
                 ) : chartSettings ? (
                     <DevHistoryChart
                         key={activeTab}
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={chartSettings as any}
                         onHide={() => {}}
                     />

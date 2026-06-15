@@ -616,7 +616,7 @@ export class NmeaAisRadarComponent extends WidgetGeneric<AisRadarComponentState,
                 lastSeen: ts,
                 trail,
             });
-            return { targets } as AisRadarComponentState;
+            return { targets };
         });
     }
 
@@ -1332,9 +1332,7 @@ export class NmeaAisRadarComponent extends WidgetGeneric<AisRadarComponentState,
                     {/* WideTall radar: drop the aspectRatio constraint so the map uses the full
                         2×1 tile area; the radar circle stays centred via the SVG's
                         preserveAspectRatio=meet. */}
-                    <Box sx={{ width: '100%', height: '100%' }}>
-                        {this.renderRadar('100%', 'widetall')}
-                    </Box>
+                    <Box sx={{ width: '100%', height: '100%' }}>{this.renderRadar('100%', 'widetall')}</Box>
                 </Box>
             </Box>
         );
@@ -1426,9 +1424,7 @@ export class NmeaAisRadarComponent extends WidgetGeneric<AisRadarComponentState,
                 >
                     {/* Dialog: take the full available content area (width × height); the SVG
                         floats centred while the map maximises useful chart real estate. */}
-                    <Box sx={{ width: '100%', height: '100%' }}>
-                        {this.renderRadar('100%', 'dialog')}
-                    </Box>
+                    <Box sx={{ width: '100%', height: '100%' }}>{this.renderRadar('100%', 'dialog')}</Box>
                 </DialogContent>
             </Dialog>
         );
