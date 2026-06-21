@@ -409,7 +409,9 @@ export default class SeaTalkAutoPilot extends AutoPilot {
         // Normalize to [0, 360) so the 16-bit encoding never goes negative.
         angle = ((angle % 360) + 360) % 360;
 
-        this.adapter.setState('autoPilot.heading', angle, true);
+        this.adapter
+            .setState('autoPilot.heading', angle, true)
+            .catch(e => this.adapter.log.warn(`Cannot set locked heading: ${e?.message ?? e}`));
 
         const rad = (angle * Math.PI) / 180;
         const a = Math.round(rad / 0.0001);

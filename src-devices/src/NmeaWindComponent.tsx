@@ -51,8 +51,10 @@ interface WindCompassSettings extends CustomWidgetPlugin {
     showSail?: boolean;
     /** Allow the user to split the fullscreen dialog and show the Autopilot alongside. */
     enableCompanion?: boolean;
-    /** Internal: when set, the widget renders only its inline dialog body (no tile, no Dialog).
-     *  Used by the other widget when it embeds this one in companion split view. */
+    /**
+     * Internal: when set, the widget renders only its inline dialog body (no tile, no Dialog).
+     *  Used by the other widget when it embeds this one in companion split view.
+     */
     _renderInline?: boolean;
 }
 
@@ -69,8 +71,10 @@ interface WindCompassState extends WidgetGenericState {
     awaHistory: { val: number; ts: number }[];
     twaHistory: { val: number; ts: number }[];
     dialogOpen: boolean;
-    /** Companion split-view toggle inside the open dialog. Only meaningful when
-     *  settings.enableCompanion is true. */
+    /**
+     * Companion split-view toggle inside the open dialog. Only meaningful when
+     *  settings.enableCompanion is true.
+     */
     companionMode: boolean;
     /** Cached orientation of the open dialog (window aspect). Updated on resize while open. */
     dialogLandscape: boolean;
@@ -386,8 +390,7 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             // Dialog open/close (or companion-mode toggle) swaps the SVG tree → refs point to
             // new nodes, re-anchor them.
             this.syncAnimations(
-                prevState.dialogOpen !== this.state.dialogOpen ||
-                    prevState.companionMode !== this.state.companionMode,
+                prevState.dialogOpen !== this.state.dialogOpen || prevState.companionMode !== this.state.companionMode,
             );
         }
         // Manage the resize listener only while the dialog is open — saves a per-window-resize
@@ -565,7 +568,7 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             const now = Date.now();
             const trimmed = windowSec > 0 ? history.filter(h => now - h.ts < windowSec * 1000) : [];
             const next = val != null && isFinite(val) ? [...trimmed, { val, ts: now }] : trimmed;
-            return { [which]: val, [historyKey]: next } as unknown as WindCompassState;
+            return { [which]: val, [historyKey]: next };
         });
     }
 
@@ -869,59 +872,62 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                     |AWA|: nearly straight on close-hauled (flat-trimmed for max lift), full and
                     baggy on a run (max drag, max power). Drawn AFTER the boat silhouette so it
                     sits visibly on top, BEFORE the heat-map so the heat sectors don't cover it. */}
-                {this.props.settings.showSail && awa != null && isFinite(awa) && (() => {
-                    const SAIL_MAST_X = 500;
-                    const SAIL_MAST_Y = 400; // about a third from the bow — typical sloop mast step
-                    const SAIL_LEN = 220;
-                    // Half-the-AWA rule: boom angle from centerline = AWA/2, on the leeward side.
-                    // In SVG polar (0=bow, CW), that's 180° + AWA/2 (straight aft + half the AWA).
-                    const boomDir = 180 + awa / 2;
-                    const clew = polar(SAIL_MAST_X, SAIL_MAST_Y, SAIL_LEN, boomDir);
-                    // Belly fraction of boom length — 0 (flat) at AWA=0, 0.5 (very full) at ±180°.
-                    const bellyFrac = Math.min(0.5, (Math.abs(awa) / 180) * 0.5);
-                    const bellyDepth = SAIL_LEN * bellyFrac;
-                    // Belly perpendicular to chord, on the leeward side of the sail.
-                    // Stbd tack (AWA > 0): boom to port, belly bulges further to port (perp +90°).
-                    // Port tack (AWA < 0): boom to stbd, belly bulges further to stbd (perp -90°).
-                    const perpDir = boomDir + (awa >= 0 ? 90 : -90);
-                    const midX = (SAIL_MAST_X + clew.x) / 2;
-                    const midY = (SAIL_MAST_Y + clew.y) / 2;
-                    // Control point for the quadratic Bezier — at 2× belly depth so the peak of
-                    // the curve (which sits at the chord-midpoint + perp/2) reaches `bellyDepth`.
-                    const ctrl = polar(midX, midY, 2 * bellyDepth, perpDir);
-                    return (
-                        <g opacity={0.92}>
-                            {/* Boom — straight line from mast (gooseneck) to clew. Dimmed so the
+                {this.props.settings.showSail &&
+                    awa != null &&
+                    isFinite(awa) &&
+                    (() => {
+                        const SAIL_MAST_X = 500;
+                        const SAIL_MAST_Y = 400; // about a third from the bow — typical sloop mast step
+                        const SAIL_LEN = 220;
+                        // Half-the-AWA rule: boom angle from centerline = AWA/2, on the leeward side.
+                        // In SVG polar (0=bow, CW), that's 180° + AWA/2 (straight aft + half the AWA).
+                        const boomDir = 180 + awa / 2;
+                        const clew = polar(SAIL_MAST_X, SAIL_MAST_Y, SAIL_LEN, boomDir);
+                        // Belly fraction of boom length — 0 (flat) at AWA=0, 0.5 (very full) at ±180°.
+                        const bellyFrac = Math.min(0.5, (Math.abs(awa) / 180) * 0.5);
+                        const bellyDepth = SAIL_LEN * bellyFrac;
+                        // Belly perpendicular to chord, on the leeward side of the sail.
+                        // Stbd tack (AWA > 0): boom to port, belly bulges further to port (perp +90°).
+                        // Port tack (AWA < 0): boom to stbd, belly bulges further to stbd (perp -90°).
+                        const perpDir = boomDir + (awa >= 0 ? 90 : -90);
+                        const midX = (SAIL_MAST_X + clew.x) / 2;
+                        const midY = (SAIL_MAST_Y + clew.y) / 2;
+                        // Control point for the quadratic Bezier — at 2× belly depth so the peak of
+                        // the curve (which sits at the chord-midpoint + perp/2) reaches `bellyDepth`.
+                        const ctrl = polar(midX, midY, 2 * bellyDepth, perpDir);
+                        return (
+                            <g opacity={0.92}>
+                                {/* Boom — straight line from mast (gooseneck) to clew. Dimmed so the
                                 sail's curved silhouette stays the dominant visual element. */}
-                            <line
-                                x1={SAIL_MAST_X}
-                                y1={SAIL_MAST_Y}
-                                x2={clew.x}
-                                y2={clew.y}
-                                stroke="#888"
-                                strokeWidth={5}
-                                strokeLinecap="round"
-                            />
-                            {/* Mast — small white dot at the gooseneck to anchor the rig visually. */}
-                            <circle
-                                cx={SAIL_MAST_X}
-                                cy={SAIL_MAST_Y}
-                                r={7}
-                                fill="#fff"
-                            />
-                            {/* Sail silhouette — luff (at mast) → belly → clew → straight back to
+                                <line
+                                    x1={SAIL_MAST_X}
+                                    y1={SAIL_MAST_Y}
+                                    x2={clew.x}
+                                    y2={clew.y}
+                                    stroke="#888"
+                                    strokeWidth={5}
+                                    strokeLinecap="round"
+                                />
+                                {/* Mast — small white dot at the gooseneck to anchor the rig visually. */}
+                                <circle
+                                    cx={SAIL_MAST_X}
+                                    cy={SAIL_MAST_Y}
+                                    r={7}
+                                    fill="#fff"
+                                />
+                                {/* Sail silhouette — luff (at mast) → belly → clew → straight back to
                                 mast (the boom-side chord), closed and lightly filled so it reads
                                 as a real sail rather than a stray curve. */}
-                            <path
-                                d={`M ${SAIL_MAST_X} ${SAIL_MAST_Y} Q ${ctrl.x} ${ctrl.y} ${clew.x} ${clew.y} L ${SAIL_MAST_X} ${SAIL_MAST_Y} Z`}
-                                fill="rgba(255,255,255,0.22)"
-                                stroke="#ffffff"
-                                strokeWidth={4}
-                                strokeLinejoin="round"
-                            />
-                        </g>
-                    );
-                })()}
+                                <path
+                                    d={`M ${SAIL_MAST_X} ${SAIL_MAST_Y} Q ${ctrl.x} ${ctrl.y} ${clew.x} ${clew.y} L ${SAIL_MAST_X} ${SAIL_MAST_Y} Z`}
+                                    fill="rgba(255,255,255,0.22)"
+                                    stroke="#ffffff"
+                                    strokeWidth={4}
+                                    strokeLinejoin="round"
+                                />
+                            </g>
+                        );
+                    })()}
 
                 {/* Wind-shift heat-map (bow-fixed). Each AWA sample from the last `historySeconds` is
                     drawn as a thick radial bar filled with a shared radial gradient whose hot-spot
@@ -1590,8 +1596,10 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
         );
     }
 
-    /** Build the companion widget element — NmeaAutopilotComponent rendered inline. The import
-     *  is a cyclic ES import that resolves at render time (see top of file). */
+    /**
+     * Build the companion widget element — NmeaAutopilotComponent rendered inline. The import
+     * is a cyclic ES import that resolves at render time (see top of file).
+     */
     private renderCompanion(): React.JSX.Element | null {
         if (!NmeaAutopilotComponent) {
             return null;

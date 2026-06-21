@@ -136,6 +136,9 @@ export class NmeaAdapter extends Adapter {
 
     private simulationsValues: Record<string, number | null> = {};
 
+    /** Lower-cased `common.unit` of each simulated source state, cached on first read. */
+    private simulationsUnits: Record<string, string> = {};
+
     private aisGroups: string[] = [];
 
     private parser: FromPgn;
@@ -147,6 +150,9 @@ export class NmeaAdapter extends Adapter {
     private signalKServer: SignalKServer | null = null;
 
     private addressClaim: AddressClaim | null = null;
+
+    /** Separate Address Claim that announces the simulate source as a Fluid Level sensor. */
+    private simulateAddressClaim: AddressClaim | null = null;
 
     private anchorAlarm: AnchorAlarm | null = null;
 
@@ -359,6 +365,9 @@ export class NmeaAdapter extends Adapter {
                     } else {
                         this.simulationsValues[sim.oid] = null;
                     }
+                    // Cache the unit so tank values delivered in liters can be converted to % (PGN 127505).
+                    const obj = await this.getForeignObjectAsync(sim.oid);
+                    this.simulationsUnits[sim.oid] = (obj?.common?.unit || '').trim().toLowerCase();
                 }
 
                 this.log.debug(`Simulate [${sim.type}] ${sim.oid} = ${this.simulationsValues[sim.oid]}`);
@@ -367,12 +376,26 @@ export class NmeaAdapter extends Adapter {
                 // setting — they can't share a frame with temperature/humidity/pressure.
                 if (sim.type === 'tank') {
                     if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                        this.sendTank(
-                            this.simulationsValues[sim.oid] as number,
-                            sim.subType,
-                            sim.instance,
-                            sim.capacity,
-                        );
+                        let level = this.simulationsValues[sim.oid] as number;
+                        // PGN 127505 expects the level in % (0..100). If the source state is in liters,
+                        // convert it to a percentage via the configured capacity.
+                        const unit = this.simulationsUnits[sim.oid];
+                        if (
+                            unit === 'l' ||
+                            unit === 'liter' ||
+                            unit === 'liters' ||
+                            unit === 'litre' ||
+                            unit === 'litres'
+                        ) {
+                            if (sim.capacity && sim.capacity > 0) {
+                                level = (level / sim.capacity) * 100;
+                            } else {
+                                this.log.warn(
+                                    `Tank ${sim.oid}: source unit is "${unit}" but capacity is 0 — cannot convert liters to %`,
+                                );
+                            }
+                        }
+                        this.sendTank(level, sim.subType, sim.instance, sim.capacity);
                     }
                 } else if (!this.config.combinedEnvironment) {
                     if (sim.type === 'temperature') {
@@ -1272,6 +1295,31 @@ export class NmeaAdapter extends Adapter {
             this.addressClaim.start();
         }
 
+        // Announce the simulate source as an NMEA-2000 Fluid Level sensor (Device Class 75 "Sensors",
+        // Function 150 "Fluid Level"). Raymarine MFDs filter tank/fuel data by the sender's device
+        // class/function and ignore PGN 127505 from a source that never claimed an address as such a
+        // sensor — which is why the simulated tank stays hidden otherwise. Only needed when at least
+        // one tank row is configured. Gated behind `announceDevice` so the single switch disables all
+        // address-claim traffic.
+        if (
+            this.config.announceDevice &&
+            this.config.simulationEnabled &&
+            this.nmeaDriver &&
+            this.config.simulate?.some(s => s.type === 'tank')
+        ) {
+            const simSrc = this.config.simulateAddress || 204;
+            this.simulateAddressClaim = new AddressClaim(this, this.nmeaDriver, {
+                src: simSrc,
+                uniqueNumber: 23456,
+                manufacturerCode: 2046,
+                deviceClass: 75, // Sensors
+                deviceFunction: 150, // Fluid Level
+                productCode: 0xc002,
+                modelId: 'ioBroker.nmea tank',
+            });
+            this.simulateAddressClaim.start();
+        }
+
         if (this.config.signalKEnabled) {
             const port = parseInt(this.config.signalKPort as unknown as string, 10) || 3000;
             let version = '0.0.0';
@@ -1740,6 +1788,8 @@ export class NmeaAdapter extends Adapter {
             this.signalKServer = null;
             this.addressClaim?.stop();
             this.addressClaim = null;
+            this.simulateAddressClaim?.stop();
+            this.simulateAddressClaim = null;
             this.anchorAlarm = null;
             this.anchorTracker?.stop();
             this.anchorTracker = null;

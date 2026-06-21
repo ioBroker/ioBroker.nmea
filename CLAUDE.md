@@ -12,7 +12,7 @@ All commands run from the repo root unless noted.
 
 - `npm run build` — full build: TS backend (`build/`) + widget bundle (`widgets/nmea/`). Runs `build:ts` then `build:gui`.
 - `npm run build:ts` — compile TypeScript backend via `tsconfig.build.json` and copy i18n.
-- `npm run build:gui` — run `tasks.js`, which triggers `npm install` inside `src-widgets/`, a Vite build, and copies the output into `widgets/nmea/`.
+- `npm run build:gui` — run `tasks.mts`, which triggers `npm install` inside `src-widgets/`, a Vite build, and copies the output into `widgets/nmea/`.
 - `npm run lint` — ESLint on backend (flat config) and widgets. Must also run inside `src-widgets/` (the script does this).
 - `npm test` — mocha against `test/*.engine.js` (package sanity + adapter startup via `@iobroker/legacy-testing`).
 - `npm run test:integration` — mocha against `test/*.gui.js` (widget integration via `@iobroker/vis-2-widgets-testing`, uses a running js-controller + admin + web).
@@ -37,7 +37,7 @@ The repo builds **three separate bundles** that ship together:
 2. **vis-2 widgets** (`src-widgets/` → `widgets/nmea/` via module federation).
    - Vite + `@module-federation/vite`; federation name `vis2Nmea`, output `customWidgets.js`. Exposes `./Nmea` (composite boat dashboard), `./Instrument` (single-value instrument), and `./translations`.
    - Widgets extend `Generic` (`src-widgets/src/Generic.tsx`), the project's local base class over `@iobroker/types-vis-2`.
-   - `tasks.js` orchestrates the widget build: deletes `src-widgets/build/` and `widgets/`, runs `npm install` + Vite build inside `src-widgets/`, then `copyAllFiles()` filters out `index.html`, MF manifest, and the big shared vendor chunks (except the specific echarts/spectrum/uiw/sketch chunks the runtime needs) into `widgets/nmea/`.
+   - `tasks.mts` orchestrates the widget build: deletes `src-widgets/build/` and `widgets/`, runs `npm install` + Vite build inside `src-widgets/`, then `copyAllFiles()` filters out `index.html`, MF manifest, and the big shared vendor chunks (except the specific echarts/spectrum/uiw/sketch chunks the runtime needs) into `widgets/nmea/`.
 
 3. **Device-manager component** (`src-devices/` → its own federated bundle).
    - Federation name `DevicesWidgetNmeaSet`, output `customDevices.js`. Currently exposes only `NmeaWindComponent` via `Components.tsx`. `src-devices/src/index.tsx` is a stub ("used only for simulation") — the real entry points are the federated exposes.
@@ -46,6 +46,6 @@ The repo builds **three separate bundles** that ship together:
 
 - **Three package.jsons**: root (adapter runtime deps), `src-widgets/` (React/MUI/vis-2), `src-devices/` (React/dm-utils/dm-widgets). Always install via `npm run npm` after a fresh clone or a root `npm i`.
 - **Node ≥ 20** (engines). CI matrixes 20/22/24 on Ubuntu.
-- **i18n flow**: source JSON lives in `src/i18n/` and `src-widgets/src/i18n/` and `admin/i18n/`. Backend i18n is copied into `build/i18n/` by `tasks.js --copy-i18n` (invoked from `build:ts`). Use `npm run translate` (`translate-adapter`) to sync languages. Supported languages come from the moment locales loaded in `main.ts`.
+- **i18n flow**: source JSON lives in `src/i18n/` and `src-widgets/src/i18n/` and `admin/i18n/`. Backend i18n is copied into `build/i18n/` by `tasks.mts --copy-i18n` (invoked from `build:ts`). Use `npm run translate` (`translate-adapter`) to sync languages. Supported languages come from the moment locales loaded in `main.ts`.
 - **Admin UI** is JSON-config only (`admin/jsonConfig.json`, no React admin bundle).
 - **Release**: tagging `vX.Y.Z` on a push triggers `ioBroker/testing-action-deploy` which re-builds and publishes to npm with trusted publishing. `.releaseconfig.json` configures the release-script plugins (iobroker + license).

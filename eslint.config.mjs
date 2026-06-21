@@ -20,7 +20,21 @@ export default [
         },
     },
     {
-        ignores: ['*.mjs', 'test/**/*.*', 'admin/**/*.*', 'build/**/*.*', 'widgets/**/*.*', 'src-widgets/**/*.*'],
+        ignores: [
+            '*.mjs',
+            'test/**/*.*',
+            'admin/**/*.*',
+            'build/**/*.*',
+            'widgets/**/*.*',
+            'tasks.mts',
+            'src-widgets/**/*.*',
+            'src-admin/build/**/*.*',
+            'src-admin/.__mf__temp/**/*.*',
+            'src-admin/node_modules/**/*.*',
+            'src-devices/build/**/*.*',
+            'src-devices/.__mf__temp/**/*.*',
+            'src-devices/node_modules/**/*.*',
+        ],
     },
     {
         files: ['src/lib/*.ts', 'src/*.ts'],

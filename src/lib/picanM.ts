@@ -2,7 +2,6 @@ import { Transform } from 'node:stream';
 import { FromPgn, canbus as CanPort } from '@canboat/canboatjs';
 import { type NmeaConfig, type PGNMessage } from '../types';
 import { GenericDriver } from './genericDriver';
-import { isActisenseAutopilotLine } from './autoPilotSniffer';
 import type { PGN } from '@canboat/ts-pgns';
 
 export default class PicanM extends GenericDriver {

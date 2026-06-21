@@ -27,3 +27,12 @@ updates:
       cronjob: "17 3 6 * *"
     open-pull-requests-limit: 20
     versioning-strategy: "increase"
+
+  - package-ecosystem: "npm"
+    directory: "/src-admin"
+    schedule:
+      interval: "cron"
+      timezone: "Europe/Berlin"
+      cronjob: "17 3 6 * *"
+    open-pull-requests-limit: 20
+    versioning-strategy: "increase"

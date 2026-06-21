@@ -527,7 +527,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                     (next as AnchorPositionState).trail = filtered;
                 }
             }
-            return next as AnchorPositionState;
+            return next;
         });
     }
 

@@ -59,12 +59,14 @@ interface AutopilotSettings extends CustomWidgetPlugin {
     instance?: string;
     /** Show AWA digital readout + dial pointer in Wind mode. */
     showAwa?: boolean;
-    /** Show rudder bar at the bottom of the dial. */
+    /** Show the rudder bar at the bottom of the dial. */
     showRudder?: boolean;
     /** Allow the user to split the fullscreen dialog and show the Wind compass alongside. */
     enableCompanion?: boolean;
-    /** Internal: when set, the widget renders only its inline dialog body (no tile, no Dialog).
-     *  Used by the other widget when it embeds this one in companion split view. */
+    /**
+     * Internal: when set, the widget renders only its inline dialog body (no tile, no Dialog).
+     *  Used by the other widget when it embeds this one in companion split view.
+     */
     _renderInline?: boolean;
 }
 
@@ -81,8 +83,10 @@ interface AutopilotComponentState extends WidgetGenericState {
     /** Mirrored autoPilot.windAngle in degrees — current wind-angle datum. */
     windAngle: number | null;
     dialogOpen: boolean;
-    /** Companion split-view toggle inside the open dialog. Only meaningful when
-     *  settings.enableCompanion is true. */
+    /**
+     * Companion split-view toggle inside the open dialog. Only meaningful when
+     *  settings.enableCompanion is true.
+     */
     companionMode: boolean;
     /** Cached orientation of the open dialog (window aspect). Updated on resize while open. */
     dialogLandscape: boolean;
@@ -92,8 +96,10 @@ interface AutopilotComponentState extends WidgetGenericState {
     dragAngle: number | null;
     /** Pending setpoint awaiting confirmation (only set when delta > LARGE_DELTA_DEG). */
     pendingAngle: number | null;
-    /** Mode the pending setpoint applies to — kept in case the autopilot mode flips while the
-     *  confirmation dialog is open. We refuse to apply the value if the mode has changed. */
+    /**
+     * Mode the pending setpoint applies to — kept in case the autopilot mode flips while the
+     *  confirmation dialog is open. We refuse to apply the value if the mode has changed.
+     */
     pendingMode: 1 | 2 | null;
     /** Wall-clock deadline (ms epoch) at which the pending confirmation auto-cancels. */
     pendingDeadline: number | null;
@@ -141,7 +147,6 @@ const COLORS = {
 const VIEWBOX_W = 1000;
 const VIEWBOX_H_DIAL = 500; // dial-only — viewBox bottom is the dial diameter
 const RUDDER_BAND_H = 80; // gutter under the dial for the rudder bar
-const SPEED_BAND_H = 140; // gutter for the STW + SOG readout block
 const CX = 500;
 const CY = 500; // pivot at the bottom edge of the dial-only viewBox
 const R_OUTER = 480; // outer ring radius — top of arc at y = CY - R_OUTER = 20
@@ -202,12 +207,14 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
     /** 500-ms tick that re-renders the confirmation dialog so the countdown stays current. */
     private pendingTickInterval: ReturnType<typeof setInterval> | null = null;
 
-    /** Per-key monotonically-increasing rotation angles. CSS animates `transform` linearly,
+    /**
+     * Per-key monotonically-increasing rotation angles. CSS animates `transform` linearly,
      *  so feeding it raw 0..360° angles makes the compass spin the long way at every 359°↔0°
      *  wrap. We unwrap by tracking each angle's "extended" value: each frame we pick the
      *  equivalent target within ±180° of the last value and store it. The visible rotation
      *  number can drift arbitrarily far from 0 over a long session — that's fine, CSS doesn't
-     *  care, and the modulo-360 visual position stays correct. */
+     *  care, and the modulo-360 visual position stays correct.
+     */
     private unwrappedAngles: Record<string, number> = {};
 
     private unwrap(key: string, target: number | null | undefined): number {
@@ -606,10 +613,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         if (this.state.mode !== pendingMode) {
             return;
         }
-        this.writeState(
-            pendingMode === 1 ? 'autoPilot.heading' : 'autoPilot.windAngle',
-            pendingAngle,
-        );
+        this.writeState(pendingMode === 1 ? 'autoPilot.heading' : 'autoPilot.windAngle', pendingAngle);
     };
 
     /**
@@ -646,7 +650,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
      * `compact=true` drops the corner HDG/AWA blocks (used by the small tile).
      */
     protected renderDialSvg(size: number | string, compact = false, dark = true): React.JSX.Element {
-        const { heading, lockedHeading, awa, mode, rudder, stw, sog, windAngle } = this.state;
+        const { heading, lockedHeading, awa, mode, rudder, windAngle } = this.state;
         // Unwrap heading and AWA so the CSS transition takes the shortest path across 360°↔0°
         // wraps instead of spinning the long way (e.g. 359° → 1° should be +2°, not -358°).
         const headingDeg = heading != null ? this.unwrap('heading', heading) : 0;
@@ -1256,18 +1260,14 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                             across the cockpit — matches the visual weight of the Wind compass widget. */}
                         <Box sx={{ textAlign: 'center', color: STW_COLOR }}>
                             <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.1 }}>STW</Typography>
-                            <Typography sx={{ fontSize: 56, fontWeight: 800, lineHeight: 1 }}>
-                                {fmtKn(stw)}
-                            </Typography>
+                            <Typography sx={{ fontSize: 56, fontWeight: 800, lineHeight: 1 }}>{fmtKn(stw)}</Typography>
                             <Typography sx={{ fontSize: 18, fontWeight: 500, lineHeight: 1.1, opacity: 0.8 }}>
                                 kn
                             </Typography>
                         </Box>
                         <Box sx={{ textAlign: 'center', color: SOG_COLOR }}>
                             <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.1 }}>SOG</Typography>
-                            <Typography sx={{ fontSize: 56, fontWeight: 800, lineHeight: 1 }}>
-                                {fmtKn(sog)}
-                            </Typography>
+                            <Typography sx={{ fontSize: 56, fontWeight: 800, lineHeight: 1 }}>{fmtKn(sog)}</Typography>
                             <Typography sx={{ fontSize: 18, fontWeight: 500, lineHeight: 1.1, opacity: 0.8 }}>
                                 kn
                             </Typography>
@@ -1469,8 +1469,10 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         );
     }
 
-    /** Build the companion widget element — NmeaWindCompass rendered inline. The import is a
-     *  cyclic ES import that resolves at render time (see top of file). */
+    /**
+     * Build the companion widget element — NmeaWindCompass rendered inline. The import is a
+     *  cyclic ES import that resolves at render time (see top of file).
+     */
     private renderCompanion(): React.JSX.Element | null {
         if (!NmeaWindCompass) {
             return null;
@@ -1524,9 +1526,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                 }}
             >
                 <IconButton
-                    onClick={() =>
-                        this.setState({ dialogOpen: false } as AutopilotComponentState)
-                    }
+                    onClick={() => this.setState({ dialogOpen: false } as AutopilotComponentState)}
                     sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, color: 'white' }}
                 >
                     <CloseIcon />

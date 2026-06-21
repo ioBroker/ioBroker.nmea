@@ -793,10 +793,7 @@ export default class Nmea extends Generic<NmeaRxData, NmeaState> {
         const windows: {
             el: () => React.JSX.Element;
             order: number;
-        }[] = _windows.filter(item => item !== null) as {
-            el: () => React.JSX.Element;
-            order: number;
-        }[];
+        }[] = _windows.filter(item => item !== null);
 
         windows.sort((a, b) => a.order - b.order);
 

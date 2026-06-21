@@ -1,7 +1,29 @@
-const { deleteFoldersRecursive, buildReact, npmInstall, copyFiles } = require('@iobroker/build-tools');
+import { deleteFoldersRecursive, buildReact, npmInstall, copyFiles } from '@iobroker/build-tools';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const SRC = 'src-devices/';
 const src = `${__dirname}/${SRC}`;
+
+function buildAdmin() {
+    return buildReact(`${__dirname}/src-admin/`, { rootDir: `${__dirname}/src-admin/`, vite: true });
+}
+
+function cleanAdmin() {
+    deleteFoldersRecursive(`${__dirname}/admin/custom`);
+    deleteFoldersRecursive(`${__dirname}/src-admin/build`);
+}
+
+function copyAllAdminFiles() {
+    copyFiles(
+        ['src-admin/build/**/*', '!src-admin/build/index.html', '!src-admin/build/mf-manifest.json'],
+        'admin/custom/',
+    );
+    copyFiles(['src-admin/src/i18n/*.json'], 'admin/custom/i18n');
+}
 
 function cleanDevices() {
     deleteFoldersRecursive(`${src}build`);
@@ -38,7 +60,21 @@ function copyAllFiles() {
     );
 }
 
-if (process.argv.includes('--copy-files')) {
+if (process.argv.includes('--admin-0-clean')) {
+    cleanAdmin();
+} else if (process.argv.includes('--admin-1-npm')) {
+    npmInstall(`${__dirname}/src-admin/`).catch(e => console.error(e));
+} else if (process.argv.includes('--admin-2-compile')) {
+    buildAdmin().catch(e => console.error(e));
+} else if (process.argv.includes('--admin-3-copy')) {
+    copyAllAdminFiles();
+} else if (process.argv.includes('--admin')) {
+    cleanAdmin();
+    npmInstall(`${__dirname}/src-admin/`)
+        .then(() => buildAdmin())
+        .then(() => copyAllAdminFiles())
+        .catch(e => console.error(e));
+} else if (process.argv.includes('--copy-files')) {
     copyAllFiles();
 } else if (process.argv.includes('--build')) {
     buildReact(`${__dirname}/src-widgets`, { rootDir: __dirname, vite: true }).catch(() =>
@@ -52,6 +88,10 @@ if (process.argv.includes('--copy-files')) {
     npmInstall('src-widgets')
         .then(() => buildReact(`${__dirname}/src-widgets`, { rootDir: __dirname, vite: true }))
         .then(() => copyAllFiles())
+        .then(() => cleanAdmin())
+        .then(() => npmInstall(`${__dirname}/src-admin`))
+        .then(() => buildAdmin())
+        .then(() => copyAllAdminFiles())
         .then(() => cleanDevices())
         .then(() => npmInstall(src))
         .then(() => buildReact(src, { rootDir: src, vite: true }))
