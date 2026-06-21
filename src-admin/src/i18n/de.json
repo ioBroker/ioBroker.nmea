@@ -1,0 +1,20 @@
+{
+  "custom_nmea_simulate_title": "Simulierte Werte",
+  "custom_nmea_simulate_add": "Wert hinzufügen",
+  "custom_nmea_simulate_empty": "Noch keine simulierten Werte konfiguriert",
+  "custom_nmea_type": "Typ",
+  "custom_nmea_subtype": "Untertyp",
+  "custom_nmea_oid": "Objekt-ID",
+  "custom_nmea_select_oid": "Objekt-ID auswählen",
+  "custom_nmea_instance": "Tank-Instanz",
+  "custom_nmea_capacity": "Kapazität (L)",
+  "custom_nmea_delete": "Löschen",
+  "custom_nmea_type_temperature": "Temperatur",
+  "custom_nmea_type_humidity": "Luftfeuchtigkeit",
+  "custom_nmea_type_pressure": "Druck",
+  "custom_nmea_type_tank": "Tank",
+  "custom_nmea_tank_hint": "Tank: Wert = Füllstand in % (0–100). Ist die Einheit der Quelle L/l/liters, wird über die Kapazität automatisch in % umgerechnet.",
+  "custom_nmea_current": "an NMEA gesendet",
+  "custom_nmea_current_na": "kein Wert",
+  "custom_nmea_tank_instance_dup": "⚠ Diese Instanz wird bereits von einem anderen Tank verwendet — Raymarine fasst Tanks mit gleicher Instanz zusammen."
+}
