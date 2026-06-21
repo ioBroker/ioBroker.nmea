@@ -1,0 +1,20 @@
+{
+  "custom_nmea_simulate_title": "Symulowane wartości",
+  "custom_nmea_simulate_add": "Dodaj wartość",
+  "custom_nmea_simulate_empty": "Nie skonfigurowano jeszcze symulowanych wartości",
+  "custom_nmea_type": "Typ",
+  "custom_nmea_subtype": "Podtyp",
+  "custom_nmea_oid": "ID obiektu",
+  "custom_nmea_select_oid": "Wybierz ID obiektu",
+  "custom_nmea_instance": "Instancja zbiornika",
+  "custom_nmea_capacity": "Pojemność (L)",
+  "custom_nmea_delete": "Usuń",
+  "custom_nmea_type_temperature": "Temperatura",
+  "custom_nmea_type_humidity": "Wilgotność",
+  "custom_nmea_type_pressure": "Ciśnienie",
+  "custom_nmea_type_tank": "Zbiornik",
+  "custom_nmea_tank_hint": "Zbiornik: wartość = poziom w % (0–100). Jeśli jednostka źródła to L/l/liters, jest automatycznie przeliczana na % przez pojemność.",
+  "custom_nmea_current": "wysłane do NMEA",
+  "custom_nmea_current_na": "brak wartości",
+  "custom_nmea_tank_instance_dup": "⚠ Ta instancja jest już używana przez inny zbiornik — Raymarine łączy zbiorniki o tej samej instancji."
+}

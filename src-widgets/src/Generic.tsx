@@ -4,7 +4,6 @@ import { IconButton } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
 import type { VisRxWidgetProps, VisRxWidgetState } from '@iobroker/types-vis-2';
-import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
 export interface GenericState extends VisRxWidgetState {
     index: number;

@@ -1,0 +1,20 @@
+{
+  "custom_nmea_simulate_title": "Simulated values",
+  "custom_nmea_simulate_add": "Add value",
+  "custom_nmea_simulate_empty": "No simulated values configured yet",
+  "custom_nmea_type": "Type",
+  "custom_nmea_subtype": "Subtype",
+  "custom_nmea_oid": "Object ID",
+  "custom_nmea_select_oid": "Select object ID",
+  "custom_nmea_instance": "Tank instance",
+  "custom_nmea_capacity": "Capacity (L)",
+  "custom_nmea_delete": "Delete",
+  "custom_nmea_type_temperature": "Temperature",
+  "custom_nmea_type_humidity": "Humidity",
+  "custom_nmea_type_pressure": "Pressure",
+  "custom_nmea_type_tank": "Tank",
+  "custom_nmea_tank_hint": "Tank: value = fill level in % (0–100). If the source unit is L/l/liters, it is auto-converted to % via the capacity.",
+  "custom_nmea_current": "sent to NMEA",
+  "custom_nmea_current_na": "no value",
+  "custom_nmea_tank_instance_dup": "⚠ This instance is already used by another tank — Raymarine merges tanks with the same instance."
+}
