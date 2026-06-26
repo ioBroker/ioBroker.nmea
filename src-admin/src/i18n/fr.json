@@ -6,7 +6,7 @@
   "custom_nmea_subtype": "Sous-type",
   "custom_nmea_oid": "ID d'objet",
   "custom_nmea_select_oid": "Sélectionner l'ID d'objet",
-  "custom_nmea_instance": "Instance du réservoir",
+  "custom_nmea_instance": "Instance",
   "custom_nmea_capacity": "Capacité (L)",
   "custom_nmea_delete": "Supprimer",
   "custom_nmea_type_temperature": "Température",
@@ -16,5 +16,6 @@
   "custom_nmea_tank_hint": "Réservoir : valeur = niveau en % (0–100). Si l’unité de la source est L/l/liters, elle est convertie automatiquement en % via la capacité.",
   "custom_nmea_current": "envoyé au NMEA",
   "custom_nmea_current_na": "aucune valeur",
-  "custom_nmea_tank_instance_dup": "⚠ Cette instance est déjà utilisée par un autre réservoir — Raymarine fusionne les réservoirs de même instance."
+  "custom_nmea_tank_instance_dup": "⚠ Cette instance est déjà utilisée par un autre capteur du même type — le traceur peut les fusionner.",
+  "custom_nmea_reorder": "Glisser pour réordonner"
 }

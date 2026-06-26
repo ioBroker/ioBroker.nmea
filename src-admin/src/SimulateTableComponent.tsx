@@ -11,7 +11,7 @@ import {
     TextField,
     Tooltip,
 } from '@mui/material';
-import { Add, Close, Delete, Edit } from '@mui/icons-material';
+import { Add, Close, Delete, DragIndicator, Edit } from '@mui/icons-material';
 import { I18n, SelectID } from '@iobroker/adapter-react-v5';
 import { ConfigGeneric, type ConfigGenericProps, type ConfigGenericState } from '@iobroker/json-config';
 import type { NmeaConfig, SimulateItem, SimulateType } from '../../src/types';
@@ -98,6 +98,10 @@ interface SimulateTableComponentState extends ConfigGenericState {
     showSelectId: number | null;
     /** Current value + unit of every referenced object ID, kept live via subscriptions. */
     values: Record<string, SourceValue>;
+    /** Row currently being dragged (drag-and-drop reordering), or null. */
+    dragIndex: number | null;
+    /** Row the dragged item is hovering over, for the drop-target highlight. */
+    dragOverIndex: number | null;
 }
 
 const LITER_UNITS = ['l', 'liter', 'liters', 'litre', 'litres'];
@@ -112,6 +116,8 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
             ...this.state,
             showSelectId: null,
             values: {},
+            dragIndex: null,
+            dragOverIndex: null,
         };
     }
 
@@ -220,6 +226,7 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
             type: 'temperature',
             subType: defaultSubType('temperature'),
             oid: '',
+            instance: this.nextFreeInstance(-1, 'temperature'),
         });
         this.onSimulateChanged(simulate);
     }
@@ -229,14 +236,26 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
         this.onSimulateChanged(simulate);
     }
 
-    /** Smallest tank instance (0..13) not used by any other tank row. */
-    nextFreeTankInstance(excludeIndex: number): number {
+    /** Move a row from one position to another (drag-and-drop reordering). */
+    moveRow(from: number, to: number): void {
+        if (from === to) {
+            return;
+        }
+        const simulate = [...this.getSimulate()];
+        const [moved] = simulate.splice(from, 1);
+        simulate.splice(to, 0, moved);
+        this.onSimulateChanged(simulate);
+    }
+
+    /** Smallest instance not used by any other row of the same type. */
+    nextFreeInstance(excludeIndex: number, type: SimulateType): number {
+        const max = type === 'tank' ? 13 : 252;
         const used = new Set(
             this.getSimulate()
-                .filter((s, i) => i !== excludeIndex && s.type === 'tank' && typeof s.instance === 'number')
+                .filter((s, i) => i !== excludeIndex && s.type === type && typeof s.instance === 'number')
                 .map(s => s.instance as number),
         );
-        for (let i = 0; i <= 13; i++) {
+        for (let i = 0; i <= max; i++) {
             if (!used.has(i)) {
                 return i;
             }
@@ -272,15 +291,32 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
     renderRow(item: SimulateItem, index: number): React.JSX.Element {
         const isTank = item.type === 'tank';
         const subTypes = SUB_TYPES[item.type] || [];
-        const dupInstance =
-            isTank &&
-            this.getSimulate().some(
-                (s, i) => i !== index && s.type === 'tank' && (s.instance ?? 0) === (item.instance ?? 0),
-            );
+        const dupInstance = this.getSimulate().some(
+            (s, i) => i !== index && s.type === item.type && (s.instance ?? 0) === (item.instance ?? 0),
+        );
 
         return (
             <Paper
                 key={index}
+                onDragOver={e => {
+                    // Must preventDefault on every dragover, otherwise the browser never fires onDrop.
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (this.state.dragOverIndex !== index) {
+                        this.setState({ dragOverIndex: index });
+                    }
+                }}
+                onDrop={e => {
+                    e.preventDefault();
+                    // Source index travels in dataTransfer (reliable, not subject to setState timing).
+                    const raw = e.dataTransfer.getData('text/plain');
+                    const from = raw === '' ? this.state.dragIndex : parseInt(raw, 10);
+                    this.setState({ dragIndex: null, dragOverIndex: null }, () => {
+                        if (from !== null && !isNaN(from as number) && from !== index) {
+                            this.moveRow(from as number, index);
+                        }
+                    });
+                }}
                 style={{
                     display: 'flex',
                     flexWrap: 'wrap',
@@ -288,8 +324,35 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
                     alignItems: 'flex-end',
                     padding: 12,
                     marginBottom: 8,
+                    opacity: this.state.dragIndex === index ? 0.4 : 1,
+                    outline:
+                        this.state.dragOverIndex === index && this.state.dragIndex !== index
+                            ? '2px dashed #4dabf5'
+                            : 'none',
                 }}
             >
+                {/* Drag handle for reordering */}
+                <Tooltip title={I18n.t('custom_nmea_reorder')}>
+                    <span
+                        draggable
+                        onDragStart={e => {
+                            e.dataTransfer.setData('text/plain', String(index));
+                            e.dataTransfer.effectAllowed = 'move';
+                            this.setState({ dragIndex: index, dragOverIndex: index });
+                        }}
+                        onDragEnd={() => this.setState({ dragIndex: null, dragOverIndex: null })}
+                        style={{
+                            cursor: 'grab',
+                            display: 'flex',
+                            alignItems: 'center',
+                            alignSelf: 'center',
+                            color: '#888',
+                        }}
+                    >
+                        <DragIndicator />
+                    </span>
+                </Tooltip>
+
                 {/* Type */}
                 <FormControl
                     variant="standard"
@@ -302,13 +365,12 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
                         onChange={e => {
                             const type = e.target.value as SimulateType;
                             // reset the sub-type to a valid default for the new type; auto-assign the
-                            // next free tank instance so two tanks never collide (NMEA-2000 identifies
-                            // a tank by instance, not by type — same instance ⇒ the MFD merges them).
+                            // next free instance for this type so two sensors never collide (the MFD
+                            // identifies a sensor by its instance — same instance ⇒ values get merged).
                             this.updateRow(index, {
                                 type,
                                 subType: defaultSubType(type),
-                                instance:
-                                    type === 'tank' ? (item.instance ?? this.nextFreeTankInstance(index)) : undefined,
+                                instance: item.instance ?? this.nextFreeInstance(index, type),
                                 capacity: type === 'tank' ? item.capacity || 0 : undefined,
                             });
                         }}
@@ -380,22 +442,8 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
                     }}
                 />
 
-                {/* Tank-only fields */}
-                {isTank ? (
-                    <TextField
-                        variant="standard"
-                        style={{ width: 130 }}
-                        type="number"
-                        label={I18n.t('custom_nmea_instance')}
-                        value={item.instance ?? 0}
-                        slotProps={{ htmlInput: { min: 0, max: 13 } }}
-                        onChange={e => {
-                            let instance = Math.round(parseInt(e.target.value, 10) || 0);
-                            instance = Math.max(0, Math.min(13, instance));
-                            this.updateRow(index, { instance });
-                        }}
-                    />
-                ) : null}
+                {/* Tank-only: capacity (rendered before the instance so the instance field stays in the
+                    same right-most position for every type) */}
                 {isTank ? (
                     <TextField
                         variant="standard"
@@ -410,6 +458,23 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
                         }}
                     />
                 ) : null}
+
+                {/* Instance — for every type (NMEA identifies a sensor by its instance). Kept last so it
+                    aligns across all rows regardless of the tank capacity field. */}
+                <TextField
+                    variant="standard"
+                    style={{ width: 130 }}
+                    type="number"
+                    label={I18n.t('custom_nmea_instance')}
+                    value={item.instance ?? 0}
+                    slotProps={{ htmlInput: { min: 0, max: isTank ? 13 : 252 } }}
+                    onChange={e => {
+                        const max = isTank ? 13 : 252;
+                        let instance = Math.round(parseInt(e.target.value, 10) || 0);
+                        instance = Math.max(0, Math.min(max, instance));
+                        this.updateRow(index, { instance });
+                    }}
+                />
 
                 {/* Delete */}
                 <Tooltip title={I18n.t('custom_nmea_delete')}>

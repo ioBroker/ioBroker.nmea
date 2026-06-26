@@ -359,7 +359,7 @@
                 },
                 "combinedEnvironment": {
                     "label": "Combined environment",
-                    "help": "Outdated",
+                    "help": "If enabled, temperature, humidity and pressure are sent together in the deprecated combined PGN 130311 instead of the separate PGNs (130316/130313/130314). Leave off so modern plotters such as Raymarine display them.",
                     "type": "checkbox",
                     "default": false,
                     "sm": 12,
@@ -369,6 +369,7 @@
                 },
                 "simulateAddress": {
                     "label": "Source address",
+                    "help": "Ignored when a Yacht Devices or NGT-1 gateway is used — those gateways transmit from their own claimed NMEA-2000 address. Only effective with a direct CAN interface (PiCAN-M).",
                     "type": "number",
                     "min": 1,
                     "max": 252,
@@ -376,6 +377,7 @@
                     "sm": 12,
                     "md": 6,
                     "lg": 3,
+                    "hidden": "data.type === 'ydwg'",
                     "disabled": "!data.simulationEnabled"
                 },
                 "_simulate": {

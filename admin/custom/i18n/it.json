@@ -6,7 +6,7 @@
   "custom_nmea_subtype": "Sottotipo",
   "custom_nmea_oid": "ID oggetto",
   "custom_nmea_select_oid": "Seleziona ID oggetto",
-  "custom_nmea_instance": "Istanza serbatoio",
+  "custom_nmea_instance": "Istanza",
   "custom_nmea_capacity": "Capacità (L)",
   "custom_nmea_delete": "Elimina",
   "custom_nmea_type_temperature": "Temperatura",
@@ -16,5 +16,6 @@
   "custom_nmea_tank_hint": "Serbatoio: valore = livello in % (0–100). Se l’unità della sorgente è L/l/liters, viene convertita automaticamente in % tramite la capacità.",
   "custom_nmea_current": "inviato a NMEA",
   "custom_nmea_current_na": "nessun valore",
-  "custom_nmea_tank_instance_dup": "⚠ Questa istanza è già usata da un altro serbatoio — Raymarine unisce i serbatoi con la stessa istanza."
+  "custom_nmea_tank_instance_dup": "⚠ Questa istanza è già usata da un altro sensore dello stesso tipo — il plotter potrebbe unirli.",
+  "custom_nmea_reorder": "Trascina per riordinare"
 }

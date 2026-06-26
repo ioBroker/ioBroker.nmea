@@ -100,6 +100,7 @@ The development of Simrad/navico/B&G is not completed yet.
 ### **WORK IN PROGRESS**
 * (bluefox) Implemented Raymarine autopilot support
 * (bluefox) Corrected values simulation for yacht devices gateways
+* (bluefox) Added support of Fusion player
 
 ### 0.4.2 (2026-01-05)
 * (bluefox) Updated packages

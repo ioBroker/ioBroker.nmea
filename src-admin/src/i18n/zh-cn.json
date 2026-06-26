@@ -6,7 +6,7 @@
   "custom_nmea_subtype": "子类型",
   "custom_nmea_oid": "对象 ID",
   "custom_nmea_select_oid": "选择对象 ID",
-  "custom_nmea_instance": "油箱实例",
+  "custom_nmea_instance": "实例",
   "custom_nmea_capacity": "容量 (L)",
   "custom_nmea_delete": "删除",
   "custom_nmea_type_temperature": "温度",
@@ -16,5 +16,6 @@
   "custom_nmea_tank_hint": "油箱：值 = 液位百分比 %（0–100）。若源单位为 L/l/liters，则通过容量自动换算为 %。",
   "custom_nmea_current": "已发送到 NMEA",
   "custom_nmea_current_na": "无值",
-  "custom_nmea_tank_instance_dup": "⚠ 此实例已被另一个油箱使用——Raymarine 会合并相同实例的油箱。"
+  "custom_nmea_tank_instance_dup": "⚠ 此实例已被同类型的另一个传感器使用——绘图仪可能会合并它们。",
+  "custom_nmea_reorder": "拖动以重新排序"
 }

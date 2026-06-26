@@ -1,1 +1,1 @@
-import"./assets/preload-helper-BDBacUwf.js";import{g as r,i as a}from"./assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__ConfigCustomNmeaSet__customComponents_js-CR40l1k2.js";export{r as get,a as init};
+import"./assets/preload-helper-BDBacUwf.js";import{g as r,i as a}from"./assets/virtual_mf-REMOTE_ENTRY_ID___mfe_internal__ConfigCustomNmeaSet__customComponents_js-QbT3JUih.js";export{r as get,a as init};

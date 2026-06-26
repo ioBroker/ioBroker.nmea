@@ -6,7 +6,7 @@
   "custom_nmea_subtype": "Subtipo",
   "custom_nmea_oid": "ID de objeto",
   "custom_nmea_select_oid": "Seleccionar ID de objeto",
-  "custom_nmea_instance": "Instancia del tanque",
+  "custom_nmea_instance": "Instancia",
   "custom_nmea_capacity": "Capacidad (L)",
   "custom_nmea_delete": "Eliminar",
   "custom_nmea_type_temperature": "Temperatura",
@@ -16,5 +16,6 @@
   "custom_nmea_tank_hint": "Tanque: valor = nivel en % (0–100). Si la unidad de la fuente es L/l/liters, se convierte automáticamente a % mediante la capacidad.",
   "custom_nmea_current": "enviado a NMEA",
   "custom_nmea_current_na": "sin valor",
-  "custom_nmea_tank_instance_dup": "⚠ Esta instancia ya la usa otro tanque — Raymarine combina los tanques con la misma instancia."
+  "custom_nmea_tank_instance_dup": "⚠ Esta instancia ya la usa otro sensor del mismo tipo — el plóter puede combinarlos.",
+  "custom_nmea_reorder": "Arrastrar para reordenar"
 }
