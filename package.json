@@ -64,7 +64,7 @@
     "build:ts": "tsc -p tsconfig.build.json && node tasks.mts --copy-i18n"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "license": "MIT"
 }
