@@ -312,8 +312,8 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
                     const raw = e.dataTransfer.getData('text/plain');
                     const from = raw === '' ? this.state.dragIndex : parseInt(raw, 10);
                     this.setState({ dragIndex: null, dragOverIndex: null }, () => {
-                        if (from !== null && !isNaN(from as number) && from !== index) {
-                            this.moveRow(from as number, index);
+                        if (from !== null && !isNaN(from) && from !== index) {
+                            this.moveRow(from, index);
                         }
                     });
                 }}
