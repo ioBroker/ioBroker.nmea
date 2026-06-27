@@ -21,6 +21,10 @@ updates:
       cronjob: '17 3 6 * *'
     open-pull-requests-limit: 20
     versioning-strategy: 'increase'
+    ignore:
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     cooldown:
       default-days: 7
 
@@ -32,6 +36,10 @@ updates:
       cronjob: '17 3 6 * *'
     open-pull-requests-limit: 20
     versioning-strategy: 'increase'
+    ignore:
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     cooldown:
       default-days: 7
     versioning-strategy: "increase"
@@ -39,10 +47,14 @@ updates:
   - package-ecosystem: "npm"
     directory: "/src-admin"
     schedule:
-      interval: "cron"
-      timezone: "Europe/Berlin"
-      cronjob: "17 3 6 * *"
+      interval: 'cron'
+      timezone: 'Europe/Berlin'
+      cronjob: '17 3 6 * *'
     open-pull-requests-limit: 20
+    versioning-strategy: 'increase'
+    ignore:
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     cooldown:
       default-days: 7
-    versioning-strategy: "increase"
