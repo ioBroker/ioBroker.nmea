@@ -133,6 +133,8 @@ The development of Simrad/navico/B&G is not completed yet.
 ### 0.0.3 (2024-03-12)
 * (bluefox) Initial commit
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 The MIT License (MIT)
 
