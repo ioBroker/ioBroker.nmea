@@ -5,24 +5,26 @@
 // NOT part of the production bundle. Only loaded by src/index.tsx (Vite dev server).
 
 import React, { useEffect, useState } from 'react';
-import { Connection } from '@iobroker/adapter-react-v5';
+import { Connection, type ThemeType } from '@iobroker/adapter-react-v5';
 import type { IStateContext, StateChangeListener, ObjectChangeListener } from '@iobroker/dm-widgets';
 import NmeaWindCompass from './NmeaWindComponent';
 import NmeaHistoryChartComponent from './NmeaHistoryChartComponent';
 import NmeaAutopilotComponent from './NmeaAutopilotComponent';
 import NmeaAisRadarComponent from './NmeaAisRadarComponent';
+import NmeaAnchorPositionComponent, { type AnchorPositionSettings } from './NmeaAnchorPositionComponent';
 
-const IOB_HOST = 'localhost';
+const IOB_HOST = '192.168.1.129';
 const IOB_PORT = 8081;
 const DEFAULT_INSTANCE = 'nmea.0';
 
-type WidgetTab = 'wind' | 'autopilot' | 'aisradar' | 'chart-aws' | 'chart-tws' | 'chart-sog' | 'chart-stw';
+type WidgetTab = 'wind' | 'autopilot' | 'aisradar' | 'anchor' | 'chart-aws' | 'chart-tws' | 'chart-sog' | 'chart-stw';
 
 const ACTIVE_TAB_KEY = 'nmeaDevHarness.activeTab';
 const VALID_TABS: readonly WidgetTab[] = [
     'wind',
     'autopilot',
     'aisradar',
+    'anchor',
     'chart-aws',
     'chart-tws',
     'chart-sog',
@@ -125,7 +127,7 @@ const tabButtonStyle = (active: boolean): React.CSSProperties => ({
 /**
  * Minimal IStateContext implementation that routes getState/removeState to a real
  * `@iobroker/socket-client` Connection. Fan-out per ID is handled locally so the
- * same state can have multiple subscribers (widget instance + dev UI for example).
+ * same state can have multiple subscribers (widget instance + dev UI, for example).
  */
 class DevStateContext implements IStateContext {
     private handlers = new Map<string, Set<StateChangeListener>>();
@@ -141,6 +143,7 @@ class DevStateContext implements IStateContext {
     isFloatComma = true;
     dateFormat = 'DD.MM.YYYY';
     imagePrefix = '../../files/';
+    themeType: ThemeType = 'dark';
 
     constructor(socket: Connection) {
         this.socket = socket;
@@ -199,11 +202,20 @@ class DevStateContext implements IStateContext {
         return this.socket;
     }
 
+    getImagePath(fileName: string | null | undefined): string | null {
+        return fileName || '';
+    }
+
     destroy(): void {
         for (const id of this.handlers.keys()) {
             this.socket.unsubscribeState(id);
         }
         this.handlers.clear();
+    }
+
+    setCoordinates(latitude: number | null, longitude: number | null): void {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }
 
@@ -233,6 +245,26 @@ class DevHistoryChart extends NmeaHistoryChartComponent {
 }
 
 /**
+ * Dev variant of the anchor-position widget — renders the map at a generous size for
+ * inspection in the standalone harness.
+ */
+class DevAnchorPosition extends NmeaAnchorPositionComponent {
+    override render(): React.JSX.Element {
+        const w = Math.min(window.innerWidth - 40, 1400);
+        const h = Math.min(window.innerHeight - 120, 800);
+        return (
+            <div
+                style={{ display: 'flex', justifyContent: 'center' }}
+                onClick={() => this.setState({ dialogOpen: true })}
+            >
+                <div style={{ width: w, height: h }}>{(this as any).renderMap('100%', 'dev')}</div>
+                {this.state.dialogOpen ? this.renderDialog() : null}
+            </div>
+        );
+    }
+}
+
+/**
  * Dev variant of the AIS radar — renders the radar at a square size constrained by the
  * viewport. The component manages its own Leaflet map internally; we just need to give it a
  * sized container.
@@ -256,11 +288,11 @@ class DevAisRadar extends NmeaAisRadarComponent {
  * Dev variant of the autopilot dial — renders the half-circle SVG directly plus the mode +
  * heading-adjust controls, so the widget can be tested standalone without the host shell.
  *
- * In dev we don't usually have an autopilot connected; instead a small simulator pushes
+ * In dev, we don't usually have an autopilot connected; instead, a small simulator pushes
  * synthetic values into the component's state every 200 ms so the dial demonstrates HDG
  * drift, locked-heading display, AWA pointer, and rudder bar against realistic-looking data.
  * The simulator's mode is controlled by a local `simMode` field — clicking the widget's
- * mode buttons updates it directly, bypassing the socket write that would otherwise be
+ * mode buttons updates it directly, bypassing the socket writing that would otherwise be
  * required for the change to be visible.
  */
 class DevAutopilot extends NmeaAutopilotComponent {
@@ -316,9 +348,9 @@ class DevAutopilot extends NmeaAutopilotComponent {
         const h = Math.min(window.innerHeight - 200, Math.round(w / aspect));
 
         // Re-implement the controls inline so we can short-circuit to `simMode` instead of
-        // routing through the (no-op-in-dev) socket write. Heading-adjust buttons just bump
+        // routing through the (no-op-in-dev) socket writing. Heading-adjust buttons just bump
         // the simulated locked heading directly, ignoring boolean-button semantics.
-        // Same colour scheme as the production widget — distinct hue per mode so the active
+        // The same colour scheme as the production widget — distinct hue per mode, so the active
         // state is recognisable at a glance (Standby red / Auto green / Wind blue / Track orange).
         const modes: { val: number; label: string; color: string }[] = [
             { val: 0, label: 'Standby', color: '#d32f2f' },
@@ -528,8 +560,28 @@ export default function App(): React.JSX.Element {
         { id: 'wind', label: 'Wind Compass' },
         { id: 'autopilot', label: 'Autopilot' },
         { id: 'aisradar', label: 'AIS Radar' },
+        { id: 'anchor', label: 'Anchor' },
         ...CHART_PRESETS.map(p => ({ id: p.id, label: p.tabLabel })),
     ];
+
+    const anchorSettings: AnchorPositionSettings = {
+        type: 'plugin',
+        id: 'aaa',
+        size: '2x1' as const,
+        name: 'Anchor',
+        favorite: false,
+        color: '',
+        chartHours: 0,
+        icon: '',
+        iconActive: '',
+        text: '',
+        textActive: '',
+        instance: DEFAULT_INSTANCE,
+        anchorPosition: '0_userdata.0.anchor.position',
+        chainLength: '0_userdata.0.anchor.length',
+        depthAtDrop: '0_userdata.0.anchor.depthAtDrop',
+        mapStyle: 'osm' as const,
+    };
 
     const aisRadarSettings = {
         size: '2x1' as const,
@@ -574,7 +626,7 @@ export default function App(): React.JSX.Element {
                     <DevWindCompass
                         key="wind"
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={windSettings as any}
                         onHide={() => {}}
                     />
@@ -582,7 +634,7 @@ export default function App(): React.JSX.Element {
                     <DevAutopilot
                         key="autopilot"
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={autopilotSettings as any}
                         onHide={() => {}}
                     />
@@ -590,15 +642,23 @@ export default function App(): React.JSX.Element {
                     <DevAisRadar
                         key="aisradar"
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={aisRadarSettings as any}
+                        onHide={() => {}}
+                    />
+                ) : activeTab === 'anchor' ? (
+                    <DevAnchorPosition
+                        key="anchor"
+                        widget={widget as any}
+                        stateContext={ctx}
+                        settings={anchorSettings}
                         onHide={() => {}}
                     />
                 ) : chartSettings ? (
                     <DevHistoryChart
                         key={activeTab}
                         widget={widget as any}
-                        stateContext={ctx as any}
+                        stateContext={ctx}
                         settings={chartSettings as any}
                         onHide={() => {}}
                     />

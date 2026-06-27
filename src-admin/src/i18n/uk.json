@@ -1,0 +1,21 @@
+{
+  "custom_nmea_simulate_title": "Симульовані значення",
+  "custom_nmea_simulate_add": "Додати значення",
+  "custom_nmea_simulate_empty": "Симульовані значення ще не налаштовані",
+  "custom_nmea_type": "Тип",
+  "custom_nmea_subtype": "Підтип",
+  "custom_nmea_oid": "ID об'єкта",
+  "custom_nmea_select_oid": "Вибрати ID об'єкта",
+  "custom_nmea_instance": "Екземпляр",
+  "custom_nmea_capacity": "Ємність (л)",
+  "custom_nmea_delete": "Видалити",
+  "custom_nmea_type_temperature": "Температура",
+  "custom_nmea_type_humidity": "Вологість",
+  "custom_nmea_type_pressure": "Тиск",
+  "custom_nmea_type_tank": "Бак",
+  "custom_nmea_tank_hint": "Бак: значення = рівень у % (0–100). Якщо одиниця джерела — L/l/liters, вона автоматично перераховується у % через ємність.",
+  "custom_nmea_current": "надіслано до NMEA",
+  "custom_nmea_current_na": "немає значення",
+  "custom_nmea_tank_instance_dup": "⚠ Цей екземпляр уже використовується іншим датчиком того самого типу — плоттер може їх поєднати.",
+  "custom_nmea_reorder": "Перетягніть, щоб змінити порядок"
+}

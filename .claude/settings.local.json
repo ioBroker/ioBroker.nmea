@@ -37,7 +37,12 @@
       "Bash(grep -oE \"virtualExposes-[A-Za-z0-9_-]{6,}|Components-[A-Za-z0-9_-]{6,}\" C:/pWork/ioBroker.nmea/admin/dm-widgets/customDevices.js C:/pWork/ioBroker.nmea/src-devices/build/customDevices.js)",
       "Bash(rm C:/pWork/ioBroker.nmea/admin/dm-widgets/customDevices.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/Components-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaWindComponent-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/virtualExposes-*.js)",
       "Bash(rm C:/pWork/ioBroker.nmea/admin/dm-widgets/customDevices.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/Components-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaWindComponent-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaHistoryChart-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/virtualExposes-*.js)",
-      "Bash(rm C:/pWork/ioBroker.nmea/admin/dm-widgets/customDevices.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/Components-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaWindComponent-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaHistory*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/virtualExposes-*.js)"
+      "Bash(rm C:/pWork/ioBroker.nmea/admin/dm-widgets/customDevices.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/Components-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaWindComponent-*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/NmeaHistory*.js C:/pWork/ioBroker.nmea/admin/dm-widgets/assets/virtualExposes-*.js)",
+      "Bash(git checkout *)",
+      "Bash(git -C C:/pWork/ioBroker.nmea checkout -- src-widgets/src/Components/Autopilot.tsx)",
+      "Bash(git -C C:/pWork/ioBroker.nmea status)",
+      "Bash(git -C C:/pWork/ioBroker.nmea diff src-devices/src/NmeaAutopilotComponent.tsx)",
+      "Bash(git *)"
     ]
   }
 }

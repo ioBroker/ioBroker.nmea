@@ -19,10 +19,18 @@ import type {
     DialogProps,
     IconButtonProps,
     DialogContentProps,
+    DialogTitleProps,
+    DialogActionsProps,
     ButtonProps,
     ButtonGroupProps,
 } from '@mui/material';
 import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
+
+// Cyclic ES-module import: NmeaWindComponent also imports this file. ES modules handle
+// cycles via live bindings — the reference is undefined while NmeaWindComponent itself is being
+// evaluated, but by the time any render() actually USES it, both modules are fully resolved.
+// The previous lazy `require()` approach was stripped by Vite, leaving the companion area empty.
+import NmeaWindCompass from './NmeaWindComponent';
 
 // Resolve MUI components from the host bridge — `@iobroker/dm-widgets` re-exports React/MUI
 // from `window.__iobrokerShared__` so all plugins use the same instance as the host (avoids
@@ -33,18 +41,33 @@ const Box: React.ComponentType<BoxProps> = MuiMaterial?.Box;
 const Typography: React.ComponentType<TypographyProps> = MuiMaterial?.Typography;
 const Dialog: React.ComponentType<DialogProps> = MuiMaterial?.Dialog;
 const DialogContent: React.ComponentType<DialogContentProps> = MuiMaterial?.DialogContent;
+const DialogTitle: React.ComponentType<DialogTitleProps> = MuiMaterial?.DialogTitle;
+const DialogActions: React.ComponentType<DialogActionsProps> = MuiMaterial?.DialogActions;
 const IconButton: React.ComponentType<IconButtonProps> = MuiMaterial?.IconButton;
 const Button: React.ComponentType<ButtonProps> = MuiMaterial?.Button;
 const ButtonGroup: React.ComponentType<ButtonGroupProps> = MuiMaterial?.ButtonGroup;
 const CloseIcon: React.ComponentType<any> = MuiIcons?.Close;
+// Toggle icons for companion split view — `ViewColumn` (two columns) reads as "show two side
+// by side" for landscape, `ViewStream` (stacked bars) reads as "stack two" for portrait. We
+// pick the one matching current orientation and reuse it for "back to single view" toggle.
+const ViewColumnIcon: React.ComponentType<any> = MuiIcons?.ViewColumn;
+const ViewStreamIcon: React.ComponentType<any> = MuiIcons?.ViewStream;
+const ViewAgendaIcon: React.ComponentType<any> = MuiIcons?.ViewAgenda;
 
 interface AutopilotSettings extends CustomWidgetPlugin {
     /** e.g. 'nmea.0' */
     instance?: string;
     /** Show AWA digital readout + dial pointer in Wind mode. */
     showAwa?: boolean;
-    /** Show rudder bar at the bottom of the dial. */
+    /** Show the rudder bar at the bottom of the dial. */
     showRudder?: boolean;
+    /** Allow the user to split the fullscreen dialog and show the Wind compass alongside. */
+    enableCompanion?: boolean;
+    /**
+     * Internal: when set, the widget renders only its inline dialog body (no tile, no Dialog).
+     *  Used by the other widget when it embeds this one in companion split view.
+     */
+    _renderInline?: boolean;
 }
 
 interface AutopilotComponentState extends WidgetGenericState {
@@ -57,7 +80,29 @@ interface AutopilotComponentState extends WidgetGenericState {
     stw: number | null;
     /** Speed Over Ground — knots, from `cogSogRapidUpdate.sog` (PGN 129026). */
     sog: number | null;
+    /** Mirrored autoPilot.windAngle in degrees — current wind-angle datum. */
+    windAngle: number | null;
     dialogOpen: boolean;
+    /**
+     * Companion split-view toggle inside the open dialog. Only meaningful when
+     *  settings.enableCompanion is true.
+     */
+    companionMode: boolean;
+    /** Cached orientation of the open dialog (window aspect). Updated on resize while open. */
+    dialogLandscape: boolean;
+    /** True while a finger/mouse drag is in progress on the dial. */
+    dragging: boolean;
+    /** Drag-target angle in SVG-frame degrees (0=up=bow, +clockwise). null when idle. */
+    dragAngle: number | null;
+    /** Pending setpoint awaiting confirmation (only set when delta > LARGE_DELTA_DEG). */
+    pendingAngle: number | null;
+    /**
+     * Mode the pending setpoint applies to — kept in case the autopilot mode flips while the
+     *  confirmation dialog is open. We refuse to apply the value if the mode has changed.
+     */
+    pendingMode: 1 | 2 | null;
+    /** Wall-clock deadline (ms epoch) at which the pending confirmation auto-cancels. */
+    pendingDeadline: number | null;
 }
 
 const MODE_LABELS: Record<number, string> = {
@@ -102,7 +147,6 @@ const COLORS = {
 const VIEWBOX_W = 1000;
 const VIEWBOX_H_DIAL = 500; // dial-only — viewBox bottom is the dial diameter
 const RUDDER_BAND_H = 80; // gutter under the dial for the rudder bar
-const SPEED_BAND_H = 140; // gutter for the STW + SOG readout block
 const CX = 500;
 const CY = 500; // pivot at the bottom edge of the dial-only viewBox
 const R_OUTER = 480; // outer ring radius — top of arc at y = CY - R_OUTER = 20
@@ -120,8 +164,8 @@ const RUDDER_MAX_DEG = 35;
 // same hue as a SET arrow would use) and SOG pink (ground-frame motion, same hue as a COG bug).
 const STW_COLOR = '#3298ff';
 const SOG_COLOR = '#FC0FC0';
-// canboat reports speed values in metres per second; Wind/AIS widgets display knots.
-const MS_TO_KN = 1.9438444924574;
+// The nmea adapter already converts speed states (sog, speedWaterReferenced, …) from m/s
+// to knots in main.ts before writing them, so no unit conversion happens in this widget.
 
 function pad3(n: number | null): string {
     if (n == null || !isFinite(n)) {
@@ -138,8 +182,58 @@ function fmtSigned(n: number | null): string {
     return Math.abs(Math.round(n)).toString();
 }
 
+/**
+ * Smallest angular distance between two compass-style angles (deg), always 0..180.
+ * Used to decide whether a drag-to-set commit needs an "are you sure?" prompt — large
+ * course or wind-angle changes from the dial can be safety-critical (sudden gybe, broach,
+ * collision with the bow), so anything beyond ~20° gets a confirmation gate.
+ */
+function angularDiff(a: number, b: number): number {
+    const d = Math.abs(((a - b) % 360) + 360) % 360;
+    return d > 180 ? 360 - d : d;
+}
+
+/** Threshold (deg) above which a drag-to-set requires explicit operator confirmation. */
+const LARGE_DELTA_DEG = 20;
+/** Auto-cancel timeout (ms) for the confirmation dialog when the operator doesn't react. */
+const CONFIRM_TIMEOUT_MS = 10_000;
+
 export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentState, AutopilotSettings> {
     private stateHandlers: Map<string, (id: string, state: ioBroker.State | null | undefined) => void> = new Map();
+
+    /** Auto-cancel timer for the large-delta confirmation dialog. */
+    private pendingConfirmTimer: ReturnType<typeof setTimeout> | null = null;
+
+    /** 500-ms tick that re-renders the confirmation dialog so the countdown stays current. */
+    private pendingTickInterval: ReturnType<typeof setInterval> | null = null;
+
+    /**
+     * Per-key monotonically-increasing rotation angles. CSS animates `transform` linearly,
+     *  so feeding it raw 0..360° angles makes the compass spin the long way at every 359°↔0°
+     *  wrap. We unwrap by tracking each angle's "extended" value: each frame we pick the
+     *  equivalent target within ±180° of the last value and store it. The visible rotation
+     *  number can drift arbitrarily far from 0 over a long session — that's fine, CSS doesn't
+     *  care, and the modulo-360 visual position stays correct.
+     */
+    private unwrappedAngles: Record<string, number> = {};
+
+    private unwrap(key: string, target: number | null | undefined): number {
+        if (target == null || !Number.isFinite(target)) {
+            // No data — return whatever we last had (or 0 on first call) so the transform stays
+            // put rather than snapping back to zero.
+            return this.unwrappedAngles[key] ?? 0;
+        }
+        const current = this.unwrappedAngles[key];
+        if (current === undefined) {
+            this.unwrappedAngles[key] = target;
+            return target;
+        }
+        // Shortest signed delta in (-180, 180].
+        const delta = ((((target - current) % 360) + 540) % 360) - 180;
+        const next = current + delta;
+        this.unwrappedAngles[key] = next;
+        return next;
+    }
 
     constructor(props: WidgetGenericProps<AutopilotSettings>) {
         super(props);
@@ -152,8 +246,63 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
             rudder: null,
             stw: null,
             sog: null,
+            windAngle: null,
             dialogOpen: false,
+            // Restore the split-view preference saved the last time the operator toggled it.
+            // Each widget instance gets its own slot keyed by widget id, so two autopilot
+            // tiles on the same page can be configured independently.
+            companionMode: NmeaAutopilotComponent.loadCompanionPref(props),
+            dialogLandscape: typeof window !== 'undefined' ? window.innerWidth >= window.innerHeight : true,
+            dragging: false,
+            dragAngle: null,
+            pendingAngle: null,
+            pendingMode: null,
+            pendingDeadline: null,
         };
+    }
+
+    /** localStorage key for the persisted companion split-view preference. */
+    private static companionStorageKey(props: WidgetGenericProps<AutopilotSettings>): string | null {
+        const id = props.widget?.id;
+        if (id == null) {
+            return null;
+        }
+        return `nmea-autopilot-companion-${id}`;
+    }
+
+    private static loadCompanionPref(props: WidgetGenericProps<AutopilotSettings>): boolean {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+        const key = NmeaAutopilotComponent.companionStorageKey(props);
+        if (!key) {
+            return false;
+        }
+        try {
+            return window.localStorage.getItem(key) === '1';
+        } catch {
+            // Private mode / disabled storage — silently fall through.
+            return false;
+        }
+    }
+
+    private saveCompanionPref(on: boolean): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const key = NmeaAutopilotComponent.companionStorageKey(this.props);
+        if (!key) {
+            return;
+        }
+        try {
+            if (on) {
+                window.localStorage.setItem(key, '1');
+            } else {
+                window.localStorage.removeItem(key);
+            }
+        } catch {
+            // ignore — storage unavailable
+        }
     }
 
     static override getConfigSchema(): { name: string; schema: ConfigItemPanel | ConfigItemTabs } {
@@ -180,27 +329,61 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                         default: true,
                         sm: 6,
                     },
+                    enableCompanion: {
+                        newLine: true,
+                        type: 'checkbox',
+                        label: 'nmeaap_enableCompanion',
+                        help: 'nmeaap_enableCompanion_help',
+                        default: false,
+                        sm: 12,
+                    },
                 },
             },
         };
     }
+
+    /** Window-resize handler — kept as a stable arrow so add/remove pair up correctly. */
+    private onWindowResize = (): void => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const landscape = window.innerWidth >= window.innerHeight;
+        if (landscape !== this.state.dialogLandscape) {
+            this.setState({ dialogLandscape: landscape } as AutopilotComponentState);
+        }
+    };
 
     componentDidMount(): void {
         super.componentDidMount?.();
         this.subscribeAll();
     }
 
-    componentDidUpdate(prevProps: Readonly<WidgetGenericProps<AutopilotSettings>>): void {
+    componentDidUpdate(
+        prevProps: Readonly<WidgetGenericProps<AutopilotSettings>>,
+        prevState: Readonly<AutopilotComponentState>,
+    ): void {
         super.componentDidUpdate?.(prevProps, this.state);
         if (prevProps.settings.instance !== this.props.settings.instance) {
             this.unsubscribeAll();
             this.subscribeAll();
+        }
+        // Manage the resize listener only while the dialog is open — saves a per-window-resize
+        // forceUpdate on every widget instance on the page.
+        if (prevState.dialogOpen !== this.state.dialogOpen) {
+            if (this.state.dialogOpen) {
+                window.addEventListener('resize', this.onWindowResize);
+                this.onWindowResize();
+            } else {
+                window.removeEventListener('resize', this.onWindowResize);
+            }
         }
     }
 
     componentWillUnmount(): void {
         super.componentWillUnmount?.();
         this.unsubscribeAll();
+        this.clearPendingTimers();
+        window.removeEventListener('resize', this.onWindowResize);
     }
 
     private subscribeAll(): void {
@@ -225,6 +408,9 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         // shown as auxiliary readouts beneath the dial (same style as the Wind compass widget).
         bind(`${instance}.speed.speedWaterReferenced`, v => this.setState({ stw: v } as AutopilotComponentState));
         bind(`${instance}.cogSogRapidUpdate.sog`, v => this.setState({ sog: v } as AutopilotComponentState));
+        // Wind-angle datum mirrored from the autopilot — used in Wind mode as the "current"
+        // setpoint shown next to the new value during a drag-to-set gesture on the dial.
+        bind(`${instance}.autoPilot.windAngle`, v => this.setState({ windAngle: v } as AutopilotComponentState));
     }
 
     private unsubscribeAll(): void {
@@ -272,6 +458,189 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
     }
 
     /**
+     * Convert a pointer event's client coordinates into the SVG-frame angle in degrees,
+     * measured from "up" (12 o'clock = bow direction) clockwise. Returns null for the exact
+     * dial centre (degenerate) or when the SVG viewBox is unreadable. Touches in the lower
+     * half of the SVG (below CY) wrap to angles around 180°, which is fine for our purposes —
+     * the operator can still drag through the bottom of the visible half-disc to flip ±90°.
+     */
+    private pointerToAngle(e: React.PointerEvent<SVGSVGElement>): number | null {
+        const svg = e.currentTarget;
+        const rect = svg.getBoundingClientRect();
+        const viewBox = svg.viewBox.baseVal;
+        if (!viewBox || viewBox.width <= 0 || viewBox.height <= 0 || rect.width <= 0) {
+            return null;
+        }
+        const xScale = viewBox.width / rect.width;
+        const yScale = viewBox.height / rect.height;
+        const svgX = (e.clientX - rect.left) * xScale;
+        const svgY = (e.clientY - rect.top) * yScale;
+        const dx = svgX - CX;
+        const dy = CY - svgY; // flip — SVG y grows down
+        if (dx === 0 && dy === 0) {
+            return null;
+        }
+        let deg = (Math.atan2(dx, dy) * 180) / Math.PI;
+        deg = ((deg % 360) + 360) % 360;
+        return deg;
+    }
+
+    /**
+     * Drag-to-set on the dial. Only enabled in Auto (mode 1) — the operator pulls the locked
+     * compass heading by dragging anywhere on the disc. Wind mode (2) is intentionally NOT
+     * draggable: a stray finger swipe on a wind-following autopilot could gybe the boat hard,
+     * so wind-angle changes go exclusively through the ±1 / ±10 buttons (which write
+     * `autoPilot.windAngleChange` in small increments). Standby / Track / unknown modes have
+     * no setpoint to update, so we ignore the pointer there too.
+     */
+    private handlePointerDown = (e: React.PointerEvent<SVGSVGElement>): void => {
+        if (this.state.mode !== 1) {
+            return;
+        }
+        const angle = this.pointerToAngle(e);
+        if (angle === null) {
+            return;
+        }
+        try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+            // setPointerCapture may not be supported in some embedded contexts — fall through.
+        }
+        e.preventDefault();
+        this.setState({ dragging: true, dragAngle: angle } as AutopilotComponentState);
+    };
+
+    private handlePointerMove = (e: React.PointerEvent<SVGSVGElement>): void => {
+        if (!this.state.dragging) {
+            return;
+        }
+        const angle = this.pointerToAngle(e);
+        if (angle === null) {
+            return;
+        }
+        this.setState({ dragAngle: angle } as AutopilotComponentState);
+    };
+
+    private handlePointerEnd = (e: React.PointerEvent<SVGSVGElement>): void => {
+        if (!this.state.dragging) {
+            return;
+        }
+        try {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        } catch {
+            // ignore
+        }
+        const finalAngle = this.state.dragAngle;
+        const mode = this.state.mode;
+        this.setState({ dragging: false, dragAngle: null } as AutopilotComponentState);
+        if (finalAngle === null) {
+            return;
+        }
+        if (mode === 1) {
+            // Auto: SVG-frame drag angle is bow-relative. Locked heading (compass) is the
+            // current heading plus that bow-relative offset, normalised to 0..360.
+            const heading = this.state.heading ?? 0;
+            const newAngle = (((heading + finalAngle) % 360) + 360) % 360;
+            this.commitOrConfirm(1, newAngle, this.state.lockedHeading);
+        }
+        // Wind mode (2) is excluded by handlePointerDown — drag-to-set is disabled there
+        // by design (see comment on handlePointerDown).
+    };
+
+    /**
+     * Apply the new setpoint immediately when it's a small change, or open a confirmation
+     * dialog when the operator just dragged through a big jump (> LARGE_DELTA_DEG). Marine
+     * autopilots can swing the boat hard on a large course change, so anything over ~20° is
+     * gated behind an explicit OK to prevent accidental gybes / collisions / rudder slamming.
+     */
+    private commitOrConfirm(mode: 1 | 2, newAngle: number, currentAngle: number | null): void {
+        const rounded = Math.round(newAngle);
+        if (currentAngle == null || angularDiff(rounded, currentAngle) <= LARGE_DELTA_DEG) {
+            // Small change (or no current value to compare against) — write straight through.
+            this.writeState(mode === 1 ? 'autoPilot.heading' : 'autoPilot.windAngle', rounded);
+            return;
+        }
+        this.startConfirmation(mode, rounded);
+    }
+
+    private startConfirmation(mode: 1 | 2, angle: number): void {
+        this.clearPendingTimers();
+        this.pendingConfirmTimer = setTimeout(() => this.cancelConfirmation(), CONFIRM_TIMEOUT_MS);
+        // Re-render twice a second so the visible countdown stays in sync without burning CPU.
+        this.pendingTickInterval = setInterval(() => this.forceUpdate(), 500);
+        this.setState({
+            pendingMode: mode,
+            pendingAngle: angle,
+            pendingDeadline: Date.now() + CONFIRM_TIMEOUT_MS,
+        } as AutopilotComponentState);
+    }
+
+    private clearPendingTimers(): void {
+        if (this.pendingConfirmTimer) {
+            clearTimeout(this.pendingConfirmTimer);
+            this.pendingConfirmTimer = null;
+        }
+        if (this.pendingTickInterval) {
+            clearInterval(this.pendingTickInterval);
+            this.pendingTickInterval = null;
+        }
+    }
+
+    /** Operator hit Cancel — or the auto-cancel timeout fired. Drop the pending value. */
+    private cancelConfirmation = (): void => {
+        this.clearPendingTimers();
+        this.setState({
+            pendingMode: null,
+            pendingAngle: null,
+            pendingDeadline: null,
+        } as AutopilotComponentState);
+    };
+
+    /** Operator hit Confirm — apply the pending value (only if mode hasn't drifted). */
+    private confirmPending = (): void => {
+        const { pendingMode, pendingAngle } = this.state;
+        this.clearPendingTimers();
+        this.setState({
+            pendingMode: null,
+            pendingAngle: null,
+            pendingDeadline: null,
+        } as AutopilotComponentState);
+        if (pendingAngle == null || pendingMode == null) {
+            return;
+        }
+        // If the mode flipped while the dialog was open, the pending angle no longer applies
+        // (e.g. operator switched from Wind to Auto and our 270° wind angle would set heading).
+        if (this.state.mode !== pendingMode) {
+            return;
+        }
+        this.writeState(pendingMode === 1 ? 'autoPilot.heading' : 'autoPilot.windAngle', pendingAngle);
+    };
+
+    /**
+     * The setpoint the drag would commit to right now: compass heading in Auto mode (current
+     * heading + bow-relative drag offset). Wind mode doesn't support drag-to-set, so this is
+     * only meaningful in Auto.
+     */
+    private computeDragTarget(): number | null {
+        if (!this.state.dragging || this.state.dragAngle == null) {
+            return null;
+        }
+        if (this.state.mode === 1) {
+            const heading = this.state.heading ?? 0;
+            return (((heading + this.state.dragAngle) % 360) + 360) % 360;
+        }
+        return null;
+    }
+
+    /** The setpoint currently in effect on the autopilot, for the active mode. */
+    private getCurrentSetpoint(): number | null {
+        if (this.state.mode === 1) {
+            return this.state.lockedHeading;
+        }
+        return null;
+    }
+
+    /**
      * Half-circle autopilot dial — only the upper 180° of the compass rose is visible.
      * The pivot CY sits at the bottom edge of the dial viewBox; everything below CY is
      * cropped via a clipPath so the rotating rose, AWA pointer, and inner plate become
@@ -281,23 +650,21 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
      * `compact=true` drops the corner HDG/AWA blocks (used by the small tile).
      */
     protected renderDialSvg(size: number | string, compact = false, dark = true): React.JSX.Element {
-        const { heading, lockedHeading, awa, mode, rudder, stw, sog } = this.state;
-        const headingDeg = heading ?? 0;
+        const { heading, lockedHeading, awa, mode, rudder, windAngle } = this.state;
+        // Unwrap heading and AWA so the CSS transition takes the shortest path across 360°↔0°
+        // wraps instead of spinning the long way (e.g. 359° → 1° should be +2°, not -358°).
+        const headingDeg = heading != null ? this.unwrap('heading', heading) : 0;
+        const awaDeg = this.unwrap('awa', awa);
         const fg = dark ? COLORS.contrast : COLORS.contrastLight;
         const bgRing = dark ? '#1B2733' : '#E8EEF3';
         const dimmed = dark ? COLORS.dim : COLORS.dimLight;
 
         const showRudder = !compact && this.props.settings.showRudder !== false;
         const showAwa = !compact && this.props.settings.showAwa !== false;
-        // Speeds (STW/SOG) are shown only on non-compact tiles where there's vertical room for
-        // a third band underneath the dial (and the rudder bar if present). Compact tiles drop
-        // them to keep the dial readable.
-        const showSpeeds = !compact;
-        // Build the viewBox height by stacking enabled bands underneath the dial diameter.
-        const viewH =
-            VIEWBOX_H_DIAL + (showRudder ? RUDDER_BAND_H : 0) + (showSpeeds ? SPEED_BAND_H : 0);
-        // Y origin where the speed band starts (just below dial or rudder).
-        const speedY = VIEWBOX_H_DIAL + (showRudder ? RUDDER_BAND_H : 0);
+        // SVG viewBox height is just dial + (optional) rudder band; the STW/SOG readout lives
+        // OUTSIDE the SVG (in the HTML controls block) so it can sit at the very bottom of the
+        // widget regardless of dial size.
+        const viewH = VIEWBOX_H_DIAL + (showRudder ? RUDDER_BAND_H : 0);
 
         const triangleD = `M ${CX} ${POINTER_TIP_Y - 14}
             L ${CX - 26} ${POINTER_TIP_Y + 26}
@@ -412,11 +779,30 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         }
 
         const clipId = `apdial-clip-${String(this.props.widget?.id ?? 'dev')}`;
+        // Drag-to-set is only wired up on the full-size dial. The compact tile is wrapped in a
+        // click-to-open Box and would conflict with a drag gesture; the wide-bar variant doesn't
+        // even render this SVG path.
+        const dragEnabled = !compact && this.state.mode === 1;
+        const { dragging, dragAngle } = this.state;
+        const dragTarget = this.computeDragTarget();
+        const currentSetpoint = this.getCurrentSetpoint();
         return (
             <svg
                 viewBox={`0 0 ${VIEWBOX_W} ${viewH}`}
                 preserveAspectRatio="xMidYMid meet"
-                style={{ width: '100%', height: size, display: 'block' }}
+                style={{
+                    width: '100%',
+                    height: size,
+                    display: 'block',
+                    // Disable browser touch scrolling on the dial so drag gestures don't scroll
+                    // the surrounding page. Only matters when drag is enabled.
+                    touchAction: !compact ? 'none' : undefined,
+                    cursor: dragEnabled ? 'pointer' : undefined,
+                }}
+                onPointerDown={!compact ? this.handlePointerDown : undefined}
+                onPointerMove={!compact ? this.handlePointerMove : undefined}
+                onPointerUp={!compact ? this.handlePointerEnd : undefined}
+                onPointerCancel={!compact ? this.handlePointerEnd : undefined}
             >
                 <defs>
                     {/* Clip everything that belongs inside the half-disc to y ∈ [0, CY]. */}
@@ -429,6 +815,20 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                         />
                     </clipPath>
                 </defs>
+
+                {/* Transparent overlay across the full SVG viewport so pointer events fire on
+                    "empty" interior areas too — without this, taps inside the inner dimmed disc
+                    wouldn't register because there's no painted shape under the finger. */}
+                {!compact ? (
+                    <rect
+                        x={0}
+                        y={0}
+                        width={VIEWBOX_W}
+                        height={viewH}
+                        fill="transparent"
+                        style={{ pointerEvents: 'all' }}
+                    />
+                ) : null}
 
                 {/* Outer ring (top-half annulus). */}
                 <path
@@ -485,7 +885,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                 {mode === 2 && awa != null && isFinite(awa) ? (
                     <g clipPath={`url(#${clipId})`}>
                         <g
-                            transform={`rotate(${awa} ${CX} ${CY})`}
+                            transform={`rotate(${awaDeg} ${CX} ${CY})`}
                             style={{ transition: 'transform 0.4s linear' }}
                         >
                             <path
@@ -494,6 +894,36 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                                     L ${CX + 18} ${CY - R_OUTER + 50} Z`}
                                 fill={COLORS.yellow}
                                 stroke={COLORS.yellowDark}
+                                strokeWidth={3}
+                            />
+                        </g>
+                    </g>
+                ) : null}
+
+                {/* Drag marker — orange triangle + radial line at the bow-relative drag angle.
+                    Only visible while a drag is in progress. The angle is interpreted in the
+                    SVG/bow frame regardless of mode (compass-vs-wind is resolved in the centre
+                    text below); rendering inside the same clipPath keeps it confined to the
+                    upper half-disc, matching the rose and AWA pointer. */}
+                {dragging && dragAngle != null ? (
+                    <g clipPath={`url(#${clipId})`}>
+                        <g transform={`rotate(${dragAngle} ${CX} ${CY})`}>
+                            <line
+                                x1={CX}
+                                y1={CY - R_INNER + 30}
+                                x2={CX}
+                                y2={CY - R_OUTER + 50}
+                                stroke="#ff7a00"
+                                strokeWidth={6}
+                                strokeLinecap="round"
+                                opacity={0.8}
+                            />
+                            <path
+                                d={`M ${CX} ${CY - R_OUTER + 5}
+                                    L ${CX - 22} ${CY - R_OUTER + 56}
+                                    L ${CX + 22} ${CY - R_OUTER + 56} Z`}
+                                fill="#ff7a00"
+                                stroke="#a04a00"
                                 strokeWidth={3}
                             />
                         </g>
@@ -582,24 +1012,107 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                     {mode == null ? '---' : (MODE_LABELS[mode] || 'Unknown').toUpperCase()}
                 </text>
 
-                {/* Big locked-heading number — central inside the half-disc. */}
-                <text
-                    x={CX}
-                    y={CY - 60}
-                    fill={fg}
-                    fontSize={150}
-                    fontWeight={700}
-                    textAnchor="middle"
-                >
-                    {lockedHeading == null ? '---' : pad3(lockedHeading)}
-                    <tspan
-                        fontSize={100}
-                        fontWeight={400}
-                        dy={-25}
-                    >
-                        °
-                    </tspan>
-                </text>
+                {/* Big setpoint number — central inside the half-disc.
+                    Idle: shows the locked heading when the autopilot is engaged (Auto/Wind/Track/
+                    NoDrift), or the current compass heading when the autopilot is off / not
+                    connected (mode null or Standby) — in those modes there is no live setpoint
+                    and the locked-heading register would be stale or zero.
+                    Dragging: the new target dominates in orange and the unchanged "current"
+                    setpoint sits beneath it in dimmed text so the operator can see both at a
+                    glance and judge how much they're shifting it before committing. */}
+                {dragging && dragTarget != null ? (
+                    <>
+                        <text
+                            x={CX}
+                            y={CY - 100}
+                            fill="#ff7a00"
+                            fontSize={140}
+                            fontWeight={700}
+                            textAnchor="middle"
+                        >
+                            {pad3(dragTarget)}
+                            <tspan
+                                fontSize={92}
+                                fontWeight={400}
+                                dy={-22}
+                            >
+                                °
+                            </tspan>
+                        </text>
+                        <text
+                            x={CX}
+                            y={CY - 30}
+                            fill={dimmed}
+                            fontSize={48}
+                            fontWeight={500}
+                            textAnchor="middle"
+                        >
+                            {`now ${currentSetpoint == null ? '---' : pad3(currentSetpoint)}°`}
+                        </text>
+                    </>
+                ) : (
+                    <>
+                        {/* Wind mode — small sail icon to the left of the value, signalling that
+                            the central number is a wind angle (datum) rather than a compass
+                            heading. Mast in foreground, billowing sail in yellow (matches the
+                            AWA pointer), tiny hull underneath. */}
+                        {mode === 2 ? (
+                            <g transform={`translate(${CX - 240}, ${CY - 170})`}>
+                                <line
+                                    x1={8}
+                                    y1={0}
+                                    x2={8}
+                                    y2={110}
+                                    stroke={fg}
+                                    strokeWidth={5}
+                                    strokeLinecap="round"
+                                />
+                                <path
+                                    d="M 8 5 Q 55 55 8 95 Z"
+                                    fill={COLORS.yellow}
+                                    stroke={COLORS.yellowDark}
+                                    strokeWidth={2}
+                                />
+                                <path
+                                    d="M -10 102 L 48 102 Q 38 118 -5 112 Z"
+                                    fill={fg}
+                                />
+                            </g>
+                        ) : null}
+                        <text
+                            x={CX}
+                            y={CY - 60}
+                            fill={fg}
+                            fontSize={150}
+                            fontWeight={700}
+                            textAnchor="middle"
+                        >
+                            {(() => {
+                                // Wind mode shows the wind-angle datum (autoPilot.windAngle) —
+                                // the operator's wind reference, NOT the compass heading. Other
+                                // engaged modes show the locked heading; Standby / unknown falls
+                                // back to the live compass heading so the dial isn't blank.
+                                const autopilotActive = mode != null && mode !== 0;
+                                let centerValue: number | null;
+                                if (mode === 2) {
+                                    centerValue = windAngle;
+                                } else if (autopilotActive) {
+                                    centerValue = lockedHeading;
+                                } else {
+                                    centerValue = heading;
+                                }
+                                return centerValue == null ? '---' : pad3(centerValue);
+                            })()}
+                            <tspan
+                                fontSize={100}
+                                fontWeight={400}
+                                dy={-25}
+                            >
+                                °
+                            </tspan>
+                        </text>
+                    </>
+                )}
 
                 {/* Rudder bar — sits in the gutter below the half-disc. */}
                 {showRudder ? (
@@ -637,91 +1150,16 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                     </g>
                 ) : null}
 
-                {/* STW / SOG bottom band — same layout as the Wind compass widget: STW on the
-                    left in blue (water-frame motion), SOG on the right in pink (ground-frame
-                    motion). Each block stacks header / value / unit. The values come from
-                    `speed.speedWaterReferenced` and `cogSogRapidUpdate.sog` (both in m/s) and
-                    are converted to knots for display. The band is rendered only when speeds
-                    are enabled (i.e. non-compact); compact tiles drop it to keep the dial big. */}
-                {showSpeeds ? (
-                    <>
-                        {/* STW block — bottom-left. */}
-                        <text
-                            x={170}
-                            y={speedY + 38}
-                            textAnchor="middle"
-                            fontSize={36}
-                            fontWeight={700}
-                            fontFamily="Roboto, Arial, sans-serif"
-                            fill={STW_COLOR}
-                        >
-                            STW
-                        </text>
-                        <text
-                            x={170}
-                            y={speedY + 100}
-                            textAnchor="middle"
-                            fontSize={64}
-                            fontWeight={800}
-                            fontFamily="Roboto, Arial, sans-serif"
-                            fill={STW_COLOR}
-                        >
-                            {stw != null && isFinite(stw) ? (stw * MS_TO_KN).toFixed(1) : '—'}
-                        </text>
-                        <text
-                            x={170}
-                            y={speedY + 132}
-                            textAnchor="middle"
-                            fontSize={28}
-                            fontWeight={500}
-                            fontFamily="Roboto, Arial, sans-serif"
-                            fill={STW_COLOR}
-                        >
-                            kn
-                        </text>
-
-                        {/* SOG block — bottom-right. */}
-                        <text
-                            x={VIEWBOX_W - 170}
-                            y={speedY + 38}
-                            textAnchor="middle"
-                            fontSize={36}
-                            fontWeight={700}
-                            fontFamily="Roboto, Arial, sans-serif"
-                            fill={SOG_COLOR}
-                        >
-                            SOG
-                        </text>
-                        <text
-                            x={VIEWBOX_W - 170}
-                            y={speedY + 100}
-                            textAnchor="middle"
-                            fontSize={64}
-                            fontWeight={800}
-                            fontFamily="Roboto, Arial, sans-serif"
-                            fill={SOG_COLOR}
-                        >
-                            {sog != null && isFinite(sog) ? (sog * MS_TO_KN).toFixed(1) : '—'}
-                        </text>
-                        <text
-                            x={VIEWBOX_W - 170}
-                            y={speedY + 132}
-                            textAnchor="middle"
-                            fontSize={28}
-                            fontWeight={500}
-                            fontFamily="Roboto, Arial, sans-serif"
-                            fill={SOG_COLOR}
-                        >
-                            kn
-                        </text>
-                    </>
-                ) : null}
+                {/* STW / SOG are rendered in HTML below the mode/adjust buttons (see
+                    `renderControls`) so they sit at the very bottom of the widget rather than
+                    competing with the dial for vertical space. */}
             </svg>
         );
     }
 
     protected renderControls(): React.JSX.Element {
         const mode = this.state.mode;
+        const { stw, sog } = this.state;
         const adjustDisabled = mode == null || mode === 0 || mode === 3;
         // Each mode gets a distinct accent colour (shared with the in-dial mode label via
         // `MODE_COLORS`). Active button: filled with the mode colour; inactive: outline only.
@@ -731,9 +1169,23 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
             { val: 2, label: 'Wind' },
             { val: 3, label: 'Track' },
         ];
-        // Uniform width — width = 100 px each so the labels (Standby is the longest at ~7 chars)
-        // never compress and all four buttons line up evenly.
-        const MODE_BTN_WIDTH = 110;
+        // Uniform width across both rows — `Standby` (longest) sets the floor; +/-1, +/-10 use
+        // the same width so the four-button rows line up edge-to-edge.
+        const BTN_WIDTH = 110;
+        const adjustValues: { delta: 1 | -1 | 10 | -10; label: string }[] = [
+            { delta: -10, label: '−10' },
+            { delta: -1, label: '−1' },
+            { delta: 1, label: '+1' },
+            { delta: 10, label: '+10' },
+        ];
+        const isFloatComma = this.props.stateContext.isFloatComma;
+        const fmtKn = (v: number | null): string => {
+            if (v == null || !isFinite(v)) {
+                return '—';
+            }
+            const s = v.toFixed(1);
+            return isFloatComma ? s.replace('.', ',') : s;
+        };
         return (
             <Box
                 sx={{
@@ -755,8 +1207,8 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                                 variant={active ? 'contained' : 'outlined'}
                                 onClick={() => this.setMode(m.val)}
                                 sx={{
-                                    minWidth: MODE_BTN_WIDTH,
-                                    width: MODE_BTN_WIDTH,
+                                    minWidth: BTN_WIDTH,
+                                    width: BTN_WIDTH,
                                     color: active ? '#fff' : accent,
                                     backgroundColor: active ? accent : 'transparent',
                                     borderColor: accent,
@@ -776,31 +1228,52 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                     size="medium"
                     disabled={adjustDisabled}
                 >
-                    <Button
-                        color="inherit"
-                        onClick={() => this.adjust(-10)}
-                    >
-                        −10
-                    </Button>
-                    <Button
-                        color="inherit"
-                        onClick={() => this.adjust(-1)}
-                    >
-                        −1
-                    </Button>
-                    <Button
-                        color="inherit"
-                        onClick={() => this.adjust(1)}
-                    >
-                        +1
-                    </Button>
-                    <Button
-                        color="inherit"
-                        onClick={() => this.adjust(10)}
-                    >
-                        +10
-                    </Button>
+                    {adjustValues.map(a => (
+                        <Button
+                            key={a.delta}
+                            color="inherit"
+                            onClick={() => this.adjust(a.delta)}
+                            sx={{ minWidth: BTN_WIDTH, width: BTN_WIDTH }}
+                        >
+                            {a.label}
+                        </Button>
+                    ))}
                 </ButtonGroup>
+                {/* STW / SOG row at the very bottom — sits below all controls so the dial and
+                    button rows stay tightly grouped. STW blue (water-frame motion), SOG pink
+                    (ground-frame motion); same colour scheme as the Wind compass widget. Hidden
+                    when this widget is rendered as a companion inside the wind compass's split
+                    view, because the wind compass already shows STW + SOG in its four corners. */}
+                {!this.props.settings._renderInline ? (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-around',
+                            alignItems: 'flex-start',
+                            width: '100%',
+                            pt: 1.5,
+                            gap: 4,
+                        }}
+                    >
+                        {/* Larger value typography so the speed readout is legible at a glance from
+                            across the cockpit — matches the visual weight of the Wind compass widget. */}
+                        <Box sx={{ textAlign: 'center', color: STW_COLOR }}>
+                            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.1 }}>STW</Typography>
+                            <Typography sx={{ fontSize: 56, fontWeight: 800, lineHeight: 1 }}>{fmtKn(stw)}</Typography>
+                            <Typography sx={{ fontSize: 18, fontWeight: 500, lineHeight: 1.1, opacity: 0.8 }}>
+                                kn
+                            </Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'center', color: SOG_COLOR }}>
+                            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: 1.1 }}>SOG</Typography>
+                            <Typography sx={{ fontSize: 56, fontWeight: 800, lineHeight: 1 }}>{fmtKn(sog)}</Typography>
+                            <Typography sx={{ fontSize: 18, fontWeight: 500, lineHeight: 1.1, opacity: 0.8 }}>
+                                kn
+                            </Typography>
+                        </Box>
+                    </Box>
+                ) : null}
             </Box>
         );
     }
@@ -955,11 +1428,11 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                         sx={{
                             aspectRatio: (() => {
                                 const showRudder = this.props.settings.showRudder !== false;
-                                const h = VIEWBOX_H_DIAL + (showRudder ? RUDDER_BAND_H : 0) + SPEED_BAND_H;
+                                const h = VIEWBOX_H_DIAL + (showRudder ? RUDDER_BAND_H : 0);
                                 return `${VIEWBOX_W} / ${h}`;
                             })(),
                             height: '100%',
-                            maxHeight: 360,
+                            maxHeight: 320,
                         }}
                     >
                         {this.renderDialSvg('100%')}
@@ -969,14 +1442,74 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         );
     }
 
+    /**
+     * Inline dialog body — dial + controls without a Dialog wrapper. Used by the parent
+     * dialog (single view) and by the other widget when it embeds the autopilot in companion
+     * split view. The Box stretches to fit whatever container hosts it.
+     */
+    protected renderInlineContent(): React.JSX.Element {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    minHeight: 0,
+                    gap: 2,
+                }}
+            >
+                <Box sx={{ flex: 1, width: '100%', minHeight: 0, display: 'flex', justifyContent: 'center' }}>
+                    {this.renderDialSvg('100%')}
+                </Box>
+                {this.renderControls()}
+            </Box>
+        );
+    }
+
+    /**
+     * Build the companion widget element — NmeaWindCompass rendered inline. The import is a
+     *  cyclic ES import that resolves at render time (see top of file).
+     */
+    private renderCompanion(): React.JSX.Element | null {
+        if (!NmeaWindCompass) {
+            return null;
+        }
+        // Companion uses its own instance address from the parent's settings; everything else
+        // defaults. `_renderInline` tells it to skip its tile + dialog and just emit the body.
+        const companionSettings = {
+            instance: this.props.settings.instance,
+            _renderInline: true,
+        };
+        return (
+            <NmeaWindCompass
+                widget={this.props.widget}
+                stateContext={this.props.stateContext}
+                settings={companionSettings}
+                onHide={this.props.onHide}
+            />
+        );
+    }
+
     private renderDialog(): React.JSX.Element | null {
         if (!this.state.dialogOpen) {
             return null;
         }
+        const enableCompanion = !!this.props.settings.enableCompanion;
+        const inSplit = enableCompanion && this.state.companionMode;
+        const landscape = this.state.dialogLandscape;
+        // Toggle-button position — top-right (landscape) tucked next to the close icon, or
+        // bottom-right (portrait) so neither button hides anything important.
+        const toggleSx = landscape
+            ? { position: 'absolute' as const, top: 8, right: 56, zIndex: 1, color: 'white' }
+            : { position: 'absolute' as const, bottom: 8, right: 8, zIndex: 1, color: 'white' };
+        const ToggleIcon = inSplit ? ViewAgendaIcon : landscape ? ViewColumnIcon : ViewStreamIcon;
         return (
             <Dialog
                 open
-                onClose={() => this.setState({ dialogOpen: false })}
+                onClose={() => this.setState({ dialogOpen: false } as AutopilotComponentState)}
                 maxWidth={false}
                 fullWidth
                 slotProps={{
@@ -993,39 +1526,178 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                 }}
             >
                 <IconButton
-                    onClick={() => this.setState({ dialogOpen: false })}
+                    onClick={() => this.setState({ dialogOpen: false } as AutopilotComponentState)}
                     sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, color: 'white' }}
                 >
                     <CloseIcon />
                 </IconButton>
+                {enableCompanion && ToggleIcon ? (
+                    <IconButton
+                        onClick={() => {
+                            const next = !inSplit;
+                            this.saveCompanionPref(next);
+                            this.setState({ companionMode: next } as AutopilotComponentState);
+                        }}
+                        sx={toggleSx}
+                        title={inSplit ? 'Single view' : 'Show wind compass alongside'}
+                    >
+                        <ToggleIcon />
+                    </IconButton>
+                ) : null}
                 <DialogContent
                     sx={{
                         display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
+                        flexDirection: inSplit ? (landscape ? 'row' : 'column') : 'column',
+                        alignItems: 'stretch',
                         justifyContent: 'center',
                         gap: 2,
                         p: 2,
                         overflow: 'hidden',
                     }}
                 >
-                    <Box sx={{ flex: 1, width: '100%', minHeight: 0, display: 'flex', justifyContent: 'center' }}>
-                        {this.renderDialSvg('100%')}
+                    {/* Current instrument first (left in landscape, top in portrait) — the user
+                        opened *this* widget's dialog, so its view should anchor the layout. */}
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minHeight: 0,
+                            minWidth: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: inSplit ? 1 : 2,
+                        }}
+                    >
+                        {!inSplit ? (
+                            this.renderInlineContent()
+                        ) : (
+                            <>
+                                <Box
+                                    sx={{
+                                        flex: 1,
+                                        width: '100%',
+                                        minHeight: 0,
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    {this.renderDialSvg('100%')}
+                                </Box>
+                                {this.renderControls()}
+                            </>
+                        )}
                     </Box>
-                    {this.renderControls()}
+                    {inSplit ? (
+                        <Box
+                            sx={{
+                                flex: 1,
+                                minHeight: 0,
+                                minWidth: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                // Companion renders at 80 % of its natural size — the operator
+                                // opened the autopilot dialog, the wind compass is the secondary view.
+                                transform: 'scale(0.8)',
+                                transformOrigin: 'center',
+                            }}
+                        >
+                            {this.renderCompanion()}
+                        </Box>
+                    ) : null}
                 </DialogContent>
             </Dialog>
         );
     }
 
+    private renderConfirmDialog(): React.JSX.Element | null {
+        const { pendingAngle, pendingMode, pendingDeadline } = this.state;
+        if (pendingAngle == null || pendingMode == null) {
+            return null;
+        }
+        const current = pendingMode === 1 ? this.state.lockedHeading : this.state.windAngle;
+        const delta = current != null ? Math.round(angularDiff(pendingAngle, current)) : null;
+        const remainingMs = pendingDeadline != null ? Math.max(0, pendingDeadline - Date.now()) : 0;
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        const accent = MODE_COLORS[pendingMode] ?? '#ff7a00';
+        const label = pendingMode === 1 ? 'Locked heading' : 'Wind angle';
+        return (
+            <Dialog
+                open
+                onClose={this.cancelConfirmation}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ color: accent, fontWeight: 700 }}>Confirm large change</DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ fontSize: 16, mb: 1 }}>{label}:</Typography>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-around',
+                            my: 2,
+                            gap: 2,
+                        }}
+                    >
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography sx={{ fontSize: 12, opacity: 0.7 }}>now</Typography>
+                            <Typography sx={{ fontSize: 36, fontWeight: 600 }}>
+                                {current == null ? '---' : pad3(current)}°
+                            </Typography>
+                        </Box>
+                        <Typography sx={{ fontSize: 28, opacity: 0.5 }}>→</Typography>
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography sx={{ fontSize: 12, opacity: 0.7, color: accent }}>new</Typography>
+                            <Typography sx={{ fontSize: 36, fontWeight: 700, color: accent }}>
+                                {pad3(pendingAngle)}°
+                            </Typography>
+                        </Box>
+                    </Box>
+                    {delta != null ? (
+                        <Typography sx={{ fontSize: 14, textAlign: 'center', opacity: 0.7 }}>
+                            {`Δ ${delta}° change`}
+                        </Typography>
+                    ) : null}
+                    <Typography sx={{ fontSize: 13, textAlign: 'center', mt: 2, opacity: 0.7 }}>
+                        {`Auto-cancel in ${remainingSec}s`}
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={this.cancelConfirmation}
+                        color="inherit"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={this.confirmPending}
+                        variant="contained"
+                        sx={{ backgroundColor: accent, '&:hover': { backgroundColor: accent } }}
+                    >
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        );
+    }
+
     render(): React.JSX.Element {
+        // Companion-embed mode — skip tile/dialog rendering and emit only the inline body
+        // sized to fit whatever container the host widget put us into.
+        if (this.props.settings._renderInline) {
+            return this.renderInlineContent();
+        }
         const widget = super.render();
         const dialog = this.renderDialog();
-        if (dialog) {
+        const confirm = this.renderConfirmDialog();
+        if (dialog || confirm) {
             return (
                 <>
                     {widget}
                     {dialog}
+                    {confirm}
                 </>
             );
         }

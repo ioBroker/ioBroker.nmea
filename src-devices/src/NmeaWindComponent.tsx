@@ -14,12 +14,25 @@ import WidgetGeneric, {
 import type { BoxProps, TypographyProps, DialogProps, IconButtonProps, DialogContentProps } from '@mui/material';
 import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
 
+// Cyclic ES-module import: NmeaAutopilotComponent also imports this file. ES modules handle
+// cycles via live bindings — `NmeaAutopilotComponent` is undefined while NmeaAutopilotComponent
+// itself is being evaluated, but by the time any render() actually USES this reference, both
+// modules are fully resolved. The previous lazy `require()` approach didn't survive Vite/MF
+// bundling (the require was stripped, leaving the companion area empty).
+import NmeaAutopilotComponent from './NmeaAutopilotComponent';
+
 const Box: React.ComponentType<BoxProps> = MuiMaterial?.Box;
 const Typography: React.ComponentType<TypographyProps> = MuiMaterial?.Typography;
 const Dialog: React.ComponentType<DialogProps> = MuiMaterial?.Dialog;
 const DialogContent: React.ComponentType<DialogContentProps> = MuiMaterial?.DialogContent;
 const IconButton: React.ComponentType<IconButtonProps> = MuiMaterial?.IconButton;
 const CloseIcon: React.ComponentType<any> = MuiIcons?.Close;
+// Toggle icons for companion split view — `ViewColumn` (two columns) reads as "show two side
+// by side" for landscape, `ViewStream` (stacked bars) reads as "stack two" for portrait. We
+// pick the one matching current orientation and reuse it for "back to single view" toggle.
+const ViewColumnIcon: React.ComponentType<any> = MuiIcons?.ViewColumn;
+const ViewStreamIcon: React.ComponentType<any> = MuiIcons?.ViewStream;
+const ViewAgendaIcon: React.ComponentType<any> = MuiIcons?.ViewAgenda;
 
 const DEG = Math.PI / 180;
 
@@ -34,6 +47,15 @@ interface WindCompassSettings extends CustomWidgetPlugin {
     speedUnit?: SpeedUnit;
     /** Close-hauled half-angle in degrees (outer port/stbd color bands). */
     closeHauledAngle?: number;
+    /** Overlay the mainsail at its optimal trim angle for the current apparent wind. */
+    showSail?: boolean;
+    /** Allow the user to split the fullscreen dialog and show the Autopilot alongside. */
+    enableCompanion?: boolean;
+    /**
+     * Internal: when set, the widget renders only its inline dialog body (no tile, no Dialog).
+     *  Used by the other widget when it embeds this one in companion split view.
+     */
+    _renderInline?: boolean;
 }
 
 interface WindCompassState extends WidgetGenericState {
@@ -49,6 +71,13 @@ interface WindCompassState extends WidgetGenericState {
     awaHistory: { val: number; ts: number }[];
     twaHistory: { val: number; ts: number }[];
     dialogOpen: boolean;
+    /**
+     * Companion split-view toggle inside the open dialog. Only meaningful when
+     *  settings.enableCompanion is true.
+     */
+    companionMode: boolean;
+    /** Cached orientation of the open dialog (window aspect). Updated on resize while open. */
+    dialogLandscape: boolean;
 }
 
 const DEFAULT_HISTORY_SECONDS = 60;
@@ -196,7 +225,56 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             awaHistory: [],
             twaHistory: [],
             dialogOpen: false,
+            // Restore the split-view preference saved the last time the operator toggled it.
+            // Each widget instance gets its own slot keyed by widget id, so two wind compass
+            // tiles on the same page can be configured independently.
+            companionMode: NmeaWindCompass.loadCompanionPref(props),
+            dialogLandscape: typeof window !== 'undefined' ? window.innerWidth >= window.innerHeight : true,
         };
+    }
+
+    /** localStorage key for the persisted companion split-view preference. */
+    private static companionStorageKey(props: WidgetGenericProps<WindCompassSettings>): string | null {
+        const id = props.widget?.id;
+        if (id == null) {
+            return null;
+        }
+        return `nmea-wind-companion-${id}`;
+    }
+
+    private static loadCompanionPref(props: WidgetGenericProps<WindCompassSettings>): boolean {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+        const key = NmeaWindCompass.companionStorageKey(props);
+        if (!key) {
+            return false;
+        }
+        try {
+            return window.localStorage.getItem(key) === '1';
+        } catch {
+            // Private mode / disabled storage — silently fall through.
+            return false;
+        }
+    }
+
+    private saveCompanionPref(on: boolean): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const key = NmeaWindCompass.companionStorageKey(this.props);
+        if (!key) {
+            return;
+        }
+        try {
+            if (on) {
+                window.localStorage.setItem(key, '1');
+            } else {
+                window.localStorage.removeItem(key);
+            }
+        } catch {
+            // ignore — storage unavailable
+        }
     }
 
     static override getConfigSchema(): { name: string; schema: ConfigItemPanel | ConfigItemTabs } {
@@ -242,10 +320,37 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                         format: 'radio',
                         horizontal: true,
                     },
+                    showSail: {
+                        newLine: true,
+                        type: 'checkbox',
+                        label: 'nmeawc_showSail',
+                        help: 'nmeawc_showSail_help',
+                        default: false,
+                        sm: 12,
+                    },
+                    enableCompanion: {
+                        newLine: true,
+                        type: 'checkbox',
+                        label: 'nmeawc_enableCompanion',
+                        help: 'nmeawc_enableCompanion_help',
+                        default: false,
+                        sm: 12,
+                    },
                 },
             },
         };
     }
+
+    /** Window-resize handler — kept as a stable arrow so add/remove pair up correctly. */
+    private onWindowResize = (): void => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const landscape = window.innerWidth >= window.innerHeight;
+        if (landscape !== this.state.dialogLandscape) {
+            this.setState({ dialogLandscape: landscape } as WindCompassState);
+        }
+    };
 
     componentDidMount(): void {
         super.componentDidMount?.();
@@ -279,10 +384,24 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             prevState.cog !== this.state.cog ||
             prevState.sog !== this.state.sog ||
             prevState.stw !== this.state.stw ||
-            prevState.dialogOpen !== this.state.dialogOpen
+            prevState.dialogOpen !== this.state.dialogOpen ||
+            prevState.companionMode !== this.state.companionMode
         ) {
-            // Dialog open/close swaps the SVG tree → refs point to new nodes, re-anchor them.
-            this.syncAnimations(prevState.dialogOpen !== this.state.dialogOpen);
+            // Dialog open/close (or companion-mode toggle) swaps the SVG tree → refs point to
+            // new nodes, re-anchor them.
+            this.syncAnimations(
+                prevState.dialogOpen !== this.state.dialogOpen || prevState.companionMode !== this.state.companionMode,
+            );
+        }
+        // Manage the resize listener only while the dialog is open — saves a per-window-resize
+        // forceUpdate on every widget instance on the page.
+        if (prevState.dialogOpen !== this.state.dialogOpen) {
+            if (this.state.dialogOpen) {
+                window.addEventListener('resize', this.onWindowResize);
+                this.onWindowResize();
+            } else {
+                window.removeEventListener('resize', this.onWindowResize);
+            }
         }
     }
 
@@ -299,6 +418,7 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             clearInterval(this.heatmapTick);
             this.heatmapTick = null;
         }
+        window.removeEventListener('resize', this.onWindowResize);
     }
 
     /** Push latest state values as new animation targets. */
@@ -448,7 +568,7 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             const now = Date.now();
             const trimmed = windowSec > 0 ? history.filter(h => now - h.ts < windowSec * 1000) : [];
             const next = val != null && isFinite(val) ? [...trimmed, { val, ts: now }] : trimmed;
-            return { [which]: val, [historyKey]: next } as unknown as WindCompassState;
+            return { [which]: val, [historyKey]: next };
         });
     }
 
@@ -744,6 +864,70 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                         </>
                     );
                 })()}
+
+                {/* Optimal sail trim — bow-fixed mainsail overlay. The boom is set at half the
+                    apparent-wind angle from the centerline (the classic "split-the-angle" rule —
+                    gives ~15-20° angle of attack to the wind in upwind conditions and rotates to
+                    perpendicular as AWA approaches 180°). Sail belly increases linearly with
+                    |AWA|: nearly straight on close-hauled (flat-trimmed for max lift), full and
+                    baggy on a run (max drag, max power). Drawn AFTER the boat silhouette so it
+                    sits visibly on top, BEFORE the heat-map so the heat sectors don't cover it. */}
+                {this.props.settings.showSail &&
+                    awa != null &&
+                    isFinite(awa) &&
+                    (() => {
+                        const SAIL_MAST_X = 500;
+                        const SAIL_MAST_Y = 400; // about a third from the bow — typical sloop mast step
+                        const SAIL_LEN = 220;
+                        // Half-the-AWA rule: boom angle from centerline = AWA/2, on the leeward side.
+                        // In SVG polar (0=bow, CW), that's 180° + AWA/2 (straight aft + half the AWA).
+                        const boomDir = 180 + awa / 2;
+                        const clew = polar(SAIL_MAST_X, SAIL_MAST_Y, SAIL_LEN, boomDir);
+                        // Belly fraction of boom length — 0 (flat) at AWA=0, 0.5 (very full) at ±180°.
+                        const bellyFrac = Math.min(0.5, (Math.abs(awa) / 180) * 0.5);
+                        const bellyDepth = SAIL_LEN * bellyFrac;
+                        // Belly perpendicular to chord, on the leeward side of the sail.
+                        // Stbd tack (AWA > 0): boom to port, belly bulges further to port (perp +90°).
+                        // Port tack (AWA < 0): boom to stbd, belly bulges further to stbd (perp -90°).
+                        const perpDir = boomDir + (awa >= 0 ? 90 : -90);
+                        const midX = (SAIL_MAST_X + clew.x) / 2;
+                        const midY = (SAIL_MAST_Y + clew.y) / 2;
+                        // Control point for the quadratic Bezier — at 2× belly depth so the peak of
+                        // the curve (which sits at the chord-midpoint + perp/2) reaches `bellyDepth`.
+                        const ctrl = polar(midX, midY, 2 * bellyDepth, perpDir);
+                        return (
+                            <g opacity={0.92}>
+                                {/* Boom — straight line from mast (gooseneck) to clew. Dimmed so the
+                                sail's curved silhouette stays the dominant visual element. */}
+                                <line
+                                    x1={SAIL_MAST_X}
+                                    y1={SAIL_MAST_Y}
+                                    x2={clew.x}
+                                    y2={clew.y}
+                                    stroke="#888"
+                                    strokeWidth={5}
+                                    strokeLinecap="round"
+                                />
+                                {/* Mast — small white dot at the gooseneck to anchor the rig visually. */}
+                                <circle
+                                    cx={SAIL_MAST_X}
+                                    cy={SAIL_MAST_Y}
+                                    r={7}
+                                    fill="#fff"
+                                />
+                                {/* Sail silhouette — luff (at mast) → belly → clew → straight back to
+                                mast (the boom-side chord), closed and lightly filled so it reads
+                                as a real sail rather than a stray curve. */}
+                                <path
+                                    d={`M ${SAIL_MAST_X} ${SAIL_MAST_Y} Q ${ctrl.x} ${ctrl.y} ${clew.x} ${clew.y} L ${SAIL_MAST_X} ${SAIL_MAST_Y} Z`}
+                                    fill="rgba(255,255,255,0.22)"
+                                    stroke="#ffffff"
+                                    strokeWidth={4}
+                                    strokeLinejoin="round"
+                                />
+                            </g>
+                        );
+                    })()}
 
                 {/* Wind-shift heat-map (bow-fixed). Each AWA sample from the last `historySeconds` is
                     drawn as a thick radial bar filled with a shared radial gradient whose hot-spot
@@ -1147,8 +1331,9 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                 {/* STW bottom-left (blue — same hue as the SET arrow, so the reader associates it
                     with water-frame motion). "STW" mirrors the three-letter "SOG" label on the
                     right; the dial narrows enough at y≈825..940 for a header / value / unit stack
-                    just like the top blocks. */}
-                {!compact && (
+                    just like the top blocks. Hidden when this widget is rendered as a companion
+                    next to the autopilot — the autopilot already shows STW + SOG, no duplicates. */}
+                {!compact && !this.props.settings._renderInline && (
                     <g>
                         <text
                             x={95}
@@ -1187,8 +1372,8 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                 )}
 
                 {/* SOG bottom-right (pink — matches the COG bug on the rose, so ground-frame info
-                    shares a colour). */}
-                {!compact && (
+                    shares a colour). Same hide-in-companion rule as STW above. */}
+                {!compact && !this.props.settings._renderInline && (
                     <g>
                         <text
                             x={905}
@@ -1389,15 +1574,65 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
         );
     }
 
+    /**
+     * Inline dialog body — compass SVG only, sized to fit its container. Used by the parent
+     * dialog (single view) and by the other widget when it embeds the wind compass in
+     * companion split view. The container chooses the size.
+     */
+    protected renderInlineContent(): React.JSX.Element {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    minHeight: 0,
+                }}
+            >
+                {this.renderCompassSvg('100%')}
+            </Box>
+        );
+    }
+
+    /**
+     * Build the companion widget element — NmeaAutopilotComponent rendered inline. The import
+     * is a cyclic ES import that resolves at render time (see top of file).
+     */
+    private renderCompanion(): React.JSX.Element | null {
+        if (!NmeaAutopilotComponent) {
+            return null;
+        }
+        const companionSettings = {
+            instance: this.props.settings.instance,
+            _renderInline: true,
+        };
+        return (
+            <NmeaAutopilotComponent
+                widget={this.props.widget}
+                stateContext={this.props.stateContext}
+                settings={companionSettings}
+                onHide={this.props.onHide}
+            />
+        );
+    }
+
     private renderDialog(): React.JSX.Element | null {
         if (!this.state.dialogOpen) {
             return null;
         }
-        const size = Math.min(window.innerWidth * 0.85, window.innerHeight * 0.82);
+        const enableCompanion = !!this.props.settings.enableCompanion;
+        const inSplit = enableCompanion && this.state.companionMode;
+        const landscape = this.state.dialogLandscape;
+        const toggleSx = landscape
+            ? { position: 'absolute' as const, top: 8, right: 56, zIndex: 1, color: 'white' }
+            : { position: 'absolute' as const, bottom: 8, right: 8, zIndex: 1, color: 'white' };
+        const ToggleIcon = inSplit ? ViewAgendaIcon : landscape ? ViewColumnIcon : ViewStreamIcon;
         return (
             <Dialog
                 open
-                onClose={() => this.setState({ dialogOpen: false })}
+                onClose={() => this.setState({ dialogOpen: false } as WindCompassState)}
                 maxWidth={false}
                 fullWidth
                 slotProps={{
@@ -1414,27 +1649,75 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
                 }}
             >
                 <IconButton
-                    onClick={() => this.setState({ dialogOpen: false })}
+                    onClick={() => this.setState({ dialogOpen: false } as WindCompassState)}
                     sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, color: 'white' }}
                 >
                     <CloseIcon />
                 </IconButton>
+                {enableCompanion && ToggleIcon ? (
+                    <IconButton
+                        onClick={() => {
+                            const next = !inSplit;
+                            this.saveCompanionPref(next);
+                            this.setState({ companionMode: next } as WindCompassState);
+                        }}
+                        sx={toggleSx}
+                        title={inSplit ? 'Single view' : 'Show autopilot alongside'}
+                    >
+                        <ToggleIcon />
+                    </IconButton>
+                ) : null}
                 <DialogContent
                     sx={{
                         display: 'flex',
-                        alignItems: 'center',
+                        flexDirection: inSplit ? (landscape ? 'row' : 'column') : 'column',
+                        alignItems: 'stretch',
                         justifyContent: 'center',
+                        gap: 2,
                         p: 2,
                         overflow: 'hidden',
                     }}
                 >
-                    {this.renderCompassSvg(size)}
+                    {/* Current instrument first (left in landscape, top in portrait). */}
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minHeight: 0,
+                            minWidth: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        {this.renderInlineContent()}
+                    </Box>
+                    {inSplit ? (
+                        <Box
+                            sx={{
+                                flex: 1,
+                                minHeight: 0,
+                                minWidth: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                // Companion renders at 80 % of its natural size — the operator
+                                // opened the wind dialog, the autopilot is the secondary view.
+                                transform: 'scale(0.8)',
+                                transformOrigin: 'center',
+                            }}
+                        >
+                            {this.renderCompanion()}
+                        </Box>
+                    ) : null}
                 </DialogContent>
             </Dialog>
         );
     }
 
     render(): React.JSX.Element {
+        if (this.props.settings._renderInline) {
+            return this.renderInlineContent();
+        }
         const widget = super.render();
         const dialog = this.renderDialog();
         if (dialog) {

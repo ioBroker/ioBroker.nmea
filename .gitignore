@@ -21,3 +21,5 @@ iob_npm.done
 .commitinfo
 /src-devices/build/
 /src-devices/.__mf__temp/
+/src-admin/build/
+/src-admin/.__mf__temp/

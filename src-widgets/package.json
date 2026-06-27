@@ -1,7 +1,7 @@
 {
     "name": "iobroker.nmea",
     "private": true,
-    "version": "0.4.2",
+    "version": "1.0.1",
     "type": "module",
     "dependencies": {
         "@iobroker/adapter-react-v5": "^8.2.1",

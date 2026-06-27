@@ -1,309 +1,402 @@
 {
-    "common": {
-        "name": "nmea",
-        "version": "0.4.2",
-        "news": {
-            "0.4.2": {
-                "en": "Updated packages",
-                "de": "Aktualisierte Pakete",
-                "ru": "Обновленные пакеты",
-                "pt": "Pacotes atualizados",
-                "nl": "Bijgewerkte pakketten",
-                "fr": "Paquets mis à jour",
-                "it": "Pacchetti aggiornati",
-                "es": "Paquetes actualizados",
-                "pl": "Aktualizacja pakietów",
-                "uk": "Оновлені пакети",
-                "zh-cn": "更新软件包"
-            },
-            "0.4.1": {
-                "en": "Updated packages",
-                "de": "Aktualisierte Pakete",
-                "ru": "Обновленные пакеты",
-                "pt": "Pacotes atualizados",
-                "nl": "Bijgewerkte pakketten",
-                "fr": "Paquets mis à jour",
-                "it": "Pacchetti aggiornati",
-                "es": "Paquetes actualizados",
-                "pl": "Aktualizacja pakietów",
-                "uk": "Оновлені пакети",
-                "zh-cn": "更新软件包"
-            },
-            "0.4.0": {
-                "en": "Added support of YDEN-02/03 and YDWG-02/03 gateways",
-                "de": "Unterstützung von YDEN-02/03 und YDWG-02/03 Gateways",
-                "ru": "Добавлена поддержка шлюзов YDEN-02/03 и YDWG-02/03",
-                "pt": "Adicionado suporte aos gateways YDEN-02/03 e YDWG-02/03",
-                "nl": "Toegevoegde ondersteuning van YDEN-02/03 en YDWG-02/03 gateways",
-                "fr": "Ajout du soutien aux passerelles YDEN-02/03 et YDWG-02/03",
-                "it": "Aggiunto il supporto di YDEN-02/03 e YDWG-02/03 gateways",
-                "es": "Apoyo añadido a las puertas de YDEN-02/03 y YDWG-02/03",
-                "pl": "Dodano wsparcie dla bramy YDEN- 02 / 03 i YDWG- 02 / 03",
-                "uk": "Додано підтримку YDEN-02/03 та YDWG-02/03 воріт",
-                "zh-cn": "增加了YDEN-02/03和YDWG-02/03网关的支持"
-            },
-            "0.3.0": {
-                "en": "Widgets were rewritten on TypeScript\nCorrected errors in the widgets and in the calculations\nSmall fix for ais data",
-                "de": "Widgets wurden auf TypeScript neu geschrieben\nKorrigierte Fehler in den Widgets und in den Berechnungen\nKleine Fixierung für Ais-Daten",
-                "ru": "Виджеты были переписаны на TypeScript\nИсправлены ошибки в виджетах и в расчетах\nНебольшое исправление для данных ais",
-                "pt": "Widgets foram reescritos no TypeScript\nErros corrigidos nos widgets e nos cálculos\nPequena correção para os dados do ais",
-                "nl": "Widgets zijn herschreven op TypeScript\nCorrectie van fouten in de widgets en in de berekeningen\nKleine oplossing voor ais data",
-                "fr": "Les widgets ont été réécrits sur TypeScript\nErreurs corrigées dans les widgets et dans les calculs\nPetite correction pour les données ais",
-                "it": "I widget sono stati riscritti su TypeScript\nErrori corretti nei widget e nei calcoli\nPiccola correzione per i dati ais",
-                "es": "Los Widgets fueron reescritos en TipoScript\nErrores corregidos en los widgets y en los cálculos\nFijación pequeña para los datos de ais",
-                "pl": "Widgety zostały zmienione na TypeScript\nSkorygowane błędy w widżetach i w obliczeniach\nMałe rozwiązanie dla danych Ais",
-                "uk": "Віджети були записані на TypeScript\nВиправлені помилки в віджетах і в розрахунокх\nМала фіксація для даних ais",
-                "zh-cn": "在类型脚本上重写部件\n修改部件和计算中的错误\n数据小修"
-            },
-            "0.2.2": {
-                "en": "Backend was rewritten on TypeScript\nSupport for AIS added\nValid processing of temperature, pressure and humidity",
-                "de": "Backend wurde auf TypeScript neu geschrieben\nUnterstützung für AIS hinzugefügt\nGültige Verarbeitung von Temperatur, Druck und Feuchtigkeit",
-                "ru": "Backend был переписан на TypeScript\nПоддержка добавленной AIS\nПроверка температуры, давления и влажности",
-                "pt": "Backend foi reescrito no TypeScript\nSuporte para AIS adicionado\nProcessamento válido de temperatura, pressão e umidade",
-                "nl": "Backend is herschreven op TypeScript\nOndersteuning voor AIS toegevoegd\nGeldige verwerking van temperatuur, druk en vochtigheid",
-                "fr": "Backend a été réécrit sur TypeScript\nSoutien à l'AIS ajouté\nTraitement valide de la température, de la pression et de l'humidité",
-                "it": "Backend è stato riscritto su TypeScript\nSupporto per AIS aggiunto\nElaborazione valida di temperatura, pressione e umidità",
-                "es": "Backend fue reescrito en TipoScript\nSupport for AIS added\nTratamiento válido de temperatura, presión y humedad",
-                "pl": "Backend został przepisany na TypeScript\nWsparcie dla AIS dodano\nWażna obróbka temperatury, ciśnienia i wilgotności",
-                "uk": "Backend був написаний на TypeScript\nПідтримка додано AIS\nДійсно оброблення температури, тиску і вологості",
-                "zh-cn": "在 TypeScript 上重写了后端\n增加了对AIS的支持\n有效处理温度、压力和湿度"
-            },
-            "0.1.6": {
-                "en": "Corrected vis-2 widgets",
-                "de": "Korrigierte vis-2 Widgets",
-                "ru": "Исправленные виджеты vis-2",
-                "pt": "Vis-2 widgets corrigidos",
-                "nl": "Gecorrigeerde vis-2 widgets",
-                "fr": "Widgets corrigés vis-à-vis de 2",
-                "it": "Corretti widget vis-2",
-                "es": "Widgets corregidos vis-2",
-                "pl": "Poprawione widżety vis-2",
-                "uk": "Виправлено vis-2 віджети",
-                "zh-cn": "已校正的2个部件"
-            },
-            "0.1.1": {
-                "en": "Corrected vis-2 widgets",
-                "de": "Korrigierte vis-2 Widgets",
-                "ru": "Исправленные виджеты vis-2",
-                "pt": "Vis-2 widgets corrigidos",
-                "nl": "Gecorrigeerde vis-2 widgets",
-                "fr": "Widgets corrigés vis-à-vis de 2",
-                "it": "Corretti widget vis-2",
-                "es": "Widgets corregidos vis-2",
-                "pl": "Poprawione widżety vis-2",
-                "uk": "Виправлено vis-2 віджети",
-                "zh-cn": "已校正的2个部件"
-            }
-        },
-        "titleLang": {
-            "en": "NMEA 2000 - connect boat",
-            "de": "NMEA 2000 - Boot verbinden",
-            "ru": "NMEA 2000 - подключить лодку",
-            "pt": "NMEA 2000 - conectar barco",
-            "nl": "NMEA 2000 - boot verbinden",
-            "fr": "NMEA 2000 - connecter le bateau",
-            "it": "NMEA 2000 - collegare la barca",
-            "es": "NMEA 2000 - conectar barco",
-            "pl": "NMEA 2000 - połącz łódź",
-            "uk": "NMEA 2000 - підключити човен",
-            "zh-cn": "NMEA 2000 - 连接船"
-        },
-        "desc": {
-            "en": "This adapter allows to connect your NMEA 2000 devices on the boat to ioBroker",
-            "de": "Dieser Adapter ermöglicht es, Ihre NMEA 2000-Geräte auf dem Boot mit ioBroker zu verbinden",
-            "ru": "Этот адаптер позволяет подключать ваши устройства NMEA 2000 на лодке к ioBroker",
-            "pt": "Este adaptador permite conectar seus dispositivos NMEA 2000 no barco ao ioBroker",
-            "nl": "Deze adapter maakt het mogelijk om uw NMEA 2000-apparaten op de boot aan te sluiten op ioBroker",
-            "fr": "Cet adaptateur permet de connecter vos appareils NMEA 2000 sur le bateau à ioBroker",
-            "it": "Questo adattatore consente di collegare i dispositivi NMEA 2000 sulla barca a ioBroker",
-            "es": "Este adaptador permite conectar sus dispositivos NMEA 2000 en el barco a ioBroker",
-            "pl": "Ten adapter pozwala podłączyć urządzenia NMEA 2000 na łodzi do ioBroker",
-            "uk": "Цей адаптер дозволяє підключати ваші пристрої NMEA 2000 на човні до ioBroker",
-            "zh-cn": "此适配器允许将船上的NMEA 2000设备连接到ioBroker"
-        },
-        "authors": ["bluefox <dogafox@gmail.com>"],
-        "licenseInformation": {
-            "license": "MIT",
-            "type": "free",
-            "link": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md"
-        },
-        "platform": "Javascript/Node.js",
-        "mode": "daemon",
-        "compact": true,
-        "messagebox": true,
-        "readme": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md",
-        "loglevel": "info",
-        "icon": "nmea.png",
-        "enabled": true,
-        "keywords": ["notification", "MQTT", "message"],
-        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.nmea/master/admin/nmea.png",
-        "type": "protocols",
-        "plugins": {
-            "sentry": {
-                "dsn": "https://24ff815f40154cb587c896460581c81b@sentry.iobroker.net/246"
-            }
-        },
-        "ifInstalledDependencies": {
-            "vis-2": ">=2.12.8"
-        },
-        "restartAdapters": ["vis-2"],
-        "visWidgets": {
-            "vis2Nmea": {
-                "i18n": "component",
-                "name": "vis2Nmea",
-                "url": "nmea/customWidgets.js",
-                "bundlerType": "module",
-                "components": ["Nmea", "Instrument"]
-            }
-        },
-        "deviceWidgets": {
-            "components": [
-                {
-                    "name": "NmeaWindComponent",
-                    "label": "NMEA Wind",
-                    "description": {
-                        "en": "Shows wind information for sailing",
-                        "de": "Zeigt Windinformationen für das Segeln"
-                    },
-                    "icon": "wind.png"
-                },
-                {
-                    "name": "NmeaHistoryChartComponent",
-                    "label": "NMEA Chart",
-                    "description": {
-                        "en": "Shows history of values in a chart",
-                        "de": "Zeigt die Historie von Werten in einem Diagramm"
-                    },
-                    "icon": "chart.png"
-                },
-                {
-                    "name": "NmeaAutopilotComponent",
-                    "label": "NMEA Autopilot",
-                    "description": {
-                        "en": "Autopilot control for NMEA",
-                        "de": "Autopilotsteuerung für NMEA"
-                    },
-                    "icon": "autopilot.png"
-                },
-                {
-                    "name": "NmeaAisRadarComponent",
-                    "label": "NMEA AIS Radar",
-                    "description": {
-                        "en": "AIS Radar",
-                        "de": "AIS Radar"
-                    },
-                    "icon": "aisRadar.png"
-                }
-            ]
-        },
-        "tier": 3,
-        "connectionType": "local",
-        "dataSource": "push",
-        "adminUI": {
-            "config": "json"
-        },
-        "dependencies": [
-            {
-                "js-controller": ">=6.0.11"
-            }
-        ],
-        "globalDependencies": [
-            {
-                "admin": ">=7.6.17"
-            }
+  "common": {
+    "name": "nmea",
+    "version": "1.0.1",
+    "news": {
+      "1.0.1": {
+        "en": "Implemented Raymarine autopilot support\nCorrected values simulation for yacht devices gateways\nAdded support of Fusion player",
+        "de": "Raymarine-Autopilotunterstützung implementiert\nSimulation korrigierter Werte für Yachtgeräte-Gateways\nUnterstützung für Fusion-Spieler hinzugefügt",
+        "ru": "Внедрена поддержка автопилота Raymarine.\nМоделирование скорректированных значений для шлюзов яхтенных устройств\nДобавлена поддержка Fusion Player.",
+        "pt": "Implementado suporte para piloto automático Raymarine\nSimulação de valores corrigidos para gateways de dispositivos de iates\nAdicionado suporte para o jogador Fusion",
+        "nl": "Ondersteuning voor Raymarine-autopiloten geïmplementeerd.\nSimulatie van gecorrigeerde waarden voor gateways van jachtapparaten\nOndersteuning voor Fusion-speler toegevoegd.",
+        "fr": "Prise en charge du pilote automatique Raymarine implémentée\nSimulation de valeurs corrigées pour les passerelles des appareils de yacht\nAjout de la prise en charge du lecteur Fusion",
+        "it": "Implementato il supporto per l'autopilota Raymarine.\nSimulazione dei valori corretti per i gateway dei dispositivi per yacht\nAggiunto il supporto per Fusion Player",
+        "es": "Implementación del soporte para piloto automático Raymarine\nSimulación de valores corregidos para pasarelas de dispositivos de yates\nSe agregó compatibilidad con el jugador Fusion.",
+        "pl": "Wprowadzono obsługę autopilota Raymarine\nSkorygowana symulacja wartości dla bramek urządzeń jachtowych\nDodano obsługę odtwarzacza Fusion",
+        "uk": "Реалізовано підтримку автопілота Raymarine\nМоделювання скоригованих значень для шлюзів пристроїв яхт\nДодана підтримка плеєра Fusion.",
+        "zh-cn": "实现了 Raymarine 自动驾驶仪支持\n游艇设备网关的修正值模拟\n新增对Fusion播放器的支持"
+      },
+      "1.0.0": {
+        "en": "Implemented Raymarine autopilot support\nCorrected values simulation for yacht devices gateways\nAdded support of Fusion player",
+        "de": "Raymarine-Autopilotunterstützung implementiert\nSimulation korrigierter Werte für Yachtgeräte-Gateways\nUnterstützung für Fusion-Spieler hinzugefügt",
+        "ru": "Внедрена поддержка автопилота Raymarine.\nМоделирование скорректированных значений для шлюзов яхтенных устройств\nДобавлена поддержка Fusion Player.",
+        "pt": "Implementado suporte para piloto automático Raymarine\nSimulação de valores corrigidos para gateways de dispositivos de iates\nAdicionado suporte para o jogador Fusion",
+        "nl": "Ondersteuning voor Raymarine-autopiloten geïmplementeerd.\nSimulatie van gecorrigeerde waarden voor gateways van jachtapparaten\nOndersteuning voor Fusion-speler toegevoegd.",
+        "fr": "Prise en charge du pilote automatique Raymarine implémentée\nSimulation de valeurs corrigées pour les passerelles des appareils de yacht\nAjout de la prise en charge du lecteur Fusion",
+        "it": "Implementato il supporto per l'autopilota Raymarine.\nSimulazione dei valori corretti per i gateway dei dispositivi per yacht\nAggiunto il supporto per Fusion Player",
+        "es": "Implementación del soporte para piloto automático Raymarine\nSimulación de valores corregidos para pasarelas de dispositivos de yates\nSe agregó compatibilidad con el jugador Fusion.",
+        "pl": "Wprowadzono obsługę autopilota Raymarine\nSkorygowana symulacja wartości dla bramek urządzeń jachtowych\nDodano obsługę odtwarzacza Fusion",
+        "uk": "Реалізовано підтримку автопілота Raymarine\nМоделювання скоригованих значень для шлюзів пристроїв яхт\nДодана підтримка плеєра Fusion.",
+        "zh-cn": "实现了 Raymarine 自动驾驶仪支持\n游艇设备网关的修正值模拟\n新增对Fusion播放器的支持"
+      },
+      "0.4.2": {
+        "en": "Updated packages",
+        "de": "Aktualisierte Pakete",
+        "ru": "Обновленные пакеты",
+        "pt": "Pacotes atualizados",
+        "nl": "Bijgewerkte pakketten",
+        "fr": "Paquets mis à jour",
+        "it": "Pacchetti aggiornati",
+        "es": "Paquetes actualizados",
+        "pl": "Aktualizacja pakietów",
+        "uk": "Оновлені пакети",
+        "zh-cn": "更新软件包"
+      },
+      "0.4.1": {
+        "en": "Updated packages",
+        "de": "Aktualisierte Pakete",
+        "ru": "Обновленные пакеты",
+        "pt": "Pacotes atualizados",
+        "nl": "Bijgewerkte pakketten",
+        "fr": "Paquets mis à jour",
+        "it": "Pacchetti aggiornati",
+        "es": "Paquetes actualizados",
+        "pl": "Aktualizacja pakietów",
+        "uk": "Оновлені пакети",
+        "zh-cn": "更新软件包"
+      },
+      "0.4.0": {
+        "en": "Added support of YDEN-02/03 and YDWG-02/03 gateways",
+        "de": "Unterstützung von YDEN-02/03 und YDWG-02/03 Gateways",
+        "ru": "Добавлена поддержка шлюзов YDEN-02/03 и YDWG-02/03",
+        "pt": "Adicionado suporte aos gateways YDEN-02/03 e YDWG-02/03",
+        "nl": "Toegevoegde ondersteuning van YDEN-02/03 en YDWG-02/03 gateways",
+        "fr": "Ajout du soutien aux passerelles YDEN-02/03 et YDWG-02/03",
+        "it": "Aggiunto il supporto di YDEN-02/03 e YDWG-02/03 gateways",
+        "es": "Apoyo añadido a las puertas de YDEN-02/03 y YDWG-02/03",
+        "pl": "Dodano wsparcie dla bramy YDEN- 02 / 03 i YDWG- 02 / 03",
+        "uk": "Додано підтримку YDEN-02/03 та YDWG-02/03 воріт",
+        "zh-cn": "增加了YDEN-02/03和YDWG-02/03网关的支持"
+      },
+      "0.3.0": {
+        "en": "Widgets were rewritten on TypeScript\nCorrected errors in the widgets and in the calculations\nSmall fix for ais data",
+        "de": "Widgets wurden auf TypeScript neu geschrieben\nKorrigierte Fehler in den Widgets und in den Berechnungen\nKleine Fixierung für Ais-Daten",
+        "ru": "Виджеты были переписаны на TypeScript\nИсправлены ошибки в виджетах и в расчетах\nНебольшое исправление для данных ais",
+        "pt": "Widgets foram reescritos no TypeScript\nErros corrigidos nos widgets e nos cálculos\nPequena correção para os dados do ais",
+        "nl": "Widgets zijn herschreven op TypeScript\nCorrectie van fouten in de widgets en in de berekeningen\nKleine oplossing voor ais data",
+        "fr": "Les widgets ont été réécrits sur TypeScript\nErreurs corrigées dans les widgets et dans les calculs\nPetite correction pour les données ais",
+        "it": "I widget sono stati riscritti su TypeScript\nErrori corretti nei widget e nei calcoli\nPiccola correzione per i dati ais",
+        "es": "Los Widgets fueron reescritos en TipoScript\nErrores corregidos en los widgets y en los cálculos\nFijación pequeña para los datos de ais",
+        "pl": "Widgety zostały zmienione na TypeScript\nSkorygowane błędy w widżetach i w obliczeniach\nMałe rozwiązanie dla danych Ais",
+        "uk": "Віджети були записані на TypeScript\nВиправлені помилки в віджетах і в розрахунокх\nМала фіксація для даних ais",
+        "zh-cn": "在类型脚本上重写部件\n修改部件和计算中的错误\n数据小修"
+      },
+      "0.2.2": {
+        "en": "Backend was rewritten on TypeScript\nSupport for AIS added\nValid processing of temperature, pressure and humidity",
+        "de": "Backend wurde auf TypeScript neu geschrieben\nUnterstützung für AIS hinzugefügt\nGültige Verarbeitung von Temperatur, Druck und Feuchtigkeit",
+        "ru": "Backend был переписан на TypeScript\nПоддержка добавленной AIS\nПроверка температуры, давления и влажности",
+        "pt": "Backend foi reescrito no TypeScript\nSuporte para AIS adicionado\nProcessamento válido de temperatura, pressão e umidade",
+        "nl": "Backend is herschreven op TypeScript\nOndersteuning voor AIS toegevoegd\nGeldige verwerking van temperatuur, druk en vochtigheid",
+        "fr": "Backend a été réécrit sur TypeScript\nSoutien à l'AIS ajouté\nTraitement valide de la température, de la pression et de l'humidité",
+        "it": "Backend è stato riscritto su TypeScript\nSupporto per AIS aggiunto\nElaborazione valida di temperatura, pressione e umidità",
+        "es": "Backend fue reescrito en TipoScript\nSupport for AIS added\nTratamiento válido de temperatura, presión y humedad",
+        "pl": "Backend został przepisany na TypeScript\nWsparcie dla AIS dodano\nWażna obróbka temperatury, ciśnienia i wilgotności",
+        "uk": "Backend був написаний на TypeScript\nПідтримка додано AIS\nДійсно оброблення температури, тиску і вологості",
+        "zh-cn": "在 TypeScript 上重写了后端\n增加了对AIS的支持\n有效处理温度、压力和湿度"
+      }
+    },
+    "titleLang": {
+      "en": "NMEA 2000 - connect boat",
+      "de": "NMEA 2000 - Boot verbinden",
+      "ru": "NMEA 2000 - подключить лодку",
+      "pt": "NMEA 2000 - conectar barco",
+      "nl": "NMEA 2000 - boot verbinden",
+      "fr": "NMEA 2000 - connecter le bateau",
+      "it": "NMEA 2000 - collegare la barca",
+      "es": "NMEA 2000 - conectar barco",
+      "pl": "NMEA 2000 - połącz łódź",
+      "uk": "NMEA 2000 - підключити човен",
+      "zh-cn": "NMEA 2000 - 连接船"
+    },
+    "desc": {
+      "en": "This adapter allows to connect your NMEA 2000 devices on the boat to ioBroker",
+      "de": "Dieser Adapter ermöglicht es, Ihre NMEA 2000-Geräte auf dem Boot mit ioBroker zu verbinden",
+      "ru": "Этот адаптер позволяет подключать ваши устройства NMEA 2000 на лодке к ioBroker",
+      "pt": "Este adaptador permite conectar seus dispositivos NMEA 2000 no barco ao ioBroker",
+      "nl": "Deze adapter maakt het mogelijk om uw NMEA 2000-apparaten op de boot aan te sluiten op ioBroker",
+      "fr": "Cet adaptateur permet de connecter vos appareils NMEA 2000 sur le bateau à ioBroker",
+      "it": "Questo adattatore consente di collegare i dispositivi NMEA 2000 sulla barca a ioBroker",
+      "es": "Este adaptador permite conectar sus dispositivos NMEA 2000 en el barco a ioBroker",
+      "pl": "Ten adapter pozwala podłączyć urządzenia NMEA 2000 na łodzi do ioBroker",
+      "uk": "Цей адаптер дозволяє підключати ваші пристрої NMEA 2000 на човні до ioBroker",
+      "zh-cn": "此适配器允许将船上的NMEA 2000设备连接到ioBroker"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "licenseInformation": {
+      "license": "MIT",
+      "type": "free",
+      "link": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md"
+    },
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "compact": true,
+    "messagebox": true,
+    "readme": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md",
+    "loglevel": "info",
+    "icon": "nmea.png",
+    "enabled": true,
+    "keywords": [
+      "notification",
+      "MQTT",
+      "message"
+    ],
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.nmea/master/admin/nmea.png",
+    "type": "protocols",
+    "plugins": {
+      "sentry": {
+        "dsn": "https://24ff815f40154cb587c896460581c81b@sentry.iobroker.net/246"
+      }
+    },
+    "ifInstalledDependencies": {
+      "vis-2": ">=2.12.8"
+    },
+    "restartAdapters": [
+      "vis-2"
+    ],
+    "visWidgets": {
+      "vis2Nmea": {
+        "i18n": "component",
+        "name": "vis2Nmea",
+        "url": "nmea/customWidgets.js",
+        "bundlerType": "module",
+        "components": [
+          "Nmea",
+          "Instrument"
         ]
+      }
     },
-    "native": {
-        "serialPort": "COM3",
-        "type": "ngt1",
-        "canPort": "can0",
-        "updateAtLeastEveryMs": 60000,
-        "magneticVariation": "magneticVariation.variation",
-        "simulationEnabled": false,
-        "combinedEnvironment": false,
-        "simulate": [],
-        "simulateAddress": 204,
-        "approximateMs": 10000,
-        "applyGpsTimeZoneToSystem": false,
-        "deleteAisAfter": 3600,
-        "pressureAlertDiff": 4,
-        "pressureAlertMinutes": 240,
-        "signalKEnabled": false,
-        "signalKPort": 3000,
-        "signalKBidirectional": true
-    },
-    "objects": [],
-    "instanceObjects": [
+    "deviceWidgets": {
+      "components": [
         {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": {
-                    "en": "Information",
-                    "de": "Information",
-                    "ru": "Информация",
-                    "pt": "Em formação",
-                    "nl": "Informatie",
-                    "fr": "Informations",
-                    "it": "Informazione",
-                    "es": "Información",
-                    "pl": "Informacja",
-                    "uk": "Інформація",
-                    "zh-cn": "信息"
-                }
-            },
-            "native": {}
+          "name": "NmeaWindComponent",
+          "label": "NMEA Wind",
+          "description": {
+            "en": "Shows wind information for sailing",
+            "de": "Zeigt Windinformationen für das Segeln"
+          },
+          "icon": "wind.png"
         },
         {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Connected client for NMEA",
-                    "de": "Verbundener Client für NMEA",
-                    "ru": "Подключенный клиент для NMEA",
-                    "pt": "Cliente conectado para NMEA",
-                    "nl": "Geconnecteerd cliënt voor NMEA",
-                    "fr": "Client connecté pour NMEA",
-                    "it": "Client collegato per NMEA",
-                    "es": "Cliente conectado para NMEA",
-                    "pl": "Kliencki klient dla NMEA",
-                    "uk": "Підключений клієнт для NMEA",
-                    "zh-cn": "NMEA的客户"
-                },
-                "type": "boolean",
-                "role": "indicator.reachable",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
+          "name": "NmeaHistoryChartComponent",
+          "label": "NMEA Chart",
+          "description": {
+            "en": "Shows history of values in a chart",
+            "de": "Zeigt die Historie von Werten in einem Diagramm"
+          },
+          "icon": "chart.png"
         },
         {
-            "_id": "test",
-            "type": "channel",
-            "common": {
-                "expert": true,
-                "name": {
-                    "en": "Test"
-                }
-            },
-            "native": {}
+          "name": "NmeaAutopilotComponent",
+          "label": "NMEA Autopilot",
+          "description": {
+            "en": "Autopilot control for NMEA",
+            "de": "Autopilotsteuerung für NMEA"
+          },
+          "icon": "autopilot.png"
         },
         {
-            "_id": "test.rawString",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Test nmea 2000 commands"
-                },
-                "expert": true,
-                "type": "string",
-                "role": "state",
-                "read": false,
-                "write": true
-            },
-            "native": {}
+          "name": "NmeaAisRadarComponent",
+          "label": "NMEA AIS Radar",
+          "description": {
+            "en": "AIS Radar",
+            "de": "AIS Radar"
+          },
+          "icon": "aisRadar.png"
+        },
+        {
+          "name": "NmeaAnchorPositionComponent",
+          "label": "NMEA Anchor Position",
+          "description": {
+            "en": "AIS Anchor Position",
+            "de": "AIS Anker Position"
+          },
+          "icon": "aisAnchor.png"
         }
+      ]
+    },
+    "tier": 3,
+    "connectionType": "local",
+    "dataSource": "push",
+    "adminUI": {
+      "config": "json"
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=6.0.11"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=7.6.17"
+      }
     ]
+  },
+  "native": {
+    "serialPort": "COM3",
+    "type": "ngt1",
+    "canPort": "can0",
+    "updateAtLeastEveryMs": 60000,
+    "magneticVariation": "magneticVariation.variation",
+    "simulationEnabled": false,
+    "combinedEnvironment": false,
+    "simulate": [],
+    "simulateAddress": 204,
+    "approximateMs": 10000,
+    "applyGpsTimeZoneToSystem": false,
+    "deleteAisAfter": 3600,
+    "pressureAlertDiff": 4,
+    "pressureAlertMinutes": 240,
+    "signalKEnabled": false,
+    "signalKPort": 3000,
+    "signalKBidirectional": true,
+    "auxPosition": "",
+    "chainLength": "",
+    "notificationInstance": ""
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "Information",
+          "de": "Information",
+          "ru": "Информация",
+          "pt": "Em formação",
+          "nl": "Informatie",
+          "fr": "Informations",
+          "it": "Informazione",
+          "es": "Información",
+          "pl": "Informacja",
+          "uk": "Інформація",
+          "zh-cn": "信息"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Connected client for NMEA",
+          "de": "Verbundener Client für NMEA",
+          "ru": "Подключенный клиент для NMEA",
+          "pt": "Cliente conectado para NMEA",
+          "nl": "Geconnecteerd cliënt voor NMEA",
+          "fr": "Client connecté pour NMEA",
+          "it": "Client collegato per NMEA",
+          "es": "Cliente conectado para NMEA",
+          "pl": "Kliencki klient dla NMEA",
+          "uk": "Підключений клієнт для NMEA",
+          "zh-cn": "NMEA的客户"
+        },
+        "type": "boolean",
+        "role": "indicator.reachable",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "test",
+      "type": "channel",
+      "common": {
+        "expert": true,
+        "name": {
+          "en": "Test"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "test.rawString",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Test nmea 2000 commands"
+        },
+        "expert": true,
+        "type": "string",
+        "role": "state",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm",
+      "type": "channel",
+      "common": {
+        "expert": true,
+        "name": {
+          "en": "Anchor alarm"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.isActive",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Is anchor alarm active"
+        },
+        "type": "boolean",
+        "role": "switch",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.isAlarm",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Anchor alarm triggered"
+        },
+        "type": "boolean",
+        "role": "indicator.alarm",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.alarmRadius",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Anchor alarm radius"
+        },
+        "unit": "m",
+        "type": "number",
+        "role": "state",
+        "read": true,
+        "write": true,
+        "def": 50
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.anchorPosition",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Anchor position (lat;lon)"
+        },
+        "type": "string",
+        "role": "value.gps",
+        "read": true,
+        "write": true,
+        "def": ""
+      },
+      "native": {}
+    }
+  ]
 }

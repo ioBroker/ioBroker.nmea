@@ -1,0 +1,21 @@
+{
+  "custom_nmea_simulate_title": "Gesimuleerde waarden",
+  "custom_nmea_simulate_add": "Waarde toevoegen",
+  "custom_nmea_simulate_empty": "Nog geen gesimuleerde waarden geconfigureerd",
+  "custom_nmea_type": "Type",
+  "custom_nmea_subtype": "Subtype",
+  "custom_nmea_oid": "Object-ID",
+  "custom_nmea_select_oid": "Object-ID selecteren",
+  "custom_nmea_instance": "Instantie",
+  "custom_nmea_capacity": "Capaciteit (L)",
+  "custom_nmea_delete": "Verwijderen",
+  "custom_nmea_type_temperature": "Temperatuur",
+  "custom_nmea_type_humidity": "Luchtvochtigheid",
+  "custom_nmea_type_pressure": "Druk",
+  "custom_nmea_type_tank": "Tank",
+  "custom_nmea_tank_hint": "Tank: waarde = niveau in % (0–100). Als de eenheid van de bron L/l/liters is, wordt deze automatisch via de capaciteit naar % omgerekend.",
+  "custom_nmea_current": "naar NMEA verzonden",
+  "custom_nmea_current_na": "geen waarde",
+  "custom_nmea_tank_instance_dup": "⚠ Deze instantie wordt al door een andere sensor van hetzelfde type gebruikt — de plotter kan ze samenvoegen.",
+  "custom_nmea_reorder": "Sleep om te herordenen"
+}

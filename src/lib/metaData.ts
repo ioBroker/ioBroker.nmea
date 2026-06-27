@@ -9,12 +9,16 @@ const META_DATA: Record<
         factor?: number;
         meterPerSecond?: boolean;
         offset?: number;
-        /** Drop the sample if the converted value falls below this threshold. Useful for fields
+        /**
+         * Drop the sample if the converted value falls below this threshold. Useful for fields
          *  where some sensors emit obviously invalid values (out-of-range placeholders) that
-         *  would otherwise pollute the state with bogus readings. */
+         *  would otherwise pollute the state with bogus readings.
+         */
         min?: number;
-        /** Same idea but for the upper bound. e.g. depth sensors typically max out around a
-         *  few hundred metres; values orders of magnitude beyond that are out-of-range markers. */
+        /**
+         * Same idea but for the upper bound. e.g. depth sensors typically max out around a
+         *  few hundred metres; values orders of magnitude beyond that are out-of-range markers.
+         */
         max?: number;
     }
 > = {

@@ -281,7 +281,7 @@ export default class Instrument extends Generic<InstrumentRxData, InstrumentStat
         let parts: string[] | undefined;
         if (val === null || val === undefined) {
             text = '---';
-        } else if (Number.isNaN(parseFloat(val as unknown as string))) {
+        } else if (Number.isNaN(parseFloat(val))) {
             text += val;
         } else {
             parts = Generic.zeroBeforeAfterComma(

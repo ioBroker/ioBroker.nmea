@@ -1,3 +1,8 @@
 {
-
+  "Anchor alarm: boat is %s m from the anchor (radius %s m).": "Сигналізація на якорі: човен знаходиться на відстані %s м від якоря (радіус %s м).",
+  "Anchor alarm: boat is outside the configured radius.": "Сигналізація на якорі: човен знаходиться за межами налаштованого радіуса.",
+  "Anchor dropped at %s, %s. Depth: %s m.": "Якір опущено о %s, %s. Глибина: %s м.",
+  "Anchor likely reached bottom at %s, %s. Chain: %s m, Depth: %s m.": "Якір, ймовірно, досяг дна о %s, %s. Ланцюг: %s м, Глибина: %s м.",
+  "Anchor recovered / inactive.": "Якір відновлено / неактивний.",
+  "pressureAlarm": "Тиск падає на %s мбар у %s"
 }

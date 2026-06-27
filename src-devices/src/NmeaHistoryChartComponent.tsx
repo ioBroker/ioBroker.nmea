@@ -303,7 +303,7 @@ export class NmeaHistoryChartComponent extends WidgetGeneric<HistoryChartState, 
                 return {
                     samples,
                     current: val,
-                } as HistoryChartState;
+                };
             });
         };
         this.props.stateContext.getState(this.subscribedId, this.stateHandler);
@@ -371,7 +371,7 @@ export class NmeaHistoryChartComponent extends WidgetGeneric<HistoryChartState, 
                 return {
                     samples: merged,
                     current: s.current ?? latest,
-                } as HistoryChartState;
+                };
             });
         } catch {
             // History adapter unreachable or returned an error — just keep going with live data.
@@ -852,7 +852,7 @@ export class NmeaHistoryChartComponent extends WidgetGeneric<HistoryChartState, 
                         }}
                     >
                         <Typography sx={{ fontSize: 14, color: COLORS.grey, opacity: 0.6, fontWeight: 500 }}>
-                            {this.getText(WAITING_FOR_SAMPLES as ioBroker.StringOrTranslated)}
+                            {this.getText(WAITING_FOR_SAMPLES)}
                         </Typography>
                     </Box>
                 ) : null}

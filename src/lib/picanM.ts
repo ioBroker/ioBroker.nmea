@@ -56,9 +56,9 @@ export default class PicanM extends GenericDriver {
             objectMode: true,
 
             transform(chunk, encoding, callback) {
-                // console.log(chunk.toString());
+                const line = chunk.toString();
                 try {
-                    const json = parser.parseString(chunk.toString());
+                    const json = parser.parseString(line);
                     if (json?.fields) {
                         onData?.(json);
                     }

@@ -48,7 +48,7 @@ export default abstract class AutoPilot {
                     1: 'Auto',
                     2: 'AutoWind',
                     3: 'AutoTrack',
-                    4: 'AutoNoDrift', // not supported by raymarine
+                    4: 'AutoNoDrift', // not supported by Raymarine
                 },
             },
             native: {
@@ -142,6 +142,27 @@ export default abstract class AutoPilot {
                     '-10': 'Decrement 10°',
                 },
                 unit: '°',
+            },
+            native: {
+                autoPilotAddress,
+            },
+        });
+        // Absolute wind-angle target in degrees (relative to bow). Writing this state sends
+        // a single PGN 126208 Command for PGN 65345 (Pilot Wind Datum) carrying the encoded
+        // angle, instead of stepping with ±1°/±10° presses. Mirrors the ack'd value of the
+        // last `seatalkPilotWindDatum.windDatum` received from the bus, so it can be bound
+        // to a slider/knob in the UI.
+        void this.adapter.setObjectNotExists('autoPilot.windAngle', {
+            type: 'state',
+            common: {
+                name: 'Wind angle (target, absolute)',
+                type: 'number',
+                role: 'value.direction.autopilot',
+                write: false,
+                read: true,
+                unit: '°',
+                min: 0,
+                max: 360,
             },
             native: {
                 autoPilotAddress,

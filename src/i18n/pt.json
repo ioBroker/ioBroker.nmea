@@ -1,3 +1,8 @@
 {
-
+  "Anchor alarm: boat is %s m from the anchor (radius %s m).": "Alarme de âncora: a embarcação está a %s m da âncora (raio de %s m).",
+  "Anchor alarm: boat is outside the configured radius.": "Alarme de âncora: a embarcação está fora do raio configurado.",
+  "Anchor dropped at %s, %s. Depth: %s m.": "Âncora lançada em %s, %s. Profundidade: %s m.",
+  "Anchor likely reached bottom at %s, %s. Chain: %s m, Depth: %s m.": "A âncora provavelmente atingiu o fundo em %s, %s. Corrente: %s m, Profundidade: %s m.",
+  "Anchor recovered / inactive.": "Âncora recuperada/inativa.",
+  "pressureAlarm": "A pressão está caindo em %s mbar em %s"
 }
