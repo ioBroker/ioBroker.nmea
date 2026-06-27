@@ -9,9 +9,11 @@
 
 import type { PGN } from '@canboat/ts-pgns';
 
-/** Accessor into the host adapter — kept intentionally narrow so we don't couple to main.ts types.
+/**
+ * Accessor into the host adapter — kept intentionally narrow so we don't couple to main.ts types.
  *  Return types use `any` because ioBroker's typings differ subtly between `@iobroker/adapter-core`
- *  (`SetObjectPromise`) and this module's call sites — we never inspect the return value. */
+ *  (`SetObjectPromise`) and this module's call sites — we never inspect the return value.
+ */
 export interface J1939Host {
     setObjectNotExistsAsync: (id: string, obj: ioBroker.SettableObject) => Promise<any>;
     setState: (id: string, value: ioBroker.StateValue | ioBroker.SettableState, ack?: boolean) => Promise<any>;

@@ -6,15 +6,25 @@ import { FromPgn } from '@canboat/canboatjs';
 import type { PGN } from '@canboat/ts-pgns';
 
 import moment from 'moment';
+// @ts-expect-error no types
 import 'moment/locale/de';
+// @ts-expect-error no types
 import 'moment/locale/ru';
+// @ts-expect-error no types
 import 'moment/locale/it';
+// @ts-expect-error no types
 import 'moment/locale/fr';
+// @ts-expect-error no types
 import 'moment/locale/pl';
+// @ts-expect-error no types
 import 'moment/locale/pt';
+// @ts-expect-error no types
 import 'moment/locale/nl';
+// @ts-expect-error no types
 import 'moment/locale/es';
+// @ts-expect-error no types
 import 'moment/locale/uk';
+// @ts-expect-error no types
 import 'moment/locale/zh-cn';
 
 import type { PGNType, NmeaConfig, PGNEntry, WritePgnData } from './types';
@@ -23,6 +33,7 @@ import META_DATA from './lib/metaData';
 import SeaTalkAutoPilot from './lib/seaTalkAutoPilot';
 import NavicoAutoPilot from './lib/navicoAutopilot';
 import type AutoPilot from './lib/autoPilot';
+import Fusion from './lib/fusion';
 import NGT1 from './lib/ngt1';
 import PicanM from './lib/picanM';
 import YDWG from './lib/ydwg';
@@ -124,7 +135,12 @@ export class NmeaAdapter extends Adapter {
 
     private autoPilot: AutoPilot | null = null;
 
+    private fusion: Fusion | null = null;
+
     private simulationsValues: Record<string, number | null> = {};
+
+    /** Lower-cased `common.unit` of each simulated source state, cached on first read. */
+    private simulationsUnits: Record<string, string> = {};
 
     private aisGroups: string[] = [];
 
@@ -137,6 +153,9 @@ export class NmeaAdapter extends Adapter {
     private signalKServer: SignalKServer | null = null;
 
     private addressClaim: AddressClaim | null = null;
+
+    /** Separate Address Claim that announces the simulate source as a Fluid Level sensor. */
+    private simulateAddressClaim: AddressClaim | null = null;
 
     private anchorAlarm: AnchorAlarm | null = null;
 
@@ -248,36 +267,54 @@ export class NmeaAdapter extends Adapter {
         this.nmeaDriver?.write(obj);
     }
 
-    sendTemperature(temperature: number, subType: string): void {
-        // Convert °C → K. canboatjs encodes PGN 130312 at 0.01 K resolution, so keep decimals.
+    sendTemperature(temperature: number, subType: string, instance = 0): void {
+        // Convert °C → K. canboatjs encodes the temperature fields at sub-K resolution, so keep decimals.
         const kelvin = temperature + 273.15;
+        const src = this.config.simulateAddress || 204;
+        const source = subType || 'Outside Temperature';
 
-        const obj = {
+        // PGN 130312 (Temperature) — the legacy message, kept for older displays.
+        this.nmeaDriver?.write({
             dst: 255,
             prio: 2,
             pgn: 130312,
             fields: {
                 sid: 0,
-                instance: 0,
-                source: subType || 'Outside Temperature',
+                instance,
+                source,
                 actualTemperature: kelvin,
                 setTemperature: 0,
                 reserved: 0,
             },
-            src: this.config.simulateAddress || 204,
-        };
+            src,
+        });
 
-        this.nmeaDriver?.write(obj);
+        // PGN 130316 (Temperature, Extended Range) — the current message. Modern plotters (incl.
+        // Raymarine LightHouse) display temperature from 130316 and ignore the deprecated 130312,
+        // which is why temperature stayed hidden while humidity (130313) and pressure (130314) showed.
+        this.nmeaDriver?.write({
+            dst: 255,
+            prio: 2,
+            pgn: 130316,
+            fields: {
+                sid: 0,
+                instance,
+                source,
+                temperature: kelvin,
+                setTemperature: 0,
+            },
+            src,
+        });
     }
 
-    sendHumidity(humidity = 97, subType: string): void {
+    sendHumidity(humidity = 97, subType: string, instance = 0): void {
         const obj = {
             dst: 255,
             prio: 2,
             pgn: 130313,
             fields: {
                 sid: 0,
-                instance: 0,
+                instance,
                 source: subType || 'Outside',
                 actualHumidity: Math.round(humidity),
                 setHumidity: 0,
@@ -288,14 +325,14 @@ export class NmeaAdapter extends Adapter {
         this.nmeaDriver?.write(obj);
     }
 
-    sendPressure(pressure = 0, subType: string): void {
+    sendPressure(pressure = 0, subType: string, instance = 0): void {
         const obj = {
             dst: 255,
             prio: 2,
             pgn: 130314,
             fields: {
                 sid: 0,
-                instance: 0,
+                instance,
                 source: subType || 'Atmospheric',
                 // ioBroker state is in hPa/mbar; N2K PGN 130314 expects Pa.
                 pressure: Math.round(pressure * 100),
@@ -349,6 +386,9 @@ export class NmeaAdapter extends Adapter {
                     } else {
                         this.simulationsValues[sim.oid] = null;
                     }
+                    // Cache the unit so tank values delivered in liters can be converted to % (PGN 127505).
+                    const obj = await this.getForeignObjectAsync(sim.oid);
+                    this.simulationsUnits[sim.oid] = (obj?.common?.unit || '').trim().toLowerCase();
                 }
 
                 this.log.debug(`Simulate [${sim.type}] ${sim.oid} = ${this.simulationsValues[sim.oid]}`);
@@ -357,25 +397,46 @@ export class NmeaAdapter extends Adapter {
                 // setting — they can't share a frame with temperature/humidity/pressure.
                 if (sim.type === 'tank') {
                     if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                        this.sendTank(
-                            this.simulationsValues[sim.oid] as number,
-                            sim.subType,
-                            sim.instance,
-                            sim.capacity,
-                        );
+                        let level = this.simulationsValues[sim.oid] as number;
+                        // PGN 127505 expects the level in % (0..100). If the source state is in liters,
+                        // convert it to a percentage via the configured capacity.
+                        const unit = this.simulationsUnits[sim.oid];
+                        if (
+                            unit === 'l' ||
+                            unit === 'liter' ||
+                            unit === 'liters' ||
+                            unit === 'litre' ||
+                            unit === 'litres'
+                        ) {
+                            if (sim.capacity && sim.capacity > 0) {
+                                level = (level / sim.capacity) * 100;
+                            } else {
+                                this.log.warn(
+                                    `Tank ${sim.oid}: source unit is "${unit}" but capacity is 0 — cannot convert liters to %`,
+                                );
+                            }
+                        }
+                        this.sendTank(level, sim.subType, sim.instance, sim.capacity);
                     }
                 } else if (!this.config.combinedEnvironment) {
+                    // Instance identifies the sensor on the bus. Use the value configured per row;
+                    // if none is set (older config), fall back to a position-based unique instance so
+                    // two sensors of the same type don't collide (same effect seen with tanks).
+                    const instance =
+                        typeof sim.instance === 'number'
+                            ? sim.instance
+                            : this.config.simulate.slice(0, s).filter(x => x.type === sim.type).length;
                     if (sim.type === 'temperature') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                            this.sendTemperature(this.simulationsValues[sim.oid] as number, sim.subType);
+                            this.sendTemperature(this.simulationsValues[sim.oid] as number, sim.subType, instance);
                         }
                     } else if (sim.type === 'humidity') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                            this.sendHumidity(this.simulationsValues[sim.oid] as number, sim.subType);
+                            this.sendHumidity(this.simulationsValues[sim.oid] as number, sim.subType, instance);
                         }
                     } else if (sim.type === 'pressure') {
                         if (this.simulationsValues[sim.oid] !== null && this.simulationsValues[sim.oid] !== undefined) {
-                            this.sendPressure(this.simulationsValues[sim.oid] as number, sim.subType);
+                            this.sendPressure(this.simulationsValues[sim.oid] as number, sim.subType, instance);
                         }
                     }
                 } else if (sim.type) {
@@ -989,6 +1050,7 @@ export class NmeaAdapter extends Adapter {
         // delete all AIS data older than one hour
         setTimeout(async (): Promise<void> => {
             const groups = [...WELL_KNOWN_AIS_GROUPS, ...this.aisGroups];
+            const prefix = `${this.namespace}.`;
             for (let l = 0; l < groups.length; l++) {
                 const states = await this.getStatesAsync(`${this.namespace}.${groups[l]}.*`);
                 const ids = Object.keys(states);
@@ -997,6 +1059,14 @@ export class NmeaAdapter extends Adapter {
                     if (!states[id] || states[id].ts < Date.now() - this.config.deleteAisAfter * 1000) {
                         // delete object
                         await this.delObjectAsync(id);
+                        // Invalidate the in-memory create-cache flag so the next packet
+                        // for this MMSI recreates the object. Without this, processAisData
+                        // would skip the create path (flag still true) and setState would
+                        // warn "State X has no existing object" on every subsequent packet.
+                        // delObjectAsync uses the namespaced id; createsChannelAndStates
+                        // keys are relative — strip the prefix to match.
+                        const cacheKey = id.startsWith(prefix) ? id.substring(prefix.length) : id;
+                        delete this.createsChannelAndStates[cacheKey];
                     }
                 }
             }
@@ -1102,12 +1172,26 @@ export class NmeaAdapter extends Adapter {
 
         if (data.pgn && ENGINE_J1939_PGNS.has(data.pgn)) {
             // J1939 engine PGNs aren't in canboat's definition set — handle the raw 8-byte frame directly.
-            await processEngineJ1939(this, data as PGN & { rawData?: number[] | Buffer; src?: number });
+            await processEngineJ1939(this, data);
             return;
         }
 
         if (data.pgn && data.fields) {
             this.signalKServer?.onPGN(data);
+
+            // PGN 130820 is Fusion's proprietary status PGN (37 sub-variants). Route it to the
+            // dedicated Fusion handler (which surfaces a `mediaPlayer.*` device) instead of the
+            // generic state factory — the latter cannot tell the sub-variants apart and would
+            // create a mess of ambiguous states. Auto-detect the stereo the first time we see it.
+            if (data.pgn === 130820) {
+                if (!this.fusion && this.nmeaDriver && data.src !== undefined) {
+                    this.fusion = new Fusion(this, this.config, this.nmeaDriver, data.src);
+                    await this.fusion.start();
+                }
+                await this.fusion?.onPGN(data);
+                return;
+            }
+
             if (await this.createNmeaChannel(data.pgn, data.src)) {
                 const keys = Object.keys(data.fields);
                 const withReference: string[] = [];
@@ -1222,6 +1306,16 @@ export class NmeaAdapter extends Adapter {
                 );
             }
         }
+
+        // Recreate the Fusion media-player handler if we already discovered the stereo in a
+        // previous run, so the `mediaPlayer.*` controls work immediately after a restart (before
+        // the first status frame re-detects it). The stereo's bus address was stored in native.src.
+        const fusionObj = await this.getObjectAsync('mediaPlayer');
+        if (fusionObj && this.nmeaDriver && typeof fusionObj.native?.src === 'number') {
+            this.fusion = new Fusion(this, this.config, this.nmeaDriver, fusionObj.native.src);
+            await this.fusion.start();
+        }
+
         this.nmeaDriver?.start();
 
         // Anchor-alarm watcher — creates `anchorAlarm.*` states (isActive/isAlarm/alarmRadius/
@@ -1251,6 +1345,32 @@ export class NmeaAdapter extends Adapter {
                 raymarineDeviceId: parseInt(this.config.announceRaymarineDeviceId as unknown as string, 10) || 0,
             });
             this.addressClaim.start();
+        }
+
+        // Announce the simulate source as an NMEA-2000 Fluid Level sensor (Device Class 75 "Sensors",
+        // Function 150 "Fluid Level"). Only meaningful on a direct CAN interface (PiCAN-M): the YDEN/
+        // YDWG and NGT-1 gateways transmit from their OWN claimed address and manage address claims
+        // themselves, so injecting a 60928 there gets remapped onto the gateway's address and causes
+        // an address conflict — the plotter then drops ALL data from that source. So skip it for
+        // gateways. Also gated behind `announceDevice` and only needed with at least one tank row.
+        if (
+            this.config.announceDevice &&
+            this.config.type === 'picanm' &&
+            this.config.simulationEnabled &&
+            this.nmeaDriver &&
+            this.config.simulate?.some(s => s.type === 'tank')
+        ) {
+            const simSrc = this.config.simulateAddress || 204;
+            this.simulateAddressClaim = new AddressClaim(this, this.nmeaDriver, {
+                src: simSrc,
+                uniqueNumber: 23456,
+                manufacturerCode: 2046,
+                deviceClass: 75, // Sensors
+                deviceFunction: 150, // Fluid Level
+                productCode: 0xc002,
+                modelId: 'ioBroker.nmea tank',
+            });
+            this.simulateAddressClaim.start();
         }
 
         if (this.config.signalKEnabled) {
@@ -1571,6 +1691,7 @@ export class NmeaAdapter extends Adapter {
             }
         }
         this.autoPilot?.onStateChange(id, state);
+        this.fusion?.onStateChange(id, state);
         await this.anchorAlarm?.onStateChange(id, state);
         await this.anchorTracker?.onStateChange(id, state);
     }
@@ -1638,7 +1759,7 @@ export class NmeaAdapter extends Adapter {
                 if (obj.callback) {
                     try {
                         // cmd: ip link show
-                        import('child_process')
+                        import('node:child_process')
                             .then(def => {
                                 const exec = def.exec;
                                 // Output of "ip link show"
@@ -1706,6 +1827,8 @@ export class NmeaAdapter extends Adapter {
         try {
             this.autoPilot?.stop();
             this.autoPilot = null;
+            this.fusion?.stop();
+            this.fusion = null;
             if (this.connectedInterval) {
                 this.clearInterval(this.connectedInterval);
                 this.connectedInterval = null;
@@ -1721,6 +1844,8 @@ export class NmeaAdapter extends Adapter {
             this.signalKServer = null;
             this.addressClaim?.stop();
             this.addressClaim = null;
+            this.simulateAddressClaim?.stop();
+            this.simulateAddressClaim = null;
             this.anchorAlarm = null;
             this.anchorTracker?.stop();
             this.anchorTracker = null;

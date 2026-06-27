@@ -48,6 +48,21 @@ export type PGNType = {
     LookupEnumerations: PGNLookupEnumeration[];
 };
 
+/** Kind of value a simulated source emits (selects the PGN family). */
+export type SimulateType = 'temperature' | 'humidity' | 'pressure' | 'tank';
+
+export interface SimulateItem {
+    /** ioBroker state ID whose value is read and forwarded to the bus. */
+    oid: string;
+    type: SimulateType;
+    /** NMEA enum name forwarded 1:1 into the PGN (e.g. "Outside Temperature", "Fuel"). */
+    subType: string;
+    /** Tank PGN 127505 instance (0..13). Ignored for non-tank rows. */
+    instance?: number;
+    /** Tank total capacity in liters (PGN 127505 Capacity). Ignored for non-tank rows. */
+    capacity?: number;
+}
+
 export interface NmeaConfig extends ioBroker.AdapterConfig {
     serialPort: string;
     type: 'ngt1' | 'picanm' | 'ydwg';
@@ -59,15 +74,7 @@ export interface NmeaConfig extends ioBroker.AdapterConfig {
     magneticVariation: string;
     simulationEnabled: false;
     combinedEnvironment: false;
-    simulate: {
-        oid: string;
-        type: 'temperature' | 'humidity' | 'pressure' | 'tank';
-        subType: string;
-        /** Tank PGN 127505 instance (0..13). Ignored for non-tank rows. */
-        instance?: number;
-        /** Tank total capacity in liters (PGN 127505 Capacity). Ignored for non-tank rows. */
-        capacity?: number;
-    }[];
+    simulate: SimulateItem[];
     simulateAddress: number;
     approximateMs: number;
     applyGpsTimeZoneToSystem: false;

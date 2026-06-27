@@ -105,9 +105,7 @@ export class AddressClaim {
     }
 
     start(): void {
-        this.adapter.log.info(
-            `[addressClaim] enabled, src=${this.cfg.src}, NAME=0x${this.name.toString(16)}`,
-        );
+        this.adapter.log.info(`[addressClaim] enabled, src=${this.cfg.src}, NAME=0x${this.name.toString(16)}`);
         // Address-Claim immediately so anyone listening can build their device list.
         this.sendAddressClaim();
         this.intervals.push(setInterval(() => this.sendAddressClaim(), 60_000));
@@ -169,10 +167,7 @@ export class AddressClaim {
             this.padString(this.cfg.modelId ?? 'ioBroker.nmea', 32).copy(buf, 4);
             this.padString(this.cfg.softwareVersion ?? '0.4.2', 32).copy(buf, 36);
             this.padString(this.cfg.modelVersion ?? '1.0', 32).copy(buf, 68);
-            this.padString(
-                this.cfg.modelSerial ?? `iob-${this.cfg.uniqueNumber ?? 12345}`,
-                32,
-            ).copy(buf, 100);
+            this.padString(this.cfg.modelSerial ?? `iob-${this.cfg.uniqueNumber ?? 12345}`, 32).copy(buf, 100);
             buf.writeUInt8(2, 132); // certification level
             buf.writeUInt8(1, 133); // load equivalency number
             const data = encodeActisense({
