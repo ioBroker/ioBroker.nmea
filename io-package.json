@@ -42,19 +42,6 @@
         "uk": "Оновлені пакети",
         "zh-cn": "更新软件包"
       },
-      "0.4.1": {
-        "en": "Updated packages",
-        "de": "Aktualisierte Pakete",
-        "ru": "Обновленные пакеты",
-        "pt": "Pacotes atualizados",
-        "nl": "Bijgewerkte pakketten",
-        "fr": "Paquets mis à jour",
-        "it": "Pacchetti aggiornati",
-        "es": "Paquetes actualizados",
-        "pl": "Aktualizacja pakietów",
-        "uk": "Оновлені пакети",
-        "zh-cn": "更新软件包"
-      },
       "0.4.0": {
         "en": "Added support of YDEN-02/03 and YDWG-02/03 gateways",
         "de": "Unterstützung von YDEN-02/03 und YDWG-02/03 Gateways",
@@ -136,6 +123,7 @@
     "readme": "https://github.com/ioBroker/ioBroker.nmea/blob/master/README.md",
     "loglevel": "info",
     "icon": "nmea.png",
+    "nogit": true,
     "enabled": true,
     "keywords": [
       "notification",
