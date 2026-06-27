@@ -1759,7 +1759,7 @@ export class NmeaAdapter extends Adapter {
                 if (obj.callback) {
                     try {
                         // cmd: ip link show
-                        import('child_process')
+                        import('node:child_process')
                             .then(def => {
                                 const exec = def.exec;
                                 // Output of "ip link show"
