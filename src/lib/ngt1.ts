@@ -32,7 +32,7 @@ export default class NGT1 extends GenericDriver {
     }
 
     start(): void {
-        const parser = new FromPgn();
+        const parser = new FromPgn({ includeRawData: true });
 
         parser.on('warning', (pgn: PGNMessage, warning: string) => {
             if (this.pgnErrors[pgn.pgn]) {
@@ -57,8 +57,9 @@ export default class NGT1 extends GenericDriver {
             objectMode: true,
 
             transform(chunk, encoding, callback) {
+                const line = chunk.toString();
                 try {
-                    const json = parser.parseString(chunk.toString());
+                    const json = parser.parseString(line);
                     if (json?.fields) {
                         onData?.(json);
                     } else {

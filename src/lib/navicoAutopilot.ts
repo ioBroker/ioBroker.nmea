@@ -165,44 +165,30 @@ export default class NavicoAutoPilot extends AutoPilot {
     }
 
     private setHeadingAngle(command: 1 | -1 | 10 | -10): void {
-        let data: string;
-        if (command === 1) {
-            data = encodeActisense({
-                prio: 2,
-                pgn: 130850,
-                src: 5,
-                dst: 255,
-                data: Buffer.from([0x41, 0x9f, 0x04, 0xff, 0xff, 0x0a, 0x1a, 0x00, 0x02, 0xae, 0x00, 0xff]),
-            });
-        } else if (command === -1) {
-            data = encodeActisense({
-                prio: 2,
-                pgn: 130850,
-                src: 5,
-                dst: 255,
-                data: Buffer.from([0x41, 0x9f, 0x04, 0xff, 0xff, 0x0a, 0x1a, 0x00, 0x03, 0xae, 0x00, 0xff]),
-            });
-        } else if (command === 10) {
-            data = encodeActisense({
-                prio: 2,
-                pgn: 130850,
-                src: 3,
-                dst: 255,
-                data: Buffer.from([0x41, 0x9f, 0x04, 0xff, 0xff, 0x0a, 0x1a, 0x00, 0x03, 0xd1, 0x06, 0xff]),
-            });
-        } else if (command === -10) {
-            data = encodeActisense({
-                prio: 2,
-                pgn: 130850,
-                src: 3,
-                dst: 255,
-                data: Buffer.from([0x41, 0x9f, 0x04, 0xff, 0xff, 0x0a, 0x1a, 0x00, 0x03, 0xd1, 0x06, 0xff]),
-            });
-        } else {
-            this.adapter.log.warn('Invalid wind angle command');
-            return;
-        }
-
+        // Byte 8 = direction (0x02 port-to-starboard / +, 0x03 starboard-to-port / -).
+        // Bytes 9-10 = magnitude in 0.0001 rad little-endian: 1° ≈ 0x00ae, 10° ≈ 0x06d1.
+        const directionByte = command > 0 ? 0x02 : 0x03;
+        const magnitude = Math.abs(command) === 10 ? [0xd1, 0x06] : [0xae, 0x00];
+        const data = encodeActisense({
+            prio: 2,
+            pgn: 130850,
+            src: this.autoPilotAddress,
+            dst: 255,
+            data: Buffer.from([
+                0x41,
+                0x9f,
+                0x04,
+                0xff,
+                0xff,
+                0x0a,
+                0x1a,
+                0x00,
+                directionByte,
+                magnitude[0],
+                magnitude[1],
+                0xff,
+            ]),
+        });
         this.nmeaDriver.write(data);
     }
 }

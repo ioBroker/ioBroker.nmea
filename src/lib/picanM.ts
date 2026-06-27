@@ -31,7 +31,7 @@ export default class PicanM extends GenericDriver {
     }
 
     start(): void {
-        const parser = new FromPgn();
+        const parser = new FromPgn({ includeRawData: true });
 
         parser.on('warning', (pgn: PGNMessage, warning: string) => {
             if (this.pgnErrors[pgn.pgn]) {
@@ -56,9 +56,9 @@ export default class PicanM extends GenericDriver {
             objectMode: true,
 
             transform(chunk, encoding, callback) {
-                // console.log(chunk.toString());
+                const line = chunk.toString();
                 try {
-                    const json = parser.parseString(chunk.toString());
+                    const json = parser.parseString(line);
                     if (json?.fields) {
                         onData?.(json);
                     }

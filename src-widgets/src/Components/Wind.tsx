@@ -43,6 +43,7 @@ export default function Wind(props: {
     tws: number;
     aws: number;
     themeType: ThemeType;
+    isFloatComma?: boolean;
 }): React.JSX.Element {
     // const [angle, setAngle] = useState(-90);
     const [text, setText] = useState<'tws' | 'aws'>('tws');
@@ -104,7 +105,9 @@ export default function Wind(props: {
                         <div style={styles.centerText2}>
                             {Number.isNaN(props[text]) || props[text] === null || props[text] === undefined
                                 ? '---'
-                                : Math.round(props[text] * 10) / 10}
+                                : props.isFloatComma
+                                  ? (Math.round(props[text] * 10) / 10).toString().replace('.', ',')
+                                  : Math.round(props[text] * 10) / 10}
                         </div>
                         <div>{Generic.t('kts')}</div>
                     </div>

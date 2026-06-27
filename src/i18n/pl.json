@@ -1,3 +1,8 @@
 {
-
+  "Anchor alarm: boat is %s m from the anchor (radius %s m).": "Alarm kotwicy: łódź znajduje się w odległości %s m od kotwicy (promień %s m).",
+  "Anchor alarm: boat is outside the configured radius.": "Alarm kotwicy: łódź znajduje się poza skonfigurowanym promieniem.",
+  "Anchor dropped at %s, %s. Depth: %s m.": "Kotwica rzucona w %s, %s. Głębokość: %s m.",
+  "Anchor likely reached bottom at %s, %s. Chain: %s m, Depth: %s m.": "Kotwica prawdopodobnie osiągnęła dno w %s, %s. Łańcuch: %s m, Głębokość: %s m.",
+  "Anchor recovered / inactive.": "Kotwica odzyskana / nieaktywna.",
+  "pressureAlarm": "Ciśnienie spada o %s mbar w %s"
 }

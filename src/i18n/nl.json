@@ -1,3 +1,8 @@
 {
-
+  "Anchor alarm: boat is %s m from the anchor (radius %s m).": "Ankeralarm: boot bevindt zich op %s m van het anker (straal %s m).",
+  "Anchor alarm: boat is outside the configured radius.": "Ankeralarm: de boot bevindt zich buiten de ingestelde straal.",
+  "Anchor dropped at %s, %s. Depth: %s m.": "Anker neergelaten op %s, %s. Diepte: %s m.",
+  "Anchor likely reached bottom at %s, %s. Chain: %s m, Depth: %s m.": "Anker bereikte waarschijnlijk de bodem op %s, %s. Ketting: %s m, Diepte: %s m.",
+  "Anchor recovered / inactive.": "Anker teruggevonden / inactief.",
+  "pressureAlarm": "De druk daalt met %s mbar in %s"
 }

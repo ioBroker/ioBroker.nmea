@@ -1,3 +1,8 @@
 {
-
+  "Anchor alarm: boat is %s m from the anchor (radius %s m).": "锚泊警报：船距离锚点 %s 米（半径 %s 米）。",
+  "Anchor alarm: boat is outside the configured radius.": "锚泊警报：船只超出设定半径。",
+  "Anchor dropped at %s, %s. Depth: %s m.": "锚于 %s, %s 时下落。深度：%s 米。",
+  "Anchor likely reached bottom at %s, %s. Chain: %s m, Depth: %s m.": "锚可能在 %s、%s 时触底。链长：%s 米，深度：%s 米。",
+  "Anchor recovered / inactive.": "锚点已恢复/已失效。",
+  "pressureAlarm": "压力在 %s 秒内下降了 %s 毫巴。"
 }

@@ -9,6 +9,17 @@ const META_DATA: Record<
         factor?: number;
         meterPerSecond?: boolean;
         offset?: number;
+        /**
+         * Drop the sample if the converted value falls below this threshold. Useful for fields
+         *  where some sensors emit obviously invalid values (out-of-range placeholders) that
+         *  would otherwise pollute the state with bogus readings.
+         */
+        min?: number;
+        /**
+         * Same idea but for the upper bound. e.g. depth sensors typically max out around a
+         *  few hundred metres; values orders of magnitude beyond that are out-of-range markers.
+         */
+        max?: number;
     }
 > = {
     headingMagnetic: {
@@ -39,6 +50,11 @@ const META_DATA: Record<
     depth: {
         unit: 'm',
         role: 'value.depth',
+        // Negative depth makes no physical sense; values above 1000 m are out-of-range markers
+        // from echo sounders that have lost the bottom (some emit 0xFFFFFFFF → ~4.3e9 m).
+        // Samples outside this band are dropped before they reach the state.
+        min: 0,
+        max: 1000,
     },
     'waterDepth.offset': {
         unit: 'm',
@@ -156,7 +172,6 @@ const META_DATA: Record<
     humidity: {
         unit: '%',
         role: 'value.humidity',
-        factor: 250,
         round: 1,
     },
     temperature: {
@@ -183,6 +198,11 @@ const META_DATA: Record<
         round: 100,
         // convert m/s to kn: 1 m/s = 1.9438444924574 kn
         factor: 1.9438444924574,
+    },
+    'engineParametersDynamic.alternatorPotential': {
+        unit: 'V',
+        role: 'value.voltage',
+        round: 100,
     },
 };
 

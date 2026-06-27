@@ -1,8 +1,34 @@
 {
   "common": {
     "name": "nmea",
-    "version": "0.4.2",
+    "version": "1.0.1",
     "news": {
+      "1.0.1": {
+        "en": "Implemented Raymarine autopilot support\nCorrected values simulation for yacht devices gateways\nAdded support of Fusion player",
+        "de": "Raymarine-Autopilotunterstützung implementiert\nSimulation korrigierter Werte für Yachtgeräte-Gateways\nUnterstützung für Fusion-Spieler hinzugefügt",
+        "ru": "Внедрена поддержка автопилота Raymarine.\nМоделирование скорректированных значений для шлюзов яхтенных устройств\nДобавлена поддержка Fusion Player.",
+        "pt": "Implementado suporte para piloto automático Raymarine\nSimulação de valores corrigidos para gateways de dispositivos de iates\nAdicionado suporte para o jogador Fusion",
+        "nl": "Ondersteuning voor Raymarine-autopiloten geïmplementeerd.\nSimulatie van gecorrigeerde waarden voor gateways van jachtapparaten\nOndersteuning voor Fusion-speler toegevoegd.",
+        "fr": "Prise en charge du pilote automatique Raymarine implémentée\nSimulation de valeurs corrigées pour les passerelles des appareils de yacht\nAjout de la prise en charge du lecteur Fusion",
+        "it": "Implementato il supporto per l'autopilota Raymarine.\nSimulazione dei valori corretti per i gateway dei dispositivi per yacht\nAggiunto il supporto per Fusion Player",
+        "es": "Implementación del soporte para piloto automático Raymarine\nSimulación de valores corregidos para pasarelas de dispositivos de yates\nSe agregó compatibilidad con el jugador Fusion.",
+        "pl": "Wprowadzono obsługę autopilota Raymarine\nSkorygowana symulacja wartości dla bramek urządzeń jachtowych\nDodano obsługę odtwarzacza Fusion",
+        "uk": "Реалізовано підтримку автопілота Raymarine\nМоделювання скоригованих значень для шлюзів пристроїв яхт\nДодана підтримка плеєра Fusion.",
+        "zh-cn": "实现了 Raymarine 自动驾驶仪支持\n游艇设备网关的修正值模拟\n新增对Fusion播放器的支持"
+      },
+      "1.0.0": {
+        "en": "Implemented Raymarine autopilot support\nCorrected values simulation for yacht devices gateways\nAdded support of Fusion player",
+        "de": "Raymarine-Autopilotunterstützung implementiert\nSimulation korrigierter Werte für Yachtgeräte-Gateways\nUnterstützung für Fusion-Spieler hinzugefügt",
+        "ru": "Внедрена поддержка автопилота Raymarine.\nМоделирование скорректированных значений для шлюзов яхтенных устройств\nДобавлена поддержка Fusion Player.",
+        "pt": "Implementado suporte para piloto automático Raymarine\nSimulação de valores corrigidos para gateways de dispositivos de iates\nAdicionado suporte para o jogador Fusion",
+        "nl": "Ondersteuning voor Raymarine-autopiloten geïmplementeerd.\nSimulatie van gecorrigeerde waarden voor gateways van jachtapparaten\nOndersteuning voor Fusion-speler toegevoegd.",
+        "fr": "Prise en charge du pilote automatique Raymarine implémentée\nSimulation de valeurs corrigées pour les passerelles des appareils de yacht\nAjout de la prise en charge du lecteur Fusion",
+        "it": "Implementato il supporto per l'autopilota Raymarine.\nSimulazione dei valori corretti per i gateway dei dispositivi per yacht\nAggiunto il supporto per Fusion Player",
+        "es": "Implementación del soporte para piloto automático Raymarine\nSimulación de valores corregidos para pasarelas de dispositivos de yates\nSe agregó compatibilidad con el jugador Fusion.",
+        "pl": "Wprowadzono obsługę autopilota Raymarine\nSkorygowana symulacja wartości dla bramek urządzeń jachtowych\nDodano obsługę odtwarzacza Fusion",
+        "uk": "Реалізовано підтримку автопілота Raymarine\nМоделювання скоригованих значень для шлюзів пристроїв яхт\nДодана підтримка плеєра Fusion.",
+        "zh-cn": "实现了 Raymarine 自动驾驶仪支持\n游艇设备网关的修正值模拟\n新增对Fusion播放器的支持"
+      },
       "0.4.2": {
         "en": "Updated packages",
         "de": "Aktualisierte Pakete",
@@ -67,32 +93,6 @@
         "pl": "Backend został przepisany na TypeScript\nWsparcie dla AIS dodano\nWażna obróbka temperatury, ciśnienia i wilgotności",
         "uk": "Backend був написаний на TypeScript\nПідтримка додано AIS\nДійсно оброблення температури, тиску і вологості",
         "zh-cn": "在 TypeScript 上重写了后端\n增加了对AIS的支持\n有效处理温度、压力和湿度"
-      },
-      "0.1.6": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
-      },
-      "0.1.1": {
-        "en": "Corrected vis-2 widgets",
-        "de": "Korrigierte vis-2 Widgets",
-        "ru": "Исправленные виджеты vis-2",
-        "pt": "Vis-2 widgets corrigidos",
-        "nl": "Gecorrigeerde vis-2 widgets",
-        "fr": "Widgets corrigés vis-à-vis de 2",
-        "it": "Corretti widget vis-2",
-        "es": "Widgets corregidos vis-2",
-        "pl": "Poprawione widżety vis-2",
-        "uk": "Виправлено vis-2 віджети",
-        "zh-cn": "已校正的2个部件"
       }
     },
     "titleLang": {
@@ -167,6 +167,55 @@
         ]
       }
     },
+    "deviceWidgets": {
+      "components": [
+        {
+          "name": "NmeaWindComponent",
+          "label": "NMEA Wind",
+          "description": {
+            "en": "Shows wind information for sailing",
+            "de": "Zeigt Windinformationen für das Segeln"
+          },
+          "icon": "wind.png"
+        },
+        {
+          "name": "NmeaHistoryChartComponent",
+          "label": "NMEA Chart",
+          "description": {
+            "en": "Shows history of values in a chart",
+            "de": "Zeigt die Historie von Werten in einem Diagramm"
+          },
+          "icon": "chart.png"
+        },
+        {
+          "name": "NmeaAutopilotComponent",
+          "label": "NMEA Autopilot",
+          "description": {
+            "en": "Autopilot control for NMEA",
+            "de": "Autopilotsteuerung für NMEA"
+          },
+          "icon": "autopilot.png"
+        },
+        {
+          "name": "NmeaAisRadarComponent",
+          "label": "NMEA AIS Radar",
+          "description": {
+            "en": "AIS Radar",
+            "de": "AIS Radar"
+          },
+          "icon": "aisRadar.png"
+        },
+        {
+          "name": "NmeaAnchorPositionComponent",
+          "label": "NMEA Anchor Position",
+          "description": {
+            "en": "AIS Anchor Position",
+            "de": "AIS Anker Position"
+          },
+          "icon": "aisAnchor.png"
+        }
+      ]
+    },
     "tier": 3,
     "connectionType": "local",
     "dataSource": "push",
@@ -198,7 +247,13 @@
     "applyGpsTimeZoneToSystem": false,
     "deleteAisAfter": 3600,
     "pressureAlertDiff": 4,
-    "pressureAlertMinutes": 240
+    "pressureAlertMinutes": 240,
+    "signalKEnabled": false,
+    "signalKPort": 3000,
+    "signalKBidirectional": true,
+    "auxPosition": "",
+    "chainLength": "",
+    "notificationInstance": ""
   },
   "objects": [],
   "instanceObjects": [
@@ -270,6 +325,76 @@
         "role": "state",
         "read": false,
         "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm",
+      "type": "channel",
+      "common": {
+        "expert": true,
+        "name": {
+          "en": "Anchor alarm"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.isActive",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Is anchor alarm active"
+        },
+        "type": "boolean",
+        "role": "switch",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.isAlarm",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Anchor alarm triggered"
+        },
+        "type": "boolean",
+        "role": "indicator.alarm",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.alarmRadius",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Anchor alarm radius"
+        },
+        "unit": "m",
+        "type": "number",
+        "role": "state",
+        "read": true,
+        "write": true,
+        "def": 50
+      },
+      "native": {}
+    },
+    {
+      "_id": "anchorAlarm.anchorPosition",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Anchor position (lat;lon)"
+        },
+        "type": "string",
+        "role": "value.gps",
+        "read": true,
+        "write": true,
+        "def": ""
       },
       "native": {}
     }

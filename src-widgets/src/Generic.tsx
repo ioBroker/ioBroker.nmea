@@ -4,7 +4,6 @@ import { IconButton } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
 import type { VisRxWidgetProps, VisRxWidgetState } from '@iobroker/types-vis-2';
-import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 
 export interface GenericState extends VisRxWidgetState {
     index: number;
@@ -15,9 +14,9 @@ export interface GenericState extends VisRxWidgetState {
 export default class Generic<
     RxData extends Record<string, any>,
     State extends Partial<GenericState> = GenericState,
-> extends (window.visRxWidget as typeof VisRxWidget)<RxData, State> {
+> extends window.visRxWidget<RxData, State> {
     private widgetStateId: string | null = null;
-    private subscribeInited = false;
+    private subscribeInitialized = false;
 
     constructor(props: VisRxWidgetProps) {
         super(props);
@@ -156,7 +155,7 @@ export default class Generic<
             if (state.val.toString().startsWith('-')) {
                 index = parseInt(state.val.toString().replace('-', ''), 10);
                 if (this.state.index !== index && this.state.prevIndex !== index) {
-                    if (this.subscribeInited) {
+                    if (this.subscribeInitialized) {
                         this.setState({ prevIndex: index });
                         setTimeout(
                             () =>
@@ -168,17 +167,17 @@ export default class Generic<
                         );
                     } else {
                         this.setState({ index });
-                        this.subscribeInited = true;
+                        this.subscribeInitialized = true;
                     }
                     window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
                 } else {
-                    this.subscribeInited = true;
+                    this.subscribeInitialized = true;
                 }
             } else {
                 index = parseInt(state.val.toString().replace('+', ''), 10);
                 if (this.state.index !== index && this.state.nextIndex !== index) {
                     window.localStorage.setItem(`vis.${this.props.id}`, index.toString());
-                    if (this.subscribeInited) {
+                    if (this.subscribeInitialized) {
                         this.setState({ nextIndex: index });
                         setTimeout(
                             () =>
@@ -190,10 +189,10 @@ export default class Generic<
                         );
                     } else {
                         this.setState({ index });
-                        this.subscribeInited = true;
+                        this.subscribeInitialized = true;
                     }
                 } else {
-                    this.subscribeInited = true;
+                    this.subscribeInitialized = true;
                 }
             }
         }
@@ -227,10 +226,10 @@ export default class Generic<
                     native: {},
                 });
             }
-            this.subscribeInited = false;
+            this.subscribeInitialized = false;
             await this.props.context.socket.subscribeState(this.widgetStateId, this.onWidgetStateUpdate);
         } else if (!this.state.rxData.sync && this.widgetStateId) {
-            this.subscribeInited = false;
+            this.subscribeInitialized = false;
             this.props.context.socket.unsubscribeState(this.widgetStateId, this.onWidgetStateUpdate);
             try {
                 syncObj = await this.props.context.socket.getObject(this.widgetStateId);
