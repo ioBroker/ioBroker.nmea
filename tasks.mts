@@ -1,12 +1,39 @@
 import { deleteFoldersRecursive, buildReact, npmInstall, copyFiles } from '@iobroker/build-tools';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const SRC = 'src-devices/';
 const src = `${__dirname}/${SRC}`;
+
+/**
+ * Assemble the self-contained icon-set manifest for the ioBroker.devices icon picker.
+ * Reads the source manifest + SVG files from `src-admin/icons/`, inlines each SVG as a base64
+ * data URI (so the served `icons.json` needs no separate icon files) and writes the result to
+ * `admin/dm-widgets/icons.json` (referenced by `common.deviceWidgets.iconsManifest`).
+ */
+function buildIconsManifest(): void {
+    const srcDir = `${__dirname}/src-admin/icons`;
+    const manifestPath = `${srcDir}/icons.json`;
+    if (!existsSync(manifestPath)) {
+        return;
+    }
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    manifest.icons = (manifest.icons || []).map((icon: { file: string; [key: string]: unknown }) => {
+        const { file, ...rest } = icon;
+        const base64 = readFileSync(`${srcDir}/${file}`).toString('base64');
+        return { ...rest, icon: `data:image/svg+xml;base64,${base64}` };
+    });
+    const outDir = `${__dirname}/admin/dm-widgets`;
+    if (!existsSync(outDir)) {
+        mkdirSync(outDir, { recursive: true });
+    }
+    writeFileSync(`${outDir}/icons.json`, JSON.stringify(manifest, null, 2));
+    console.log(`Built admin/dm-widgets/icons.json with ${manifest.icons.length} inlined icons`);
+}
 
 function buildAdmin() {
     return buildReact(`${__dirname}/src-admin/`, { rootDir: `${__dirname}/src-admin/`, vite: true });
@@ -35,6 +62,8 @@ function copyAllFilesDevices() {
     copyFiles([`${SRC}build/assets/*.*`], `admin/dm-widgets/assets`);
     copyFiles([`${SRC}build/img/*`], `admin/dm-widgets/img`);
     copyFiles([`${SRC}img/*.*`], `admin/dm-widgets`);
+    // Assemble the base64 icon-set manifest into admin/dm-widgets/icons.json
+    buildIconsManifest();
 }
 
 function copyAllFiles() {
@@ -74,6 +103,8 @@ if (process.argv.includes('--admin-0-clean')) {
         .then(() => buildAdmin())
         .then(() => copyAllAdminFiles())
         .catch(e => console.error(e));
+} else if (process.argv.includes('--build-icons')) {
+    buildIconsManifest();
 } else if (process.argv.includes('--copy-files')) {
     copyAllFiles();
 } else if (process.argv.includes('--build')) {

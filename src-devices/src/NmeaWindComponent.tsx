@@ -12,7 +12,7 @@ import WidgetGeneric, {
     type CustomWidgetPlugin,
 } from '@iobroker/dm-widgets';
 import type { BoxProps, TypographyProps, DialogProps, IconButtonProps, DialogContentProps } from '@mui/material';
-import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
+import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/dm-utils';
 
 // Cyclic ES-module import: NmeaAutopilotComponent also imports this file. ES modules handle
 // cycles via live bindings — `NmeaAutopilotComponent` is undefined while NmeaAutopilotComponent
@@ -568,7 +568,9 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
             const now = Date.now();
             const trimmed = windowSec > 0 ? history.filter(h => now - h.ts < windowSec * 1000) : [];
             const next = val != null && isFinite(val) ? [...trimmed, { val, ts: now }] : trimmed;
-            return { [which]: val, [historyKey]: next };
+            // Computed keys widen to a string index signature, which doesn't match the concrete
+            // state shape — assert the precise partial we actually return so setState accepts it.
+            return { [which]: val, [historyKey]: next } as Pick<WindCompassState, typeof which | typeof historyKey>;
         });
     }
 
@@ -1604,8 +1606,12 @@ export class NmeaWindCompass extends WidgetGeneric<WindCompassState, WindCompass
         if (!NmeaAutopilotComponent) {
             return null;
         }
+        // Inherit the parent's settings (keeps the required widget id/type/size/name the base
+        // class needs) and override only `_renderInline` so the embedded autopilot emits just its
+        // inline body. Both settings interfaces share the same CustomWidgetPlugin base, so the
+        // wind-only extras are harmless to the autopilot.
         const companionSettings = {
-            instance: this.props.settings.instance,
+            ...this.props.settings,
             _renderInline: true,
         };
         return (

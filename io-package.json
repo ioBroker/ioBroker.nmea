@@ -156,6 +156,7 @@
       }
     },
     "deviceWidgets": {
+      "iconsManifest": "icons.json",
       "components": [
         {
           "name": "NmeaWindComponent",

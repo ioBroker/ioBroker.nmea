@@ -32,7 +32,7 @@ import type {
     ToggleButtonProps,
     ToggleButtonGroupProps,
 } from '@mui/material';
-import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
+import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/dm-utils';
 // Leaflet renders the chart base layer behind the SVG overlay. Imported as a side effect
 // for the CSS, so the map container gets the default sizing/cursor behaviour.
 import L from 'leaflet';

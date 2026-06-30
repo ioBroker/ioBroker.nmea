@@ -19,7 +19,7 @@ import WidgetGeneric, {
     type CustomWidgetPlugin,
 } from '@iobroker/dm-widgets';
 import type { BoxProps, TypographyProps, DialogProps, IconButtonProps, DialogContentProps } from '@mui/material';
-import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
+import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/dm-utils';
 
 const Box: React.ComponentType<BoxProps> = MuiMaterial?.Box;
 const Typography: React.ComponentType<TypographyProps> = MuiMaterial?.Typography;

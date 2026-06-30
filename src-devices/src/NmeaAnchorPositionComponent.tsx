@@ -37,7 +37,7 @@ import type {
     SwitchProps,
     TextFieldProps,
 } from '@mui/material';
-import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
+import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/dm-utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -527,7 +527,10 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                     (next as AnchorPositionState).trail = filtered;
                 }
             }
-            return next;
+            // `next` is a Partial — assert the keys we actually set so setState accepts it
+            // (Partial makes every field optionally undefined, which the updater return type
+            // forbids for fields typed `T | null`).
+            return next as Pick<AnchorPositionState, 'boatLat' | 'boatLon' | 'trail'>;
         });
     }
 

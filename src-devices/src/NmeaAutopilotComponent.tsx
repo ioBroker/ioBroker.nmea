@@ -1,5 +1,5 @@
 // NMEA Autopilot — KIP-inspired control widget for the device manager.
-// Shows current heading vs locked target heading on a rotating compass dial with
+// Shows current heading vs. locked target heading on a rotating compass dial with
 // port/starboard "no-go" arcs, AWA pointer in Wind mode, rudder bar, and offers
 // Standby/Auto/Wind/Track mode buttons plus −10/−1/+1/+10 adjust buttons.
 
@@ -24,7 +24,7 @@ import type {
     ButtonProps,
     ButtonGroupProps,
 } from '@mui/material';
-import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/json-config';
+import type { ConfigItemPanel, ConfigItemTabs } from '@iobroker/dm-utils';
 
 // Cyclic ES-module import: NmeaWindComponent also imports this file. ES modules handle
 // cycles via live bindings — the reference is undefined while NmeaWindComponent itself is being
@@ -182,6 +182,46 @@ function fmtSigned(n: number | null): string {
     return Math.abs(Math.round(n)).toString();
 }
 
+// Port/starboard single-letter abbreviations per language, used to render the autopilot
+// wind-angle datum the way a Raymarine pilot head does (e.g. "130°P", in German "130°B").
+// Port = wind from the left side (datum 180…360°), starboard = from the right (0…180°).
+// Conventional nautical abbreviations; falls back to English P/S.
+const WIND_SIDE_ABBR: Record<string, { port: string; starboard: string }> = {
+    en: { port: 'P', starboard: 'S' }, // Port / Starboard
+    de: { port: 'B', starboard: 'S' }, // Backbord / Steuerbord
+    ru: { port: 'Л', starboard: 'П' }, // Левый борт / Правый борт
+    uk: { port: 'Л', starboard: 'П' }, // Лівий борт / Правий борт
+    pl: { port: 'L', starboard: 'P' }, // Lewa burta / Prawa burta
+    nl: { port: 'B', starboard: 'S' }, // Bakboord / Stuurboord
+    fr: { port: 'B', starboard: 'T' }, // Bâbord / Tribord
+    it: { port: 'B', starboard: 'T' }, // Babordo / Tribordo
+    pt: { port: 'B', starboard: 'E' }, // Bombordo / Estibordo
+    es: { port: 'B', starboard: 'E' }, // Babor / Estribor
+    'zh-cn': { port: '左', starboard: '右' }, // 左舷 / 右舷
+};
+
+/**
+ * Render a wind-angle datum (degrees, 0…360) the way a Raymarine pilot head shows it:
+ * 0…180° → starboard, 180…360° → port, each as a ≤180° magnitude plus a language-dependent
+ * side letter (e.g. datum 230° → "130°P" in English, "130°B" in German). 0° (dead ahead) and
+ * 180° (dead astern) carry no side letter. The magnitude digits and the side letter are
+ * returned separately so the caller can size them independently inside the SVG.
+ */
+function formatWindDatumDeg(deg: number | null, lang: string): { digits: string; side: string } {
+    if (deg == null || !isFinite(deg)) {
+        return { digits: '---', side: '' };
+    }
+    const abbr = WIND_SIDE_ABBR[lang] || WIND_SIDE_ABBR.en;
+    const d = ((Math.round(deg) % 360) + 360) % 360;
+    if (d === 0) {
+        return { digits: '0', side: '' };
+    }
+    if (d === 180) {
+        return { digits: '180', side: '' };
+    }
+    return d < 180 ? { digits: String(d), side: abbr.starboard } : { digits: String(360 - d), side: abbr.port };
+}
+
 /**
  * Smallest angular distance between two compass-style angles (deg), always 0..180.
  * Used to decide whether a drag-to-set commit needs an "are you sure?" prompt — large
@@ -209,7 +249,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
 
     /**
      * Per-key monotonically-increasing rotation angles. CSS animates `transform` linearly,
-     *  so feeding it raw 0..360° angles makes the compass spin the long way at every 359°↔0°
+     *  so feeding it raw 0..360° angles makes the compass spin a long way at every 359°↔0°
      *  wrap. We unwrap by tracking each angle's "extended" value: each frame we pick the
      *  equivalent target within ±180° of the last value and store it. The visible rotation
      *  number can drift arbitrarily far from 0 over a long session — that's fine, CSS doesn't
@@ -651,6 +691,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
      */
     protected renderDialSvg(size: number | string, compact = false, dark = true): React.JSX.Element {
         const { heading, lockedHeading, awa, mode, rudder, windAngle } = this.state;
+        const lang = this.props.stateContext.language || 'en';
         // Unwrap heading and AWA so the CSS transition takes the shortest path across 360°↔0°
         // wraps instead of spinning the long way (e.g. 359° → 1° should be +2°, not -358°).
         const headingDeg = heading != null ? this.unwrap('heading', heading) : 0;
@@ -1088,28 +1129,51 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
                             textAnchor="middle"
                         >
                             {(() => {
-                                // Wind mode shows the wind-angle datum (autoPilot.windAngle) —
-                                // the operator's wind reference, NOT the compass heading. Other
-                                // engaged modes show the locked heading; Standby / unknown falls
-                                // back to the live compass heading so the dial isn't blank.
-                                const autopilotActive = mode != null && mode !== 0;
-                                let centerValue: number | null;
+                                // Wind mode shows the wind-angle datum (autoPilot.windAngle) the
+                                // way the Raymarine pilot head does: a ≤180° magnitude plus a
+                                // port/starboard side letter (e.g. datum 230° → "130°P"), with the
+                                // letter localised to the UI language. Other engaged modes show the
+                                // locked heading; Standby / unknown falls back to the live compass
+                                // heading so the dial isn't blank.
                                 if (mode === 2) {
-                                    centerValue = windAngle;
-                                } else if (autopilotActive) {
-                                    centerValue = lockedHeading;
-                                } else {
-                                    centerValue = heading;
+                                    const { digits, side } = formatWindDatumDeg(windAngle, lang);
+                                    return (
+                                        <>
+                                            {digits}
+                                            <tspan
+                                                fontSize={100}
+                                                fontWeight={400}
+                                                dy={-25}
+                                            >
+                                                °
+                                            </tspan>
+                                            {side ? (
+                                                <tspan
+                                                    fontSize={110}
+                                                    fontWeight={700}
+                                                    dy={25}
+                                                >
+                                                    {side}
+                                                </tspan>
+                                            ) : null}
+                                        </>
+                                    );
                                 }
-                                return centerValue == null ? '---' : pad3(centerValue);
+                                const autopilotActive = mode != null && mode !== 0;
+                                const centerValue = autopilotActive ? lockedHeading : heading;
+                                return (
+                                    <>
+                                        {centerValue == null ? '---' : pad3(centerValue)}
+                                        <tspan
+                                            fontSize={100}
+                                            fontWeight={400}
+                                            dy={-25}
+                                        >
+                                            °
+                                        </tspan>
+                                    </>
+                                );
                             })()}
-                            <tspan
-                                fontSize={100}
-                                fontWeight={400}
-                                dy={-25}
-                            >
-                                °
-                            </tspan>
                         </text>
                     </>
                 )}
@@ -1477,10 +1541,13 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         if (!NmeaWindCompass) {
             return null;
         }
-        // Companion uses its own instance address from the parent's settings; everything else
-        // defaults. `_renderInline` tells it to skip its tile + dialog and just emit the body.
+        // Companion inherits the parent's settings (so it keeps the required widget id/type/size/
+        // name the base class needs) and overrides only what differs: `_renderInline` tells it to
+        // skip its tile + dialog and just emit the body. The shared `instance` carries over via
+        // the spread. Both settings interfaces extend the same CustomWidgetPlugin base, so the
+        // autopilot-only extras are harmless to the wind compass.
         const companionSettings = {
-            instance: this.props.settings.instance,
+            ...this.props.settings,
             _renderInline: true,
         };
         return (
@@ -1611,7 +1678,7 @@ export class NmeaAutopilotComponent extends WidgetGeneric<AutopilotComponentStat
         );
     }
 
-    private renderConfirmDialog(): React.JSX.Element | null {
+    protected renderConfirmDialog(): React.JSX.Element | null {
         const { pendingAngle, pendingMode, pendingDeadline } = this.state;
         if (pendingAngle == null || pendingMode == null) {
             return null;

@@ -71,6 +71,39 @@ function signedDeg(d: number): number {
     return a > 180 ? a - 360 : a;
 }
 
+// Port/starboard single-letter abbreviations per language, used to render the Seatalk
+// Pilot Wind Datum the way the Raymarine pilot head does (e.g. "130°P" / in German
+// "130°B"). Port = wind from the left side (datum 180…360°), starboard = from the right
+// (0…180°). Conventional nautical abbreviations; falls back to English P/S.
+const WIND_SIDE_ABBR: Record<string, { port: string; starboard: string }> = {
+    en: { port: 'P', starboard: 'S' }, // Port / Starboard
+    de: { port: 'B', starboard: 'S' }, // Backbord / Steuerbord
+    ru: { port: 'Л', starboard: 'П' }, // Левый борт / Правый борт
+    uk: { port: 'Л', starboard: 'П' }, // Лівий борт / Правий борт
+    pl: { port: 'L', starboard: 'P' }, // Lewa burta / Prawa burta
+    nl: { port: 'B', starboard: 'S' }, // Bakboord / Stuurboord
+    fr: { port: 'B', starboard: 'T' }, // Bâbord / Tribord
+    it: { port: 'B', starboard: 'T' }, // Babordo / Tribordo
+    pt: { port: 'B', starboard: 'E' }, // Bombordo / Estibordo
+    es: { port: 'B', starboard: 'E' }, // Babor / Estribor
+    'zh-cn': { port: '左', starboard: '右' }, // 左舷 / 右舷
+};
+
+// Render an absolute wind datum (radians, 0…2π) the way a Raymarine pilot head shows it:
+// 0…180° → starboard, 180…360° → port, each shown as a (≤180)° value plus a
+// language-dependent side letter. 0° (dead ahead) and 180° (dead astern) carry no side.
+function formatWindDatum(rad: number, lang: string): string {
+    const side = WIND_SIDE_ABBR[lang] || WIND_SIDE_ABBR.en;
+    const deg = Math.round(normDeg((rad * 180) / Math.PI)) % 360;
+    if (deg === 0) {
+        return '0°';
+    }
+    if (deg === 180) {
+        return '180°';
+    }
+    return deg < 180 ? `${deg}°${side.starboard}` : `${360 - deg}°${side.port}`;
+}
+
 // V_apparent = V_true - V_boat, so V_true = V_apparent + V_boat.
 // AWA is measured relative to the vessel bow, which points along `headingDeg`;
 // `boatSpeed`/`boatCourseDeg` picks the reference frame (water: STW+heading → water-ref TW;
@@ -1614,6 +1647,33 @@ export class NmeaAdapter extends Adapter {
 
                     await this.writeState(mId, val);
                 }
+            }
+        }
+
+        // Raymarine "Pilot Wind Datum" (PGN 65345): expose an extra read-only state that
+        // renders the angle the way the Raymarine pilot head does — 0…180° to starboard,
+        // 180…360° to port, with a language-dependent side letter (e.g. datum 230° →
+        // "130°P" in English, "130°B" in German). The numeric `windDatum` itself stays in
+        // radians on purpose: the autopilot wind-angle adjustment reads it back as radians
+        // (see seaTalkAutoPilot.ts setWindAngle/setWindAngleAbsolute), so the +/-1°/±10°
+        // buttons keep working unchanged.
+        if (id === 'seatalkPilotWindDatum.windDatum') {
+            const raw = parseFloat(options.value as string);
+            if (Number.isFinite(raw)) {
+                const displayId = 'seatalkPilotWindDatum.windDatumDisplay';
+                await this.updateObject({
+                    _id: displayId,
+                    common: {
+                        name: 'Wind datum (Raymarine display, port/starboard)',
+                        role: 'text',
+                        type: 'string',
+                        read: true,
+                        write: false,
+                    },
+                    type: 'state',
+                    native: {},
+                });
+                await this.writeState(displayId, formatWindDatum(raw, this.lang));
             }
         }
 

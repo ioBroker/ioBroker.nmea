@@ -93,12 +93,29 @@ Actually, only one autopilot is supported: Raymarine
 
 The development of Simrad/navico/B&G is not completed yet.
 
+### Wind datum display
+For Raymarine units that publish the "Pilot Wind Datum" (PGN 65345), the adapter stores the
+raw angle in radians under `seatalkPilotWindDatum.windDatum` (this is the canonical value the
+autopilot reads back when you change the wind angle, so it must stay in radians).
+
+In addition, a read-only convenience state `seatalkPilotWindDatum.windDatumDisplay` is created.
+It shows the angle exactly the way the Raymarine pilot head does:
+- `0…180°` → starboard, `180…360°` → port,
+- each as a `≤180°` value plus a language-dependent side letter (e.g. a datum of `230°`
+  is shown as `130°P` in English and `130°B` in German). `0°` (dead ahead) and `180°`
+  (dead astern) carry no side letter.
+
+Use `windDatumDisplay` for visualization and `windDatum` for calculations/automation.
+
 <!--
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22 now
+- (bluefox) Added `seatalkPilotWindDatum.windDatumDisplay` state with the Raymarine-style port/starboard wind-angle display
+- (bluefox) The autopilot device-manager widget now shows the wind datum the Raymarine way (e.g. `130°P`) with a language-dependent port/starboard letter
+- (bluefox) Added the custom icon set
 
 ### 1.0.1 (2026-06-26)
 * (bluefox) Implemented Raymarine autopilot support
