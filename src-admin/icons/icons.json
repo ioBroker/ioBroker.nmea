@@ -1,0 +1,19 @@
+{
+    "name": {
+        "en": "NMEA marine icons",
+        "de": "NMEA Marine-Icons",
+        "ru": "Морские иконки NMEA"
+    },
+    "icons": [
+        { "id": "compass", "label": { "en": "Compass", "de": "Kompass" }, "category": "marine", "file": "nmea-compass.svg" },
+        { "id": "autopilot", "label": { "en": "Autopilot", "de": "Autopilot" }, "category": "marine", "file": "nmea-autopilot.svg" },
+        { "id": "anchor", "label": { "en": "Anchor", "de": "Anker" }, "category": "marine", "file": "nmea-anchor.svg" },
+        { "id": "sailboat", "label": { "en": "Sailboat", "de": "Segelboot" }, "category": "marine", "file": "nmea-sailboat.svg" },
+        { "id": "motorboat", "label": { "en": "Motor boat", "de": "Motorboot" }, "category": "marine", "file": "nmea-motorboat.svg" },
+        { "id": "wind", "label": { "en": "Wind", "de": "Wind" }, "category": "marine", "file": "nmea-wind.svg" },
+        { "id": "depth", "label": { "en": "Depth", "de": "Tiefe" }, "category": "marine", "file": "nmea-depth.svg" },
+        { "id": "speed", "label": { "en": "Speed", "de": "Geschwindigkeit" }, "category": "marine", "file": "nmea-speed.svg" },
+        { "id": "water-temp", "label": { "en": "Water temperature", "de": "Wassertemperatur" }, "category": "marine", "file": "nmea-water-temp.svg" },
+        { "id": "position", "label": { "en": "Position", "de": "Position" }, "category": "marine", "file": "nmea-position.svg" }
+    ]
+}

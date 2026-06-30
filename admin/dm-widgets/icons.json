@@ -1,0 +1,99 @@
+{
+  "name": {
+    "en": "NMEA marine icons",
+    "de": "NMEA Marine-Icons",
+    "ru": "Морские иконки NMEA"
+  },
+  "icons": [
+    {
+      "id": "compass",
+      "label": {
+        "en": "Compass",
+        "de": "Kompass"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41Ij4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjkiIC8+CiAgICA8cGF0aCBkPSJNMTIgNSBMMTMuNiAxMiBMMTIgMTkgTDEwLjQgMTIgWiIgZmlsbD0iY3VycmVudENvbG9yIiBzdHJva2U9Im5vbmUiIC8+CiAgICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxLjEiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3Ryb2tlPSJub25lIiAvPgo8L3N2Zz4K"
+    },
+    {
+      "id": "autopilot",
+      "label": {
+        "en": "Autopilot",
+        "de": "Autopilot"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogICAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNiIgLz4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEuOCIgZmlsbD0iY3VycmVudENvbG9yIiBzdHJva2U9Im5vbmUiIC8+CiAgICA8cGF0aCBkPSJNMTIgNiBWMTgiIC8+CiAgICA8cGF0aCBkPSJNNiAxMiBIMTgiIC8+CiAgICA8cGF0aCBkPSJNMTIgMi41IFY2IiAvPgogICAgPHBhdGggZD0iTTEyIDE4IFYyMS41IiAvPgogICAgPHBhdGggZD0iTTIuNSAxMiBINiIgLz4KICAgIDxwYXRoIGQ9Ik0xOCAxMiBIMjEuNSIgLz4KPC9zdmc+Cg=="
+    },
+    {
+      "id": "anchor",
+      "label": {
+        "en": "Anchor",
+        "de": "Anker"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDUgMjA1IiBmaWxsPSJjdXJyZW50Q29sb3IiPgogICAgPHBhdGggZD0iTTE0MCwxMjlsMTcsMTZjMCwwLTIxLDMwLTQzLDMwCiAgICAgICAgYzAsMCwwLTg0LDAtMTA0YzE1LTUsMjUtMTgsMjUtMzRjMC0yMC0xNy0zNi0zNy0zNgogICAgICAgIGMtMjEsMC0zNywxNi0zNywzNmMwLDE2LDEwLDI5LDI1LDM0bDAsMTA0CiAgICAgICAgYy0yNy0yLTQyLTI3LTQyLTI3bDE4LTE3TDAsMTIxbDEwLDYzbDE3LTE3CiAgICAgICAgYzE1LDEyLDMyLDM3LDczLDM3YzUxLTEsNjMtMjksNzYtNDBsMTksMTlsOS02NAogICAgICAgIEwxNDAsMTI5eiBNODMsMzZjMC0xMCw5LTE5LDE5LTE5czE5LDgsMTksMTkKICAgICAgICBjMCwxMC05LDE5LTE5LDE5UzgzLDQ3LDgzLDM2eiIgLz4KPC9zdmc+Cg=="
+    },
+    {
+      "id": "sailboat",
+      "label": {
+        "en": "Sailboat",
+        "de": "Segelboot"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj4KICAgIDxwYXRoIGQ9Ik0xMiAyIEwxMiAxMyBMNC41IDEzIFoiIC8+CiAgICA8cGF0aCBkPSJNMTMuMiA1IEwxMy4yIDEzIEwxOSAxMyBaIiAvPgogICAgPHBhdGggZD0iTTMgMTUuNSBIMjEgTDE4LjQgMjAgSDUuNiBaIiAvPgo8L3N2Zz4K"
+    },
+    {
+      "id": "motorboat",
+      "label": {
+        "en": "Motor boat",
+        "de": "Motorboot"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj4KICAgIDxwYXRoIGQ9Ik02LjUgMTEuNSBWOCBIMTEuNSBMMTQuNSAxMS41IFoiIC8+CiAgICA8cGF0aCBkPSJNMyAxMyBIMjEgQzIwLjQgMTYgMTguNCAxNyAxNi4yIDE3IEg2LjggQzQuNiAxNyAzLjUgMTUuMyAzIDEzIFoiIC8+CiAgICA8cGF0aCBkPSJNMyAyMCBxMiAtMS41IDQgMCB0NCAwIHQ0IDAgdDQgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS4zIiBzdHJva2UtbGluZWNhcD0icm91bmQiIC8+Cjwvc3ZnPgo="
+    },
+    {
+      "id": "wind",
+      "label": {
+        "en": "Wind",
+        "de": "Wind"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTMgOCBIMTMuNSBBMi41IDIuNSAwIDEgMCAxMSA1LjUiIC8+CiAgICA8cGF0aCBkPSJNMyAxMiBIMTcuNSBBMi41IDIuNSAwIDEgMSAxNSAxNC41IiAvPgogICAgPHBhdGggZD0iTTMgMTYgSDEwLjUgQTIgMiAwIDEgMSA4LjUgMTgiIC8+Cjwvc3ZnPgo="
+    },
+    {
+      "id": "depth",
+      "label": {
+        "en": "Depth",
+        "de": "Tiefe"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogICAgPHBhdGggZD0iTTIgNiBxMiAtMi41IDQgMCB0NCAwIHQ0IDAgdDQgMCB0NCAwIiAvPgogICAgPHBhdGggZD0iTTEyIDguNSBWMTguNSIgLz4KICAgIDxwYXRoIGQ9Ik04LjUgMTUgTDEyIDE4LjUgTDE1LjUgMTUiIC8+Cjwvc3ZnPgo="
+    },
+    {
+      "id": "speed",
+      "label": {
+        "en": "Speed",
+        "de": "Geschwindigkeit"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogICAgPHBhdGggZD0iTTQgMTcgQTggOCAwIDAgMSAyMCAxNyIgLz4KICAgIDxwYXRoIGQ9Ik0xMiAxNyBMMTYgMTEuNSIgLz4KICAgIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTciIHI9IjEuMyIgZmlsbD0iY3VycmVudENvbG9yIiBzdHJva2U9Im5vbmUiIC8+Cjwvc3ZnPgo="
+    },
+    {
+      "id": "water-temp",
+      "label": {
+        "en": "Water temperature",
+        "de": "Wassertemperatur"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogICAgPHBhdGggZD0iTTEwIDMgQTIgMiAwIDAgMSAxNCAzIFYxMC41IEEzLjIgMy4yIDAgMSAxIDEwIDEwLjUgWiIgLz4KICAgIDxwYXRoIGQ9Ik0xMiA2IFYxMi4yIiAvPgogICAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMy44IiByPSIxLjMiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3Ryb2tlPSJub25lIiAvPgogICAgPHBhdGggZD0iTTMgMTkgcTIuMjUgLTEuNyA0LjUgMCB0NC41IDAgdDQuNSAwIHQ0LjUgMCIgLz4KICAgIDxwYXRoIGQ9Ik0zIDIxLjYgcTIuMjUgLTEuNyA0LjUgMCB0NC41IDAgdDQuNSAwIHQ0LjUgMCIgLz4KPC9zdmc+Cg=="
+    },
+    {
+      "id": "position",
+      "label": {
+        "en": "Position",
+        "de": "Position"
+      },
+      "category": "marine",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxwYXRoIGQ9Ik0xMiAyMSBDMTIgMjEgMTggMTQuNSAxOCA5LjUgQTYgNiAwIDAgMCA2IDkuNSBDNiAxNC41IDEyIDIxIDEyIDIxIFoiIC8+CiAgICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjkuNSIgcj0iMi4yIiAvPgo8L3N2Zz4K"
+    }
+  ]
+}
