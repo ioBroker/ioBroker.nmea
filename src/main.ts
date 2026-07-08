@@ -227,6 +227,9 @@ export class NmeaAdapter extends Adapter {
         this.on('unload', this.onUnload.bind(this));
 
         this.parser = new FromPgn({ includeRawData: true });
+        // Swallow canboatjs 'error' events so an unparsable frame does not surface as Node's
+        // ERR_UNHANDLED_ERROR. The test-playback caller reports the failed line itself.
+        this.parser.on('error', () => {});
 
         this.config = {
             serialPort: 'COM3',

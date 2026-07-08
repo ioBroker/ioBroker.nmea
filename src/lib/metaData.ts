@@ -204,6 +204,39 @@ const META_DATA: Record<
         role: 'value.voltage',
         round: 100,
     },
+    // canboat delivers engine pressures in Pa and temperatures in K. Without these entries the
+    // states would keep the raw SI values (e.g. oil pressure ~2.9e6 Pa). Convert to the units a
+    // marine engine gauge shows: pressures → bar (Pa * 1e-5), oil temperature → °C (K - 273.15).
+    'engineParametersDynamic.oilPressure': {
+        unit: 'bar',
+        role: 'value.pressure',
+        factor: 0.00001,
+        round: 100,
+    },
+    'engineParametersDynamic.coolantPressure': {
+        unit: 'bar',
+        role: 'value.pressure',
+        factor: 0.00001,
+        round: 100,
+    },
+    'engineParametersDynamic.fuelPressure': {
+        unit: 'bar',
+        role: 'value.pressure',
+        factor: 0.00001,
+        round: 100,
+    },
+    'engineParametersRapidUpdate.boostPressure': {
+        unit: 'bar',
+        role: 'value.pressure',
+        factor: 0.00001,
+        round: 100,
+    },
+    'engineParametersDynamic.oilTemperature': {
+        unit: '°C',
+        role: 'value.temperature',
+        offset: -273.15,
+        round: 10,
+    },
 };
 
 export default META_DATA;

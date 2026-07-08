@@ -173,6 +173,19 @@ export default class YDWG extends GenericDriver {
             this.adapter.log.warn(`${pgn.pgn} ${warning}`);
         });
 
+        // canboatjs emits 'error' (not throw) when a frame cannot be parsed. Without a listener,
+        // Node re-throws it as ERR_UNHANDLED_ERROR ("Unhandled error.") from inside parseString().
+        // In the throw path the first arg is the raw line (with a timestamp), so we dedup on the
+        // 8-hex CAN-ID token (stable per PGN+source) instead of the whole line to avoid log spam.
+        this.parser.on('error', (pgn: PGNMessage | string, error: Error) => {
+            const key = typeof pgn === 'string' ? (pgn.match(/\b[0-9A-Fa-f]{8}\b/)?.[0] ?? pgn) : String(pgn?.pgn);
+            if (this.pgnErrors[key]) {
+                return;
+            }
+            this.pgnErrors[key] = true;
+            this.adapter.log.warn(`Cannot parse frame ${key}: ${error?.message ?? error}`);
+        });
+
         this.app.setProviderStatus = (_id: string, msg: string) => {
             if (msg.startsWith('Connected to')) {
                 this.adapter.log.debug('Connected to Yacht Devices Gateway');
