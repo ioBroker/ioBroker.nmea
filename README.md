@@ -111,7 +111,7 @@ Use `windDatumDisplay` for visualization and `windDatum` for calculations/automa
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 1.0.3 (2026-07-08)
 - (bluefox) Better decoding of motor PGNs
 
 ### 1.0.2 (2026-06-30)
@@ -130,11 +130,6 @@ Use `windDatumDisplay` for visualization and `windDatum` for calculations/automa
 
 ### 0.4.0 (2025-11-30)
 * (bluefox) Added support of YDEN-02/03 and YDWG-02/03 gateways
-
-### 0.3.0 (2025-08-16)
-* (bluefox) Widgets were rewritten on TypeScript
-* (bluefox) Corrected errors in the widgets and in the calculations
-* (bluefox) Small fix for ais data
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 

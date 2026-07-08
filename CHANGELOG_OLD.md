@@ -1,4 +1,9 @@
 # Older changes
+## 0.3.0 (2025-08-16)
+* (bluefox) Widgets were rewritten on TypeScript
+* (bluefox) Corrected errors in the widgets and in the calculations
+* (bluefox) Small fix for ais data
+
 ## 0.2.2 (2024-06-20)
 * (bluefox) Backend was rewritten on TypeScript
 * (bluefox) Support for AIS added
