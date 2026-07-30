@@ -4,6 +4,13 @@ import { IconButton } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
 import type { VisRxWidgetProps, VisRxWidgetState } from '@iobroker/types-vis-2';
+import type VisRxWidgetClass from '@iobroker/types-vis-2/visRxWidget';
+
+// `@iobroker/types-vis-2` (as of 2.14.4) declares `Window.visRxWidget` as `typeof VisRxWidget`, but
+// `VisRxWidget` is only re-exported as a type from `./visRxWidget` and never imported into the scope
+// of `index.d.ts` — so the global resolves to an error type and every `this.state`/`this.props` of a
+// subclass loses its members. Re-type it locally from the class' own declaration file.
+const VisRxWidget = window.visRxWidget as unknown as typeof VisRxWidgetClass;
 
 export interface GenericState extends VisRxWidgetState {
     index: number;
@@ -14,7 +21,7 @@ export interface GenericState extends VisRxWidgetState {
 export default class Generic<
     RxData extends Record<string, any>,
     State extends Partial<GenericState> = GenericState,
-> extends window.visRxWidget<RxData, State> {
+> extends VisRxWidget<RxData, State> {
     private widgetStateId: string | null = null;
     private subscribeInitialized = false;
 

@@ -12,7 +12,7 @@ import {
     Tooltip,
 } from '@mui/material';
 import { Add, Close, Delete, DragIndicator, Edit } from '@mui/icons-material';
-import { I18n, SelectID } from '@iobroker/adapter-react-v5';
+import { I18n, SelectID } from '@iobroker/gui-components';
 import { ConfigGeneric, type ConfigGenericProps, type ConfigGenericState } from '@iobroker/json-config';
 import type { NmeaConfig, SimulateItem, SimulateType } from '../../src/types';
 
@@ -363,7 +363,7 @@ export default class SimulateTableComponent extends ConfigGeneric<ConfigGenericP
                         variant="standard"
                         value={item.type}
                         onChange={e => {
-                            const type = e.target.value as SimulateType;
+                            const type = e.target.value;
                             // reset the sub-type to a valid default for the new type; auto-assign the
                             // next free instance for this type so two sensors never collide (the MFD
                             // identifies a sensor by its instance — same instance ⇒ values get merged).

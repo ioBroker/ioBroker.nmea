@@ -15,7 +15,7 @@
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
-        "baseUrl": ".",
+        "rootDir": "./src",
         "types": ["vite/client", "@iobroker/types"]
     },
     "include": ["src"],

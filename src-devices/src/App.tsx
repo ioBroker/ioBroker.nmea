@@ -5,7 +5,7 @@
 // NOT part of the production bundle. Only loaded by src/index.tsx (Vite dev server).
 
 import React, { useEffect, useState } from 'react';
-import { Connection, type ThemeType } from '@iobroker/adapter-react-v5';
+import { Connection, type ThemeType } from '@iobroker/gui-components';
 import type { IStateContext, StateChangeListener, ObjectChangeListener } from '@iobroker/dm-widgets';
 import NmeaWindCompass from './NmeaWindComponent';
 import NmeaHistoryChartComponent from './NmeaHistoryChartComponent';
