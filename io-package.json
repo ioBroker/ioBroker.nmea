@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "nmea",
-    "version": "1.0.3",
+    "version": "2.0.0",
     "news": {
+      "2.0.0": {
+        "en": "Migrated to devices V3",
+        "de": "Auf Geräte V3 migriert",
+        "ru": "Перенесено на устройства V3",
+        "pt": "Migrado para dispositivos V3",
+        "nl": "Overgezet naar apparaten V3",
+        "fr": "Migration vers les appareils V3",
+        "it": "Migrazione ai dispositivi V3",
+        "es": "Migrado a dispositivos V3",
+        "pl": "Migracja do urządzeń V3",
+        "uk": "Перенесено на пристрої V3",
+        "zh-cn": "已迁移至设备 V3"
+      },
       "1.0.3": {
         "en": "Better decoding of motor PGNs",
         "de": "Bessere Dekodierung von motorischen PGNs",
@@ -80,19 +93,6 @@
         "pl": "Dodano wsparcie dla bramy YDEN- 02 / 03 i YDWG- 02 / 03",
         "uk": "Додано підтримку YDEN-02/03 та YDWG-02/03 воріт",
         "zh-cn": "增加了YDEN-02/03和YDWG-02/03网关的支持"
-      },
-      "0.3.0": {
-        "en": "Widgets were rewritten on TypeScript\nCorrected errors in the widgets and in the calculations\nSmall fix for ais data",
-        "de": "Widgets wurden auf TypeScript neu geschrieben\nKorrigierte Fehler in den Widgets und in den Berechnungen\nKleine Fixierung für Ais-Daten",
-        "ru": "Виджеты были переписаны на TypeScript\nИсправлены ошибки в виджетах и в расчетах\nНебольшое исправление для данных ais",
-        "pt": "Widgets foram reescritos no TypeScript\nErros corrigidos nos widgets e nos cálculos\nPequena correção para os dados do ais",
-        "nl": "Widgets zijn herschreven op TypeScript\nCorrectie van fouten in de widgets en in de berekeningen\nKleine oplossing voor ais data",
-        "fr": "Les widgets ont été réécrits sur TypeScript\nErreurs corrigées dans les widgets et dans les calculs\nPetite correction pour les données ais",
-        "it": "I widget sono stati riscritti su TypeScript\nErrori corretti nei widget e nei calcoli\nPiccola correzione per i dati ais",
-        "es": "Los Widgets fueron reescritos en TipoScript\nErrores corregidos en los widgets y en los cálculos\nFijación pequeña para los datos de ais",
-        "pl": "Widgety zostały zmienione na TypeScript\nSkorygowane błędy w widżetach i w obliczeniach\nMałe rozwiązanie dla danych Ais",
-        "uk": "Віджети були записані на TypeScript\nВиправлені помилки в віджетах і в розрахунокх\nМала фіксація для даних ais",
-        "zh-cn": "在类型脚本上重写部件\n修改部件和计算中的错误\n数据小修"
       }
     },
     "titleLang": {
