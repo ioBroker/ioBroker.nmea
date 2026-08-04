@@ -1,0 +1,1 @@
+import{s as e}from"./rolldown-runtime-BcKkbAw3.js";import{n as t}from"./_virtual_mf___mfe_internal__DevicesWidgetNmeaSet__mf_owner__1__loadShare__leaflet__loadShare__.js-CwJ41QIH.js";var n=e(t()),r=Reflect.get(n,`default`)??n;export{r as default};
