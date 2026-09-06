@@ -46,7 +46,7 @@ function cleanAdmin() {
 
 function copyAllAdminFiles() {
     copyFiles(
-        ['src-admin/build/**/*', '!src-admin/build/index.html', '!src-admin/build/mf-manifest.json'],
+        ['src-admin/build/**/*', '!src-admin/build/index.html'],
         'admin/custom/',
     );
     copyFiles(['src-admin/src/i18n/*.json'], 'admin/custom/i18n');

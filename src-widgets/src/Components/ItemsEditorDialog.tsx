@@ -25,7 +25,7 @@ import {
 
 import { Add, Check, Close, Delete, TrackChanges } from '@mui/icons-material';
 
-import { ColorPicker, SelectID, I18n, type Connection } from '@iobroker/adapter-react-v5';
+import { ColorPicker, SelectID, I18n, type Connection } from '@iobroker/gui-components';
 import type { RxWidgetInfoCustomComponentContext } from '@iobroker/types-vis-2';
 
 import Generic from '../Generic';

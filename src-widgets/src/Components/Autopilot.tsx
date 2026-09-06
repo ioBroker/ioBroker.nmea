@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { Button, Select, MenuItem } from '@mui/material';
 
-import type { ThemeType } from '@iobroker/adapter-react-v5';
+import type { ThemeType } from '@iobroker/gui-components';
 import type { VisContext } from '@iobroker/types-vis-2';
 
 import { CenterText, Lines, Ship, SvgContainer, RADIUS, Arc, useAngle, Rudder } from './Elements';

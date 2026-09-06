@@ -4,7 +4,7 @@ import { IconButton } from '@mui/material';
 
 import { ZoomIn, ZoomOut } from '@mui/icons-material';
 
-import type { ThemeType } from '@iobroker/adapter-react-v5';
+import type { ThemeType } from '@iobroker/gui-components';
 
 import { Arc, Lines, SvgContainer, RADIUS, Text } from './Elements';
 import Generic from '../Generic';

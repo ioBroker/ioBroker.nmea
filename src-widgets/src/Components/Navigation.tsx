@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { BigArrow, CenterText, Lines, Rudder, Ship, SvgContainer, RADIUS, useAngle } from './Elements';
 
-import type { ThemeType } from '@iobroker/adapter-react-v5';
+import type { ThemeType } from '@iobroker/gui-components';
 
 import Generic from '../Generic';
 
