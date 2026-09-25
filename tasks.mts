@@ -71,7 +71,6 @@ function copyAllFiles() {
         [
             'src-widgets/build/**/*',
             '!src-widgets/build/index.html',
-            '!src-widgets/build/mf-manifest.json',
             '!src-widgets/build/static/js/*node_modules*.*',
             '!src-widgets/build/static/js/node_modules_*',
         ],
