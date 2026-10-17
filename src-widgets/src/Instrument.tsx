@@ -138,7 +138,7 @@ interface InstrumentState extends GenericState {
 }
 
 export default class Instrument extends Generic<InstrumentRxData, InstrumentState> {
-    private readonly contentRef: React.RefObject<HTMLDivElement> = React.createRef();
+    private readonly contentRef: React.RefObject<HTMLDivElement | null> = React.createRef();
     private subscribed: string | null = null;
     private fontSize: Record<string, number> = {};
 

@@ -262,7 +262,7 @@ interface NmeaState extends GenericState {
 
 export default class Nmea extends Generic<NmeaRxData, NmeaState> {
     private readonly subscribed: string[] = [];
-    private readonly contentRef: React.RefObject<HTMLDivElement> = React.createRef();
+    private readonly contentRef: React.RefObject<HTMLDivElement | null> = React.createRef();
     private oid_autopilot_mode: string | undefined;
     private oid_rudder: string | undefined;
     private subscribing: string | undefined;

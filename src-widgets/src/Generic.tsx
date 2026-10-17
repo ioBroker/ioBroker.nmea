@@ -107,7 +107,7 @@ export default class Generic<
         return numParts;
     }
 
-    async getParentObject(id: string): Promise<ioBroker.Object | null> {
+    async getParentObject(id: string): Promise<ioBroker.Object | null | undefined> {
         const parts = id.split('.');
         parts.pop();
         const parentOID = parts.join('.');

@@ -373,25 +373,27 @@ export default class ItemsSelectorDialog extends Component<ItemsEditorDialogProp
                             }
                         }}
                         value={this.state.filter || ''}
-                        InputProps={{
-                            endAdornment: this.state.filter ? (
-                                <IconButton
-                                    size="small"
-                                    onClick={() => {
-                                        this.setState({ filter: '' });
-                                        window.localStorage.removeItem(
-                                            `vis.nmea.filter.${this.props.wid || this.props.instance}`,
-                                        );
-                                    }}
-                                >
-                                    <Clear />
-                                </IconButton>
-                            ) : null,
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Search />
-                                </InputAdornment>
-                            ),
+                        slotProps={{
+                            input: {
+                                endAdornment: this.state.filter ? (
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => {
+                                            this.setState({ filter: '' });
+                                            window.localStorage.removeItem(
+                                                `vis.nmea.filter.${this.props.wid || this.props.instance}`,
+                                            );
+                                        }}
+                                    >
+                                        <Clear />
+                                    </IconButton>
+                                ) : null,
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search />
+                                    </InputAdornment>
+                                ),
+                            },
                         }}
                     />
                     <div style={{ flexGrow: 1 }} />

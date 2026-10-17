@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { v4 as uuid } from 'uuid';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
 import {
     Button,
@@ -25,7 +25,7 @@ import {
 
 import { Add, Check, Close, Delete, TrackChanges } from '@mui/icons-material';
 
-import { ColorPicker, SelectID, I18n, type Connection } from '@iobroker/gui-components';
+import { ColorPicker, SelectID, I18n } from '@iobroker/gui-components';
 import type { RxWidgetInfoCustomComponentContext } from '@iobroker/types-vis-2';
 
 import Generic from '../Generic';
@@ -222,7 +222,7 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
         return (
             <SelectID
                 imagePrefix="../.."
-                socket={this.props.context.socket as unknown as Connection}
+                socket={this.props.context.socket}
                 selected={this.state.items[this.state.selectId].oid}
                 theme={this.props.context.theme}
                 onOk={async _id => {
@@ -343,7 +343,11 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
                                     items[index].name = e.target.value;
                                     this.updateItems(items);
                                 }}
-                                InputLabelProps={{ shrink: true }}
+                                slotProps={{
+                                    inputLabel: {
+                                        shrink: true,
+                                    },
+                                }}
                             />
                         </TableCell>
                         <TableCell>
@@ -352,13 +356,19 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
                                 style={{ width: 'calc(100% - 50px)' }}
                                 fullWidth
                                 value={item.oid || ''}
-                                inputProps={{ style: { textAlign: 'right' } }}
+                                slotProps={{
+                                    input: {
+                                        style: { textAlign: 'right' },
+                                    },
+                                    inputLabel: {
+                                        shrink: true,
+                                    },
+                                }}
                                 onChange={e => {
                                     const items: InstrumentItem[] = JSON.parse(JSON.stringify(this.state.items));
                                     items[index].oid = e.target.value;
                                     this.updateItems(items);
                                 }}
-                                InputLabelProps={{ shrink: true }}
                             />
                             <Button
                                 style={{
@@ -384,7 +394,11 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
                                         items[index].unit = e.target.value;
                                         this.updateItems(items);
                                     }}
-                                    InputLabelProps={{ shrink: true }}
+                                    slotProps={{
+                                        inputLabel: {
+                                            shrink: true,
+                                        },
+                                    }}
                                 />
                             ) : null}
                         </TableCell>
@@ -396,7 +410,7 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
                                     value={item.position || 'left'}
                                     onChange={e => {
                                         const items: InstrumentItem[] = JSON.parse(JSON.stringify(this.state.items));
-                                        items[index].position = e.target.value as 'left' | 'right';
+                                        items[index].position = e.target.value;
                                         this.updateItems(items);
                                     }}
                                 >
@@ -434,14 +448,20 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
                                     variant="standard"
                                     fullWidth
                                     type="number"
-                                    InputProps={{ inputProps: { min: 0, max: 10 } }}
+                                    slotProps={{
+                                        input: {
+                                            inputProps: { min: 0, max: 10 },
+                                        },
+                                        inputLabel: {
+                                            shrink: true,
+                                        },
+                                    }}
                                     value={item.beforeComma}
                                     onChange={e => {
                                         const items: InstrumentItem[] = JSON.parse(JSON.stringify(this.state.items));
                                         items[index].beforeComma = e.target.value;
                                         this.updateItems(items);
                                     }}
-                                    InputLabelProps={{ shrink: true }}
                                 />
                             ) : null}
                         </TableCell>
@@ -451,14 +471,20 @@ export default class ItemsEditorDialog extends Component<ItemsEditorDialogProps,
                                     variant="standard"
                                     fullWidth
                                     type="number"
-                                    InputProps={{ inputProps: { min: 0, max: 3 } }}
+                                    slotProps={{
+                                        input: {
+                                            inputProps: { min: 0, max: 3 },
+                                        },
+                                        inputLabel: {
+                                            shrink: true,
+                                        },
+                                    }}
                                     value={item.afterComma}
                                     onChange={e => {
                                         const items: InstrumentItem[] = JSON.parse(JSON.stringify(this.state.items));
                                         items[index].afterComma = e.target.value;
                                         this.updateItems(items);
                                     }}
-                                    InputLabelProps={{ shrink: true }}
                                 />
                             ) : null}
                         </TableCell>

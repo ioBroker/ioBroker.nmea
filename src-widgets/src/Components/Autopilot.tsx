@@ -202,7 +202,7 @@ export default function Autopilot(props: {
                                 if (modeType.current === null) {
                                     try {
                                         const obj = await props.context.socket.getObject(props.modeId!);
-                                        if (obj.common.type) {
+                                        if (obj?.common?.type) {
                                             modeType.current = obj.common.type;
                                         }
                                     } catch {
