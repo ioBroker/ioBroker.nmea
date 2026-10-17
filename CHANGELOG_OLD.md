@@ -1,4 +1,7 @@
 # Older changes
+## 0.4.2 (2026-01-05)
+* (bluefox) Updated packages
+
 ## 0.4.0 (2025-11-30)
 * (bluefox) Added support of YDEN-02/03 and YDWG-02/03 gateways
 

@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "nmea",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "news": {
+      "3.0.0": {
+        "en": "Migrated widgets to React 19",
+        "de": "Widgets zu React 19 migriert",
+        "ru": "Перенесенные виджеты в React 19",
+        "pt": "Migrou widgets para React 19",
+        "nl": "Widgets naar React 19 gemigreerd",
+        "fr": "Widgets migrés vers React 19",
+        "it": "Widget migrati a React 19",
+        "es": "Migró widgets a React 19",
+        "pl": "Migrowane widżety do React 19",
+        "uk": "Переміщені віджети до React 19",
+        "zh-cn": "将小部件迁移到 React 19"
+      },
       "2.0.0": {
         "en": "Migrated to devices V3",
         "de": "Auf Geräte V3 migriert",
@@ -80,19 +93,6 @@
         "pl": "Aktualizacja pakietów",
         "uk": "Оновлені пакети",
         "zh-cn": "更新软件包"
-      },
-      "0.4.0": {
-        "en": "Added support of YDEN-02/03 and YDWG-02/03 gateways",
-        "de": "Unterstützung von YDEN-02/03 und YDWG-02/03 Gateways",
-        "ru": "Добавлена поддержка шлюзов YDEN-02/03 и YDWG-02/03",
-        "pt": "Adicionado suporte aos gateways YDEN-02/03 e YDWG-02/03",
-        "nl": "Toegevoegde ondersteuning van YDEN-02/03 en YDWG-02/03 gateways",
-        "fr": "Ajout du soutien aux passerelles YDEN-02/03 et YDWG-02/03",
-        "it": "Aggiunto il supporto di YDEN-02/03 e YDWG-02/03 gateways",
-        "es": "Apoyo añadido a las puertas de YDEN-02/03 y YDWG-02/03",
-        "pl": "Dodano wsparcie dla bramy YDEN- 02 / 03 i YDWG- 02 / 03",
-        "uk": "Додано підтримку YDEN-02/03 та YDWG-02/03 воріт",
-        "zh-cn": "增加了YDEN-02/03和YDWG-02/03网关的支持"
       }
     },
     "titleLang": {
