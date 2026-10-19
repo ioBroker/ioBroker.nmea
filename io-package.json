@@ -3,19 +3,6 @@
     "name": "nmea",
     "version": "3.0.0",
     "news": {
-      "3.0.0": {
-        "en": "Migrated widgets to React 19",
-        "de": "Widgets zu React 19 migriert",
-        "ru": "Перенесенные виджеты в React 19",
-        "pt": "Migrou widgets para React 19",
-        "nl": "Widgets naar React 19 gemigreerd",
-        "fr": "Widgets migrés vers React 19",
-        "it": "Widget migrati a React 19",
-        "es": "Migró widgets a React 19",
-        "pl": "Migrowane widżety do React 19",
-        "uk": "Переміщені віджети до React 19",
-        "zh-cn": "将小部件迁移到 React 19"
-      },
       "2.0.0": {
         "en": "Migrated to devices V3",
         "de": "Auf Geräte V3 migriert",
