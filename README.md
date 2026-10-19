@@ -111,7 +111,7 @@ Use `windDatumDisplay` for visualization and `windDatum` for calculations/automa
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 3.0.1 (2026-10-19)
 - (@GermanBluefox) Migrated widgets to React 19
 
 ### 2.0.0 (2026-08-04)
