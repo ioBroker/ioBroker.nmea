@@ -11,6 +11,10 @@ let onStateChanged = null;
 const adapterShortName = setup.adapterName.substring(setup.adapterName.indexOf('.') + 1);
 const runningMode = require('../io-package.json').common.mode;
 
+// AIS data of a vessel whose object an older version deleted, and of a vessel with object
+const ORPHAN_ID = `${adapterShortName}.0.aisClassAPositionReport.211000001`;
+const VESSEL_ID = `${adapterShortName}.0.aisClassAPositionReport.211000002`;
+
 function checkConnectionOfAdapter(cb, counter) {
     counter = counter || 0;
     console.log(`Try check #${counter}`);
@@ -44,13 +48,24 @@ describe(`Test ${adapterShortName} adapter`, function () {
             await setup.setAdapterConfig(config.common, config.native);
 
             setup.startController(
-                true,
+                false,
                 (id, obj) => {},
                 (id, state) => onStateChanged && onStateChanged(id, state),
                 (_objects, _states) => {
                     objects = _objects;
                     states = _states;
-                    _done();
+                    const vessel = {
+                        type: 'state',
+                        common: { name: 'Vessel', type: 'object', role: 'value', read: true, write: false },
+                        native: {},
+                    };
+                    objects.setObject(VESSEL_ID, vessel, () =>
+                        states.setState(VESSEL_ID, { val: '{}', ack: true }, () =>
+                            states.setState(ORPHAN_ID, { val: '{}', ack: true }, () =>
+                                setup.startAdapter(objects, states, () => _done()),
+                            ),
+                        ),
+                    );
                 },
             );
         });
@@ -78,6 +93,18 @@ describe(`Test ${adapterShortName} adapter`, function () {
         });
     });
     /**/
+
+    it(`Test ${adapterShortName} adapter: Deletes the states without object`, async function () {
+        this.timeout(30000);
+        const getState = id =>
+            new Promise((resolve, reject) => states.getState(id, (err, state) => (err ? reject(err) : resolve(state))));
+        // onReady() runs after the adapter is alive
+        for (let i = 0; i < 40 && (await getState(ORPHAN_ID)); i++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        expect(await getState(ORPHAN_ID)).to.be.null;
+        expect(await getState(VESSEL_ID)).to.be.an('object');
+    });
 
     /*
     PUT YOUR OWN TESTS HERE USING
