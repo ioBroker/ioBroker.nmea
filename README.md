@@ -111,6 +111,9 @@ Use `windDatumDisplay` for visualization and `windDatum` for calculations/automa
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+- (@GermanBluefox) Deleted the states without object at the start, e.g. the AIS data of old vessels left by versions before 1.0.0 (needs js-controller 7.2.3 or newer)
+
 ### 3.0.1 (2026-10-19)
 - (@GermanBluefox) Migrated widgets to React 19
 

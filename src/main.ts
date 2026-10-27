@@ -1307,6 +1307,9 @@ export class NmeaAdapter extends Adapter {
 
         await this.subscribeStatesAsync('test.rawString');
 
+        // Before the driver starts: no state of this run can be written yet without its object
+        await this.deleteOrphanedStates();
+
         if (this.config.type === 'ngt1') {
             this.nmeaDriver = new NGT1(this, this.config, this.onData);
         } else if (this.config.type === 'picanm') {
@@ -1428,6 +1431,38 @@ export class NmeaAdapter extends Adapter {
                 simulateAddress: this.config.simulateAddress,
             });
             this.signalKServer.start(port);
+        }
+    }
+
+    /**
+     * Delete the states of this instance which have no object, e.g. the AIS data of old vessels: versions before
+     * 1.0.0 deleted their objects, but wrote the next packets of the vessel again, now without object.
+     * getStatesAsync() reads only the states of existing objects, so cleanAisNames() never finds them.
+     * Only js-controller 7.2.3 and newer read the states without objects (maintenance mode), older ones find none.
+     */
+    async deleteOrphanedStates(): Promise<void> {
+        try {
+            // not a literal argument: the types of the adapter do not know `maintenance`
+            const maintenance = { user: 'system.user.admin', maintenance: true } as const;
+            const states = await this.getForeignStatesAsync(`${this.namespace}.*`, maintenance);
+            const view = await this.getObjectViewAsync('system', 'state', {
+                startkey: `${this.namespace}.`,
+                endkey: `${this.namespace}.香`,
+            });
+            const objects = new Set(view.rows.map(row => row.id));
+            let deleted = 0;
+            for (const id of Object.keys(states)) {
+                // the rare state of an object of another type is no orphan either
+                if (!objects.has(id) && !(await this.getForeignObjectAsync(id))) {
+                    await this.delForeignStateAsync(id);
+                    deleted++;
+                }
+            }
+            if (deleted) {
+                this.log.info(`Deleted ${deleted} states without object, left by older versions`);
+            }
+        } catch (e) {
+            this.log.warn(`Cannot delete the states without object: ${(e as Error).message}`);
         }
     }
 
