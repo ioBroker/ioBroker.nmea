@@ -107,6 +107,9 @@ It shows the angle exactly the way the Raymarine pilot head does:
 
 Use `windDatumDisplay` for visualization and `windDatum` for calculations/automation.
 
+## Acknowledgements
+NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using the [CANboat](https://github.com/canboat/canboat) PGN database (Apache License 2.0).
+
 <!--
 	### **WORK IN PROGRESS**
 -->
