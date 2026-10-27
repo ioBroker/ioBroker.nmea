@@ -114,7 +114,7 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 3.0.2 (2026-10-27)
 - (@GermanBluefox) Deleted the states without object at the start, e.g. the AIS data of old vessels left by versions before 1.0.0 (needs js-controller 7.2.3 or newer)
 
 ### 3.0.1 (2026-10-19)
@@ -131,11 +131,6 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 - (bluefox) Added `seatalkPilotWindDatum.windDatumDisplay` state with the Raymarine-style port/starboard wind-angle display
 - (bluefox) The autopilot device-manager widget now shows the wind datum the Raymarine way (e.g. `130°P`) with a language-dependent port/starboard letter
 - (bluefox) Added the custom icon set
-
-### 1.0.1 (2026-06-26)
-* (bluefox) Implemented Raymarine autopilot support
-* (bluefox) Corrected values simulation for yacht devices gateways
-* (bluefox) Added support of Fusion player
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 

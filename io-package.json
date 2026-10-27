@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "nmea",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "news": {
+      "3.0.2": {
+        "en": "Deleted the states without object at the start, e.g. the AIS data of old vessels left by versions before 1.0.0 (needs js-controller 7.2.3 or newer)",
+        "de": "Hat am Anfang die Zustände ohne Objekt gelöscht, z. B. die AIS-Daten alter Schiffe vor 1.0.0 (benötigt JS-Controller 7.2.3 oder neuer)",
+        "ru": "Удалены состояния без объектов в начале, например данные AIS старых судов, оставленных версиями до 1.0.0 (требуется js-controller 7.2.3 или новее)",
+        "pt": "Excluiu os estados sem objeto no início, por exemplo, os dados AIS de navios antigos anteriores à 1.0.0 (requer js-controller 7.2.3 ou superior)",
+        "nl": "In het begin de staten zonder object verwijderd, bijvoorbeeld de AIS-gegevens van oude schepen die zijn achtergelaten door versies vóór 1.0.0 (hiervoor is js-controller 7.2.3 of nieuwer nodig)",
+        "fr": "J'ai supprimé les états sans objet au début, par exemple les données AIS des anciens navires avant la 1.0.0 (nécessite JS-Controller 7.2.3 ou plus récent)",
+        "it": "Eliminato gli stati senza oggetto all'inizio, ad es. i dati AIS delle vecchie navi prima della 1.0.0 (richiede js-controller 7.2.3 o più recente)",
+        "es": "Eliminó los estados sin objeto al principio, por ejemplo, los datos AIS de barcos antiguos de versiones anteriores a la 1.0.0 (necesita js-controller 7.2.3 o superior)",
+        "pl": "Usunięto stany bez obiektu na początku, np. dane AIS starych statków pozostawione przez wersje przed 1.0.0 (wymaga js-controller 7.2.3 lub nowszego)",
+        "uk": "Видалені стани без об'єкта на початку, наприклад дані AIS старих суден, залишених версіями до 1.0.0 (потрібен js-контролер 7.2.3 або новіші)",
+        "zh-cn": "删除了开始时没有对象的状态，例如 1.0.0 之前版本留下的旧船只的 AIS 数据（需要 js-controller 7.2.3 或更高版本）"
+      },
       "3.0.1": {
         "en": "Migrated widgets to React 19",
         "de": "Widgets zu React 19 migriert",
@@ -80,19 +93,6 @@
         "pl": "Wprowadzono obsługę autopilota Raymarine\nSkorygowana symulacja wartości dla bramek urządzeń jachtowych\nDodano obsługę odtwarzacza Fusion",
         "uk": "Реалізовано підтримку автопілота Raymarine\nМоделювання скоригованих значень для шлюзів пристроїв яхт\nДодана підтримка плеєра Fusion.",
         "zh-cn": "实现了 Raymarine 自动驾驶仪支持\n游艇设备网关的修正值模拟\n新增对Fusion播放器的支持"
-      },
-      "0.4.2": {
-        "en": "Updated packages",
-        "de": "Aktualisierte Pakete",
-        "ru": "Обновленные пакеты",
-        "pt": "Pacotes atualizados",
-        "nl": "Bijgewerkte pakketten",
-        "fr": "Paquets mis à jour",
-        "it": "Pacchetti aggiornati",
-        "es": "Paquetes actualizados",
-        "pl": "Aktualizacja pakietów",
-        "uk": "Оновлені пакети",
-        "zh-cn": "更新软件包"
       }
     },
     "titleLang": {
