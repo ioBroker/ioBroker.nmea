@@ -17,6 +17,11 @@ PiCAN-M could work with Raspberry 4 and [5](https://copperhilltech.com/blog/test
 
 ![Widgets](img/widgetExamples.png)
 
+The widget "NMEA Complex" four times in one vis-2 view, every instance shows one display: wind, compass,
+rudder and autopilot.
+
+![vis-2 widgets: wind, compass, rudder, autopilot](img/vis2-widget-instruments.png)
+
 [YouTube explanation](https://youtu.be/flp_-mypbRU?si=k0lp95OukQ88LBxj)
 
 ## How to use it on Raspberry PI with PiCAN-M
