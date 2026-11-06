@@ -103,9 +103,9 @@ interface AnchorPositionState extends WidgetGenericState {
     trail: { lat: number; lon: number; ts: number }[];
     /** Resolved alarm-circle radius in metres (mirrors the configured `alarmRadius` state). */
     alarmRadius: number | null;
-    /** Resolved alarm-armed flag (mirrors the configured `isAlarm` state). */
+    /** The alarm has tripped: the boat left the alarm radius (mirrors `anchorAlarm.isAlarm`, set by the adapter). */
     isAlarm: boolean | null;
-    /** Resolved when the anchor alarm is activated/deactivated */
+    /** The anchor watch is armed (mirrors `anchorAlarm.isActive`, switched by the operator). */
     isAlarmEnabled: boolean | null;
     /** Local draft of the alarm-radius text input — committed to the state on blur / Enter. */
     alarmRadiusDraft: string;
@@ -131,6 +131,7 @@ const COLORS = {
     swingRing: '#ffeb3b', // yellow ring at chain-length radius
     trail: '#ff1744', // bright red — position-history heatmap dots
     alarmRing: '#00e676', // green — alarm boundary "safe zone" reading, distinct from anchor red & swing yellow
+    alarmTripped: '#ff1744', // red — the alarm boundary once the boat has left it (`isAlarm`)
 } as const;
 
 /**
@@ -274,6 +275,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             trail: [],
             alarmRadius: null,
             isAlarm: null,
+            isAlarmEnabled: null,
             alarmRadiusDraft: '',
             dialogOpen: false,
         };
@@ -371,6 +373,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                 trail: [],
                 alarmRadius: null,
                 isAlarm: null,
+                isAlarmEnabled: null,
                 alarmRadiusDraft: '',
                 chainLength: null,
             } as Partial<AnchorPositionState> as unknown as AnchorPositionState);
@@ -388,7 +391,8 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             prevState.boatLon !== this.state.boatLon ||
             prevState.trail !== this.state.trail ||
             prevState.alarmRadius !== this.state.alarmRadius ||
-            prevState.isAlarm !== this.state.isAlarm
+            prevState.isAlarm !== this.state.isAlarm ||
+            prevState.isAlarmEnabled !== this.state.isAlarmEnabled
         ) {
             this.updateAllOverlays();
         }
@@ -732,8 +736,18 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             return;
         }
         const { mapStyle } = this.props.settings;
-        const { depthAtDrop, anchorLat, anchorLon, boatLat, boatLon, trail, alarmRadius, isAlarm, chainLength } =
-            this.state;
+        const {
+            depthAtDrop,
+            anchorLat,
+            anchorLon,
+            boatLat,
+            boatLon,
+            trail,
+            alarmRadius,
+            isAlarm,
+            isAlarmEnabled,
+            chainLength,
+        } = this.state;
         const haveAnchor = anchorLat != null && anchorLon != null && isFinite(anchorLat) && isFinite(anchorLon);
         const haveBoat = boatLat != null && boatLon != null && isFinite(boatLat) && isFinite(boatLon);
 
@@ -803,27 +817,28 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             }
         }
 
-        // Alarm boundary — green circle around the anchor at the user-set alarm radius. Visible
-        // only when the operator has armed the alarm (`isAlarm === true`) and a valid radius is
-        // known. Backend services watch the underlying states and trigger the real alarm; the
-        // widget just paints the geometry.
+        // Alarm boundary — circle around the anchor at the user-set alarm radius. Visible only
+        // when the operator has armed the anchor watch (`isActive`) and a valid radius is known:
+        // green while the boat is inside, red once the adapter has tripped the alarm (`isAlarm`).
+        // The adapter watches the states and raises the real alarm; the widget just paints it.
         const haveAlarm =
-            haveAnchor && isAlarm === true && alarmRadius != null && isFinite(alarmRadius) && alarmRadius > 0;
+            haveAnchor && isAlarmEnabled === true && alarmRadius != null && isFinite(alarmRadius) && alarmRadius > 0;
         if (haveAlarm) {
+            const alarmColor = isAlarm === true ? COLORS.alarmTripped : COLORS.alarmRing;
             if (!overlays.alarm) {
                 overlays.alarm = L.circle([anchorLat, anchorLon], {
                     radius: alarmRadius,
-                    color: COLORS.alarmRing,
+                    color: alarmColor,
                     weight: 3,
                     opacity: 0.9,
                     dashArray: '8 6',
-                    fillColor: COLORS.alarmRing,
+                    fillColor: alarmColor,
                     fillOpacity: 0.08,
                 }).addTo(map);
             } else {
                 overlays.alarm.setLatLng([anchorLat, anchorLon]);
                 overlays.alarm.setRadius(alarmRadius);
-                overlays.alarm.setStyle({ opacity: 0.9, fillOpacity: 0.08 });
+                overlays.alarm.setStyle({ color: alarmColor, fillColor: alarmColor, opacity: 0.9, fillOpacity: 0.08 });
             }
         } else if (overlays.alarm) {
             overlays.alarm.setStyle({ opacity: 0, fillOpacity: 0 });
@@ -943,7 +958,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
         this.setState({ alarmRadius: rounded, alarmRadiusDraft: String(rounded) } as AnchorPositionState);
     };
 
-    /** Arm / disarm the alarm by writing the boolean state. Optimistically updates the local flag. */
+    /** Arm / disarm the anchor watch by writing `isActive`. Optimistically updates the local flag. */
     private setAlarmArmed = (armed: boolean): void => {
         const s = this.props.settings;
         if (!s.instance) {
@@ -952,9 +967,9 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
         try {
             void this.props.stateContext.getSocket().setState(`${s.instance}.anchorAlarm.isActive`, armed);
         } catch (e) {
-            console.warn('[NmeaAnchorPosition] setState isAlarm failed', e);
+            console.warn('[NmeaAnchorPosition] setState isActive failed', e);
         }
-        this.setState({ isAlarm: armed } as AnchorPositionState);
+        this.setState({ isAlarmEnabled: armed } as AnchorPositionState);
     };
 
     private currentDistanceM(): number | null {
@@ -1006,11 +1021,13 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
      */
     private renderReadouts(compact: boolean): React.JSX.Element {
         const distance = this.currentDistanceM();
-        const { currentDepth, chainLength, depthAtDrop } = this.state;
+        const { currentDepth, chainLength, depthAtDrop, isAlarm } = this.state;
         const isFloatComma = this.props.stateContext.isFloatComma;
         const distanceText = distance != null ? `${Math.round(distance)} m` : '—';
+        // red when the boat is beyond the swing circle or the adapter has tripped the anchor alarm
         const distanceHi =
-            chainLength != null && distance != null && distance > effectiveSwingRadius(chainLength, depthAtDrop);
+            isAlarm === true ||
+            (chainLength != null && distance != null && distance > effectiveSwingRadius(chainLength, depthAtDrop));
         return (
             <Box
                 sx={{
@@ -1270,19 +1287,18 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
     }
 
     /**
-     * Bottom-left floating panel for arming the anchor alarm and setting its radius. Rendered
-     * only when *both* state IDs are configured (`alarmRadius` and `isAlarm`); if either is
-     *  missing, the operator can't fully use the alarm, so we hide the controls entirely rather
-     * than showing a half-working UI. The backend is expected to watch these states and raise
-     * the actual alarm — the widget only writes the values.
+     * Bottom-left floating panel for arming the anchor watch (`anchorAlarm.isActive`) and setting
+     * its radius (`anchorAlarm.alarmRadius`) of the configured adapter instance. Rendered only when
+     * an instance is configured. The adapter watches these states and raises the actual alarm
+     * (`anchorAlarm.isAlarm`) — the widget only writes the values.
      */
     private renderAlarmControls(): React.JSX.Element | null {
         const s = this.props.settings;
         if (!s.instance) {
             return null;
         }
-        const { isAlarm, alarmRadiusDraft } = this.state;
-        const armed = isAlarm === true;
+        const { isAlarmEnabled, alarmRadiusDraft } = this.state;
+        const armed = isAlarmEnabled === true;
         return (
             <Box
                 sx={{

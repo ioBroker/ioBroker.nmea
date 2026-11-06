@@ -5,15 +5,15 @@
     "name": {
         "en": "Instrument",
         "de": "Instrument",
-        "ru": "Инструмент",
+        "ru": "Прибор",
         "pt": "Instrumento",
         "nl": "Instrument",
         "fr": "Instrument",
         "it": "Strumento",
         "es": "Instrumento",
-        "pl": "Instrument",
-        "uk": "Інструмент",
-        "zh-cn": "乐器"
+        "pl": "Przyrząd",
+        "uk": "Прилад",
+        "zh-cn": "仪表"
     },
     "description": {
         "en": "One or more values as on a marine instrument, one at a time",
