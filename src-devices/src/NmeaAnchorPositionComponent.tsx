@@ -2,8 +2,9 @@
 // anchor position and the current boat position on a Leaflet base map.
 //
 // Setup:
-//   - Anchor lat/lon are entered manually in settings (or via a "Set current as anchor"
-//     button in the dialog when the boat is sitting on the anchor).
+//   - The anchor position comes from a "lat;lon" state, from two numeric states or - without
+//     them - from `anchorAlarm.anchorPosition` of the instance, as in the web component. The
+//     "anchor here" button in the dialog writes the boat position there.
 //   - Boat lat/lon are read live from the NMEA adapter's GNSS state.
 //   - Optional chain length lets the widget draw a "swing circle" around the anchor — a
 //     rough estimate of the area the boat could swing through given the rode length and the
@@ -19,12 +20,14 @@ import WidgetGeneric, {
     MuiMaterial,
     MuiIcons,
     moment,
+    AdapterReact,
     getTileStyles,
     isNeumorphicTheme,
     type WidgetGenericProps,
     type WidgetGenericState,
     type CustomWidgetPlugin,
 } from '@iobroker/dm-widgets';
+import type { I18n as I18nType } from '@iobroker/gui-components';
 import type {
     BoxProps,
     TypographyProps,
@@ -55,17 +58,27 @@ const CloseIcon: React.ComponentType<any> = MuiIcons?.Close;
 const AnchorIcon: React.ComponentType<any> = MuiIcons?.Anchor;
 const SailingIcon: React.ComponentType<any> = MuiIcons?.Sailing;
 
+// The host (ioBroker.devices) loads the exposed `./translations` (src-devices/src/i18n) into the I18n of
+// @iobroker/gui-components before it loads the components, so the texts of the widget are its keys.
+const I18n = AdapterReact?.I18n as typeof I18nType | undefined;
+
+/** A text of `src-devices/src/i18n` in the language of the host; the key itself without a host */
+function t(key: string): string {
+    return I18n ? I18n.t(key) : key;
+}
+
 export interface AnchorPositionSettings extends CustomWidgetPlugin {
     /** e.g. 'nmea.0' — used for live depth subscription. */
     instance?: string;
     /**
      * State ID of a combined "lat;lon" string holding the anchor position. Mutually exclusive
-     * with the separate `anchorLat` / `anchorLon` state IDs.
+     * with the separate `anchorLat` / `anchorLon` state IDs. Without it and without both of them:
+     * `<instance>.anchorAlarm.anchorPosition`.
      */
     anchorPosition?: string;
-    /** State ID returning the anchor latitude as a number (decimal degrees). */
+    /** State ID returning the anchor latitude as a number (decimal degrees); used only together with `anchorLon`. */
     anchorLat?: string;
-    /** State ID returning the anchor longitude as a number (decimal degrees). */
+    /** State ID returning the anchor longitude as a number (decimal degrees); used only together with `anchorLat`. */
     anchorLon?: string;
     /** State ID returning the current boat latitude as a number (decimal degrees). */
     positionLat?: string;
@@ -135,25 +148,50 @@ const COLORS = {
 } as const;
 
 /**
- * Parse a combined "lat;lon" or "lat,lon" string state value. Accepts either separator and
- * tolerates surrounding whitespace, so a user can plug in different upstream conventions. Returns
- * null whenever the input isn't a string with two finite numbers — callers treat that as "no
- * anchor position known".
+ * Parse a combined "lat;lon" string state value - the format of `anchorAlarm.anchorPosition` - like the
+ * web component does: ";" or "," separate, the first two parts are latitude and longitude. Returns null
+ * whenever the input isn't a string starting with two finite numbers — callers treat that as "no anchor
+ * position known" (the adapter writes "" to forget the anchor).
  */
 function parseLatLonString(val: unknown): { lat: number; lon: number } | null {
     if (typeof val !== 'string') {
         return null;
     }
-    const parts = val.split(/[;,]/).map(s => s.trim());
-    if (parts.length !== 2) {
+    const parts = val.split(/[;,]/).map(part => parseFloat(part.trim()));
+    if (parts.length < 2 || !isFinite(parts[0]) || !isFinite(parts[1])) {
         return null;
     }
-    const lat = parseFloat(parts[0]);
-    const lon = parseFloat(parts[1]);
-    if (!isFinite(lat) || !isFinite(lon)) {
-        return null;
-    }
-    return { lat, lon };
+    return { lat: parts[0], lon: parts[1] };
+}
+
+/** The state IDs of the anchor and boat positions */
+interface PositionIds {
+    /** "lat;lon"; empty when the two separate states are used */
+    anchorPosition: string;
+    anchorLat: string;
+    anchorLon: string;
+    boatLat: string;
+    boatLon: string;
+}
+
+/**
+ * The state IDs of the positions, resolved as in the web component (`src-webcomponents/src/AnchorPosition.tsx`):
+ * the anchor from the configured "lat;lon" state, else from the two separate states when both are set, else from
+ * `anchorAlarm.anchorPosition` of the instance - the anchor of the anchor alarm. The boat from the configured
+ * states, else from `gnssPositionData.latitude` / `.longitude` of the instance. Empty: nothing to read.
+ */
+function getPositionIds(settings: AnchorPositionSettings): PositionIds {
+    const instance = settings.instance || '';
+    const separate = !settings.anchorPosition && !!settings.anchorLat && !!settings.anchorLon;
+    return {
+        anchorPosition: separate
+            ? ''
+            : settings.anchorPosition || (instance ? `${instance}.anchorAlarm.anchorPosition` : ''),
+        anchorLat: separate ? settings.anchorLat || '' : '',
+        anchorLon: separate ? settings.anchorLon || '' : '',
+        boatLat: settings.positionLat || (instance ? `${instance}.gnssPositionData.latitude` : ''),
+        boatLon: settings.positionLon || (instance ? `${instance}.gnssPositionData.longitude` : ''),
+    };
 }
 
 /** Great-circle distance via haversine, returning metres. */
@@ -444,35 +482,29 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             subscribe(id, (_id, state) => update(state?.val != null ? Number(state.val) : null));
         };
 
-        // Anchor position: prefer the combined "lat;lon" string state (`anchorPosition`); if it
-        // is not configured, fall back to the separate `anchorLat` / `anchorLon` numeric states.
-        if (s.anchorPosition) {
-            subscribe(s.anchorPosition, (_id, state) => {
+        // Anchor position: the combined "lat;lon" string state (`anchorPosition`, else that of the
+        // anchor alarm of the instance), or the separate `anchorLat` / `anchorLon` numeric states when
+        // both are configured.
+        const ids = getPositionIds(s);
+        if (ids.anchorPosition) {
+            subscribe(ids.anchorPosition, (_id, state) => {
                 const parsed = parseLatLonString(state?.val);
                 this.setState({
                     anchorLat: parsed?.lat ?? null,
                     anchorLon: parsed?.lon ?? null,
                 } as AnchorPositionState);
             });
-        } else {
-            if (s.anchorLat) {
-                bindNum(s.anchorLat, v => this.setState({ anchorLat: v } as AnchorPositionState));
-            }
-            if (s.anchorLon) {
-                bindNum(s.anchorLon, v => this.setState({ anchorLon: v } as AnchorPositionState));
-            }
+        } else if (ids.anchorLat && ids.anchorLon) {
+            bindNum(ids.anchorLat, v => this.setState({ anchorLat: v } as AnchorPositionState));
+            bindNum(ids.anchorLon, v => this.setState({ anchorLon: v } as AnchorPositionState));
         }
 
         // Boat position — drives both the live marker and the trail.
-        if (s.positionLat || s.instance) {
-            subscribe(s.positionLat || `${s.instance}.gnssPositionData.latitude`, (_id, state) =>
-                this.onBoatPositionUpdate('lat', state),
-            );
+        if (ids.boatLat) {
+            subscribe(ids.boatLat, (_id, state) => this.onBoatPositionUpdate('lat', state));
         }
-        if (s.positionLon || s.instance) {
-            subscribe(s.positionLon || `${s.instance}.gnssPositionData.longitude`, (_id, state) =>
-                this.onBoatPositionUpdate('lon', state),
-            );
+        if (ids.boatLon) {
+            subscribe(ids.boatLon, (_id, state) => this.onBoatPositionUpdate('lon', state));
         }
 
         if (s.chainLength) {
@@ -557,13 +589,14 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
 
     /**
      * One-shot history backfill for the position trail. Reads the configured history adapter for
-     * both positionLat / positionLon over the last `TRAIL_WINDOW_MS`, merges the two streams by
-     * matching timestamps to the same second, and seeds `state.trail`. Silently no-ops if no
-     * history adapter is configured for the chosen states.
+     * both boat position states (positionLat / positionLon, else gnssPositionData.* of the instance)
+     * over the last `TRAIL_WINDOW_MS`, merges the two streams by matching timestamps to the same
+     * second, and seeds `state.trail`. Silently no-ops if no history adapter is configured for the
+     * chosen states.
      */
     private async loadTrailHistory(): Promise<void> {
-        const s = this.props.settings;
-        if (!s.positionLat || !s.positionLon) {
+        const { boatLat: latId, boatLon: lonId } = getPositionIds(this.props.settings);
+        if (!latId || !lonId) {
             return;
         }
         const ctx = this.props.stateContext;
@@ -582,17 +615,17 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             if (!alive?.val) {
                 return;
             }
-            const positionLat = await socket.getObject(s.positionLat);
+            const positionLat = await socket.getObject(latId);
             if (!positionLat?.common?.custom?.[historyAdapter]) {
                 return;
             }
-            const positionLon = await socket.getObject(s.positionLon);
+            const positionLon = await socket.getObject(lonId);
             if (!positionLon?.common?.custom?.[historyAdapter]) {
                 return;
             }
             const [latRows, lonRows] = await Promise.all([
-                socket.getHistory(s.positionLat, { instance: historyAdapter, start, end, aggregate: 'none' }),
-                socket.getHistory(s.positionLon, { instance: historyAdapter, start, end, aggregate: 'none' }),
+                socket.getHistory(latId, { instance: historyAdapter, start, end, aggregate: 'none' }),
+                socket.getHistory(lonId, { instance: historyAdapter, start, end, aggregate: 'none' }),
             ]);
             // Subscription may have been torn down / replaced while we awaited — drop the result.
             if (token !== this.trailLoadToken) {
@@ -908,29 +941,26 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
     }
 
     /**
-     * Write the boat's current GPS fix back into whichever anchor state(s) the user configured.
-     * If `anchorPosition` is set, we write a "lat;lon" string; otherwise the separate `anchorLat`
-     * / `anchorLon` numeric states are written. The new value will also flow back through the
-     * subscription handler to update `state.anchorLat` / `anchorLon`, but we set them locally
-     * here so the map can refit immediately rather than waiting for the round-trip.
+     * Write the boat's current GPS fix back into the anchor state(s) the widget reads (see
+     * `getPositionIds`): a "lat;lon" string into `anchorPosition` - configured or that of the anchor
+     * alarm of the instance - otherwise the separate `anchorLat` / `anchorLon` numeric states. The
+     * new value will also flow back through the subscription handler to update `state.anchorLat` /
+     * `anchorLon`, but we set them locally here so the map can refit immediately rather than waiting
+     * for the round-trip.
      */
     private setAnchorToCurrent(): void {
         const { boatLat, boatLon } = this.state;
         if (boatLat == null || boatLon == null) {
             return;
         }
-        const s = this.props.settings;
+        const ids = getPositionIds(this.props.settings);
         const socket = this.props.stateContext.getSocket();
         try {
-            if (s.anchorPosition) {
-                void socket.setState(s.anchorPosition, `${boatLat};${boatLon}`);
-            } else {
-                if (s.anchorLat) {
-                    void socket.setState(s.anchorLat, boatLat);
-                }
-                if (s.anchorLon) {
-                    void socket.setState(s.anchorLon, boatLon);
-                }
+            if (ids.anchorPosition) {
+                void socket.setState(ids.anchorPosition, `${boatLat};${boatLon}`);
+            } else if (ids.anchorLat && ids.anchorLon) {
+                void socket.setState(ids.anchorLat, boatLat);
+                void socket.setState(ids.anchorLon, boatLon);
             }
         } catch (e) {
             console.warn('[NmeaAnchorPosition] setAnchorToCurrent failed', e);
@@ -1077,7 +1107,9 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                         backdropFilter: 'blur(2px)',
                     }}
                 >
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, opacity: 0.7 }}>distance</Typography>
+                    <Typography sx={{ fontSize: 11, fontWeight: 600, opacity: 0.7 }}>
+                        {t('nmeaap2_distance')}
+                    </Typography>
                     <Typography sx={{ fontSize: compact ? 18 : 24, fontWeight: 800, lineHeight: 1.05 }}>
                         {distanceText}
                     </Typography>
@@ -1101,19 +1133,19 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                     >
                         {chainLength != null ? (
                             <span>
-                                chain&nbsp;
+                                {t('nmeaap2_chain')}&nbsp;
                                 <strong>{Math.round(chainLength)} m</strong>
                             </span>
                         ) : null}
                         {depthAtDrop != null ? (
                             <span>
-                                @drop&nbsp;
+                                {t('nmeaap2_atDrop')}&nbsp;
                                 <strong>{formatNum(depthAtDrop, 1, isFloatComma)} m</strong>
                             </span>
                         ) : null}
                         {currentDepth != null ? (
                             <span>
-                                depth&nbsp;
+                                {t('nmeaap2_depth')}&nbsp;
                                 <strong>{formatNum(currentDepth, 1, isFloatComma)} m</strong>
                             </span>
                         ) : null}
@@ -1263,13 +1295,13 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                             value="osm"
                             sx={{ color: COLORS.contrast }}
                         >
-                            Map
+                            {t('nmeaap2_mapStyle_osm')}
                         </ToggleButton>
                         <ToggleButton
                             value="satellite"
                             sx={{ color: COLORS.contrast }}
                         >
-                            Sat
+                            {t('nmeaap2_mapStyle_satellite')}
                         </ToggleButton>
                     </ToggleButtonGroup>
                     <Button
@@ -1280,7 +1312,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                         disabled={this.state.boatLat == null || this.state.boatLon == null}
                         sx={{ bgcolor: COLORS.anchor, '&:hover': { bgcolor: COLORS.anchor } }}
                     >
-                        drop here
+                        {t('nmeaap2_dropHere')}
                     </Button>
                     <IconButton
                         sx={{ color: COLORS.contrast }}
@@ -1339,12 +1371,14 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                     gap: 1.5,
                 }}
             >
-                <Typography sx={{ fontSize: 12, fontWeight: 700, opacity: 0.8, mr: 0.5 }}>ALARM</Typography>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, opacity: 0.8, mr: 0.5, textTransform: 'uppercase' }}>
+                    {t('nmeaap2_alarm')}
+                </Typography>
                 <TextField
                     type="number"
                     size="small"
                     value={alarmRadiusDraft}
-                    placeholder="radius"
+                    placeholder={t('nmeaap2_radius')}
                     onChange={e => this.setState({ alarmRadiusDraft: e.target.value } as AnchorPositionState)}
                     onBlur={this.commitAlarmRadius}
                     onKeyDown={e => {
@@ -1380,7 +1414,9 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                         },
                     }}
                 />
-                <Typography sx={{ fontSize: 12, opacity: 0.8 }}>{armed ? 'armed' : 'off'}</Typography>
+                <Typography sx={{ fontSize: 12, opacity: 0.8 }}>
+                    {armed ? t('nmeaap2_armed') : t('nmeaap2_off')}
+                </Typography>
             </Box>
         );
     }

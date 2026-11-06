@@ -10,14 +10,16 @@
 //     `@iobroker/dm-widgets/build/index.js` are NOT intercepted. Pulling the runtime values out
 //     of the package via the sub-path gives us the real module without re-entering the alias.
 //
-// We override only the four host-bridged exports (React / MuiMaterial / MuiIcons / moment) with
-// the dev environment's actual modules; everything else (WidgetGeneric class, helpers, types)
+// We override only the host-bridged exports (React / MuiMaterial / MuiIcons / moment / AdapterReact)
+// with the dev environment's actual modules; everything else (WidgetGeneric class, helpers, types)
 // is re-exported as-is so subclasses keep their lifecycle methods, helpers stay typed, etc.
 
 import * as ReactRuntime from 'react';
 import * as MuiMaterialAll from '@mui/material';
 import * as MuiIconsAll from '@mui/icons-material';
 import momentRuntime from 'moment';
+import * as AdapterReactRuntime from '@iobroker/gui-components';
+import translations from './translations';
 
 // Real package, reached via its sub-path so the bare-specifier alias doesn't loop back here.
 export {
@@ -54,3 +56,6 @@ export const React = ReactRuntime;
 export const MuiMaterial = MuiMaterialAll;
 export const MuiIcons = MuiIconsAll;
 export const moment = momentRuntime;
+// The host loads the exposed `./translations` into its I18n before the components; the harness does the same.
+AdapterReactRuntime.I18n.extendTranslations(translations);
+export const AdapterReact = AdapterReactRuntime;
