@@ -71,11 +71,11 @@ export interface AnchorPositionSettings extends CustomWidgetPlugin {
     positionLat?: string;
     /** State ID returning the current boat longitude as a number (decimal degrees). */
     positionLon?: string;
-    /** Length of deployed chain/rope in metres. Drives the swing-circle radius. */
+    /** State ID returning the deployed length of chain/rode in metres. Drives the swing-circle radius. */
     chainLength?: string;
     /**
-     * Depth at the moment the anchor touched bottom as object ID, in metres. Used for an
-     *  effective-scope hint (rode = sqrt(chain² - depth²) gives the horizontal swing).
+     * State ID returning the depth (metres) where the anchor touched bottom. Shortens the swing
+     * circle to the horizontal part of the rode: sqrt(chain² - depth²).
      */
     depthAtDrop?: string;
     /** Map base layer — 'osm' for normal vector-style tiles, 'satellite' for imagery. */
@@ -272,6 +272,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             boatLon: null,
             currentDepth: null,
             chainLength: null,
+            depthAtDrop: null,
             trail: [],
             alarmRadius: null,
             isAlarm: null,
@@ -317,12 +318,24 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                     positionLat: {
                         type: 'objectId',
                         label: 'nmeaap2_actualPositionLat',
-                        help: 'nmeaap2_chainLength_help',
+                        help: 'nmeaap2_actualPositionLat_help',
                         sm: 6,
                     },
                     positionLon: {
                         type: 'objectId',
                         label: 'nmeaap2_actualPositionLon',
+                        help: 'nmeaap2_actualPositionLon_help',
+                        sm: 6,
+                    },
+                    chainLength: {
+                        type: 'objectId',
+                        label: 'nmeaap2_chainLength',
+                        help: 'nmeaap2_chainLength_help',
+                        sm: 6,
+                    },
+                    depthAtDrop: {
+                        type: 'objectId',
+                        label: 'nmeaap2_depthAtDrop',
                         help: 'nmeaap2_depthAtDrop_help',
                         sm: 6,
                     },
@@ -361,6 +374,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             p.anchorLon !== s.anchorLon ||
             p.positionLat !== s.positionLat ||
             p.positionLon !== s.positionLon ||
+            p.chainLength !== s.chainLength ||
             p.depthAtDrop !== s.depthAtDrop
         ) {
             this.unsubscribeAll();
@@ -376,6 +390,7 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                 isAlarmEnabled: null,
                 alarmRadiusDraft: '',
                 chainLength: null,
+                depthAtDrop: null,
             } as Partial<AnchorPositionState> as unknown as AnchorPositionState);
             this.subscribeAll();
         }
@@ -385,6 +400,8 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             p.chainLength !== s.chainLength ||
             p.depthAtDrop !== s.depthAtDrop ||
             p.mapStyle !== s.mapStyle ||
+            prevState.chainLength !== this.state.chainLength ||
+            prevState.depthAtDrop !== this.state.depthAtDrop ||
             prevState.anchorLat !== this.state.anchorLat ||
             prevState.anchorLon !== this.state.anchorLon ||
             prevState.boatLat !== this.state.boatLat ||
@@ -1027,7 +1044,10 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
         // red when the boat is beyond the swing circle or the adapter has tripped the anchor alarm
         const distanceHi =
             isAlarm === true ||
-            (chainLength != null && distance != null && distance > effectiveSwingRadius(chainLength, depthAtDrop));
+            (chainLength != null &&
+                chainLength > 0 &&
+                distance != null &&
+                distance > effectiveSwingRadius(chainLength, depthAtDrop));
         return (
             <Box
                 sx={{
