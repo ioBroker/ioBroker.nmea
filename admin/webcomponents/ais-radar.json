@@ -1,0 +1,220 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-ais-radar",
+    "name": {
+        "en": "NMEA AIS Radar",
+        "de": "NMEA-AIS-Radar",
+        "ru": "NMEA AIS-радар",
+        "pt": "Radar AIS NMEA",
+        "nl": "NMEA AIS-radar",
+        "fr": "Radar AIS NMEA",
+        "it": "Radar AIS NMEA",
+        "es": "Radar AIS NMEA",
+        "pl": "Radar AIS NMEA",
+        "uk": "NMEA AIS-радар",
+        "zh-cn": "NMEA AIS 雷达"
+    },
+    "description": {
+        "en": "AIS targets around the own boat on a sea chart, with trails and COG vectors",
+        "de": "AIS-Ziele um das eigene Boot auf einer Seekarte, mit Spuren und COG-Vektoren",
+        "ru": "Цели AIS вокруг своего судна на морской карте, со следами и векторами COG",
+        "pt": "Alvos AIS à volta do próprio barco numa carta náutica, com rastos e vetores COG",
+        "nl": "AIS-doelen rond de eigen boot op een zeekaart, met sporen en COG-vectoren",
+        "fr": "Cibles AIS autour du bateau sur une carte marine, avec traces et vecteurs COG",
+        "it": "Bersagli AIS attorno alla propria barca su una carta nautica, con scie e vettori COG",
+        "es": "Objetivos AIS alrededor del propio barco en una carta náutica, con estelas y vectores COG",
+        "pl": "Cele AIS wokół własnej łodzi na mapie morskiej, ze śladami i wektorami COG",
+        "uk": "Цілі AIS навколо власного судна на морській карті, зі слідами та векторами COG",
+        "zh-cn": "海图上本船周围的 AIS 目标，含航迹和 COG 矢量"
+    },
+    "icon": "../dm-widgets/aisRadar.png",
+    "module": "ais-radar.js",
+    "size": {
+        "width": 400,
+        "height": 400
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "nmea",
+                "default": "nmea.0",
+                "label": {
+                    "en": "NMEA adapter instance",
+                    "de": "NMEA-Adapterinstanz",
+                    "ru": "Экземпляр адаптера NMEA",
+                    "pt": "Instância do adaptador NMEA",
+                    "nl": "NMEA-adapterinstantie",
+                    "fr": "Instance de l'adaptateur NMEA",
+                    "it": "Istanza dell'adattatore NMEA",
+                    "es": "Instancia del adaptador NMEA",
+                    "pl": "Instancja adaptera NMEA",
+                    "uk": "Екземпляр адаптера NMEA",
+                    "zh-cn": "NMEA 适配器实例"
+                }
+            },
+            "rangeNm": {
+                "type": "number",
+                "min": 1,
+                "max": 48,
+                "default": 6,
+                "label": {
+                    "en": "Range (NM)",
+                    "de": "Reichweite (sm)",
+                    "ru": "Дальность (миль)",
+                    "pt": "Alcance (NM)",
+                    "nl": "Bereik (NM)",
+                    "fr": "Portée (NM)",
+                    "it": "Portata (NM)",
+                    "es": "Alcance (NM)",
+                    "pl": "Zasięg (Mm)",
+                    "uk": "Дальність (миль)",
+                    "zh-cn": "范围（海里）"
+                }
+            },
+            "staleMinutes": {
+                "type": "number",
+                "min": 1,
+                "max": 60,
+                "default": 10,
+                "label": {
+                    "en": "Hide targets after (min)",
+                    "de": "Ziele ausblenden nach (min)",
+                    "ru": "Скрывать цели через (мин)",
+                    "pt": "Ocultar alvos após (min)",
+                    "nl": "Doelen verbergen na (min)",
+                    "fr": "Masquer les cibles après (min)",
+                    "it": "Nascondi bersagli dopo (min)",
+                    "es": "Ocultar objetivos tras (min)",
+                    "pl": "Ukryj cele po (min)",
+                    "uk": "Приховувати цілі через (хв)",
+                    "zh-cn": "目标隐藏时间（分钟）"
+                },
+                "help": {
+                    "en": "Targets without a new position for so long are no longer shown",
+                    "de": "Ziele ohne neue Position seit so langer Zeit werden nicht mehr angezeigt",
+                    "ru": "Цели без новой позиции дольше этого времени не показываются",
+                    "pt": "Alvos sem nova posição há tanto tempo deixam de ser mostrados",
+                    "nl": "Doelen zonder nieuwe positie gedurende deze tijd worden niet meer getoond",
+                    "fr": "Les cibles sans nouvelle position depuis ce délai ne sont plus affichées",
+                    "it": "I bersagli senza nuova posizione da così tanto tempo non vengono più mostrati",
+                    "es": "Los objetivos sin nueva posición durante este tiempo dejan de mostrarse",
+                    "pl": "Cele bez nowej pozycji przez ten czas nie są już pokazywane",
+                    "uk": "Цілі без нової позиції довше цього часу не показуються",
+                    "zh-cn": "超过此时间未更新位置的目标将不再显示"
+                }
+            },
+            "showVectors": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show COG vectors",
+                    "de": "COG-Vektoren anzeigen",
+                    "ru": "Показывать векторы COG",
+                    "pt": "Mostrar vetores COG",
+                    "nl": "COG-vectoren tonen",
+                    "fr": "Afficher les vecteurs COG",
+                    "it": "Mostra i vettori COG",
+                    "es": "Mostrar vectores COG",
+                    "pl": "Pokaż wektory COG",
+                    "uk": "Показувати вектори COG",
+                    "zh-cn": "显示 COG 矢量"
+                }
+            },
+            "vectorMinutes": {
+                "type": "number",
+                "min": 1,
+                "max": 30,
+                "default": 6,
+                "hidden": "data.showVectors === false",
+                "label": {
+                    "en": "Vector length (min)",
+                    "de": "Vektorlänge (min)",
+                    "ru": "Длина вектора (мин)",
+                    "pt": "Comprimento do vetor (min)",
+                    "nl": "Vectorlengte (min)",
+                    "fr": "Longueur du vecteur (min)",
+                    "it": "Lunghezza del vettore (min)",
+                    "es": "Longitud del vector (min)",
+                    "pl": "Długość wektora (min)",
+                    "uk": "Довжина вектора (хв)",
+                    "zh-cn": "矢量长度（分钟）"
+                },
+                "help": {
+                    "en": "Where a target will be after this time at its speed",
+                    "de": "Wo ein Ziel nach dieser Zeit mit seiner Geschwindigkeit sein wird",
+                    "ru": "Где окажется цель через это время при своей скорости",
+                    "pt": "Onde um alvo estará após este tempo à sua velocidade",
+                    "nl": "Waar een doel na deze tijd met zijn snelheid zal zijn",
+                    "fr": "Où une cible sera après ce temps à sa vitesse",
+                    "it": "Dove sarà un bersaglio dopo questo tempo alla sua velocità",
+                    "es": "Dónde estará un objetivo tras este tiempo a su velocidad",
+                    "pl": "Gdzie cel będzie po tym czasie przy swojej prędkości",
+                    "uk": "Де буде ціль через цей час за своєї швидкості",
+                    "zh-cn": "目标按当前速度在此时间后的位置"
+                }
+            },
+            "courseUp": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Course up",
+                    "de": "Kurs oben",
+                    "ru": "Курс вверху",
+                    "pt": "Rumo para cima",
+                    "nl": "Koers boven",
+                    "fr": "Cap en haut",
+                    "it": "Rotta in alto",
+                    "es": "Rumbo arriba",
+                    "pl": "Kurs u góry",
+                    "uk": "Курс угорі",
+                    "zh-cn": "航向向上"
+                },
+                "help": {
+                    "en": "Turns the radar with the heading; otherwise north is up",
+                    "de": "Dreht das Radar mit dem Kurs; sonst ist Norden oben",
+                    "ru": "Поворачивает радар по курсу; иначе север вверху",
+                    "pt": "Roda o radar com o rumo; caso contrário o norte fica em cima",
+                    "nl": "Draait de radar mee met de koers; anders is het noorden boven",
+                    "fr": "Fait tourner le radar avec le cap ; sinon le nord est en haut",
+                    "it": "Ruota il radar con la prua; altrimenti il nord è in alto",
+                    "es": "Gira el radar con el rumbo; si no, el norte queda arriba",
+                    "pl": "Obraca radar zgodnie z kursem; w przeciwnym razie północ jest u góry",
+                    "uk": "Повертає радар за курсом; інакше північ угорі",
+                    "zh-cn": "雷达随航向旋转；否则北向上"
+                }
+            },
+            "ownMmsi": {
+                "type": "text",
+                "label": {
+                    "en": "Own vessel MMSI",
+                    "de": "MMSI des eigenen Schiffs",
+                    "ru": "MMSI своего судна",
+                    "pt": "MMSI da própria embarcação",
+                    "nl": "MMSI van het eigen schip",
+                    "fr": "MMSI du propre navire",
+                    "it": "MMSI della propria imbarcazione",
+                    "es": "MMSI de la propia embarcación",
+                    "pl": "MMSI własnej jednostki",
+                    "uk": "MMSI власного судна",
+                    "zh-cn": "本船 MMSI"
+                },
+                "help": {
+                    "en": "Hides the own AIS transponder; the boat is already in the middle. Empty: all targets.",
+                    "de": "Blendet den eigenen AIS-Transponder aus; das Boot ist schon in der Mitte. Leer: alle Ziele.",
+                    "ru": "Скрывает собственный AIS-транспондер; судно уже в центре. Пусто: все цели.",
+                    "pt": "Oculta o próprio transponder AIS; o barco já está no centro. Vazio: todos os alvos.",
+                    "nl": "Verbergt de eigen AIS-transponder; de boot staat al in het midden. Leeg: alle doelen.",
+                    "fr": "Masque le propre transpondeur AIS ; le bateau est déjà au centre. Vide : toutes les cibles.",
+                    "it": "Nasconde il proprio transponder AIS; la barca è già al centro. Vuoto: tutti i bersagli.",
+                    "es": "Oculta el propio transpondedor AIS; el barco ya está en el centro. Vacío: todos los objetivos.",
+                    "pl": "Ukrywa własny transponder AIS; łódź jest już w środku. Puste: wszystkie cele.",
+                    "uk": "Приховує власний AIS-транспондер; судно вже в центрі. Порожньо: усі цілі.",
+                    "zh-cn": "隐藏本船 AIS 应答器；本船已显示在中心。留空：显示所有目标。"
+                }
+            }
+        }
+    }
+}

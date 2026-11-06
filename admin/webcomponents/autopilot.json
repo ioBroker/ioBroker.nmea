@@ -1,0 +1,94 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-autopilot",
+    "name": {
+        "en": "NMEA Autopilot",
+        "de": "NMEA-Autopilot",
+        "ru": "NMEA Автопилот",
+        "pt": "Piloto automático NMEA",
+        "nl": "NMEA-stuurautomaat",
+        "fr": "Pilote automatique NMEA",
+        "it": "Autopilota NMEA",
+        "es": "Piloto automático NMEA",
+        "pl": "Autopilot NMEA",
+        "uk": "NMEA Автопілот",
+        "zh-cn": "NMEA 自动驾驶仪"
+    },
+    "description": {
+        "en": "Autopilot: mode, locked heading, rudder and the buttons to steer",
+        "de": "Autopilot: Modus, gehaltener Kurs, Ruder und die Tasten zum Steuern",
+        "ru": "Автопилот: режим, заданный курс, руль и кнопки управления",
+        "pt": "Piloto automático: modo, rumo fixado, leme e os botões para governar",
+        "nl": "Stuurautomaat: modus, vastgezette koers, roer en de knoppen om te sturen",
+        "fr": "Pilote automatique : mode, cap verrouillé, gouvernail et les boutons pour barrer",
+        "it": "Autopilota: modalità, rotta bloccata, timone e i pulsanti per governare",
+        "es": "Piloto automático: modo, rumbo fijado, timón y los botones para gobernar",
+        "pl": "Autopilot: tryb, zablokowany kurs, ster i przyciski sterowania",
+        "uk": "Автопілот: режим, заданий курс, кермо та кнопки керування",
+        "zh-cn": "自动驾驶仪：模式、锁定航向、舵角及操舵按钮"
+    },
+    "icon": "../dm-widgets/autopilot.png",
+    "module": "autopilot.js",
+    "size": {
+        "width": 400,
+        "height": 440
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "nmea",
+                "default": "nmea.0",
+                "label": {
+                    "en": "NMEA adapter instance",
+                    "de": "NMEA-Adapterinstanz",
+                    "ru": "Экземпляр адаптера NMEA",
+                    "pt": "Instância do adaptador NMEA",
+                    "nl": "NMEA-adapterinstantie",
+                    "fr": "Instance de l'adaptateur NMEA",
+                    "it": "Istanza dell'adattatore NMEA",
+                    "es": "Instancia del adaptador NMEA",
+                    "pl": "Instancja adaptera NMEA",
+                    "uk": "Екземпляр адаптера NMEA",
+                    "zh-cn": "NMEA 适配器实例"
+                }
+            },
+            "showAwa": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show AWA",
+                    "de": "AWA anzeigen",
+                    "ru": "Показывать AWA",
+                    "pt": "Mostrar AWA",
+                    "nl": "AWA tonen",
+                    "fr": "Afficher AWA",
+                    "it": "Mostra AWA",
+                    "es": "Mostrar AWA",
+                    "pl": "Pokaż AWA",
+                    "uk": "Показувати AWA",
+                    "zh-cn": "显示 AWA"
+                }
+            },
+            "showRudder": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show rudder bar",
+                    "de": "Ruderanzeige anzeigen",
+                    "ru": "Показывать индикатор руля",
+                    "pt": "Mostrar barra do leme",
+                    "nl": "Roerbalk tonen",
+                    "fr": "Afficher la barre de gouvernail",
+                    "it": "Mostra la barra del timone",
+                    "es": "Mostrar barra del timón",
+                    "pl": "Pokaż wskaźnik steru",
+                    "uk": "Показувати індикатор керма",
+                    "zh-cn": "显示舵角条"
+                }
+            }
+        }
+    }
+}

@@ -38,6 +38,8 @@ export default [
             'src-devices/build/**/*.*',
             'src-devices/.__mf__temp/**/*.*',
             'src-devices/node_modules/**/*.*',
+            // own eslint config: `npm run lint:wc`
+            'src-webcomponents/**/*',
         ],
     },
     {

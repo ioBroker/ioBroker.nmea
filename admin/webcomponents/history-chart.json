@@ -1,0 +1,327 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-history-chart",
+    "name": {
+        "en": "NMEA Chart",
+        "de": "NMEA-Diagramm",
+        "ru": "NMEA График",
+        "pt": "Gráfico NMEA",
+        "nl": "NMEA-grafiek",
+        "fr": "Graphique NMEA",
+        "it": "Grafico NMEA",
+        "es": "Gráfico NMEA",
+        "pl": "Wykres NMEA",
+        "uk": "NMEA Графік",
+        "zh-cn": "NMEA 图表"
+    },
+    "description": {
+        "en": "Live chart of a value with minimum, average and maximum, filled from the history",
+        "de": "Live-Diagramm eines Wertes mit Minimum, Mittelwert und Maximum, gefüllt aus dem Verlauf",
+        "ru": "График значения в реальном времени с минимумом, средним и максимумом, заполняемый из истории",
+        "pt": "Gráfico em tempo real de um valor com mínimo, média e máximo, preenchido a partir do histórico",
+        "nl": "Live-grafiek van een waarde met minimum, gemiddelde en maximum, gevuld uit de geschiedenis",
+        "fr": "Graphique en direct d'une valeur avec minimum, moyenne et maximum, rempli depuis l'historique",
+        "it": "Grafico in tempo reale di un valore con minimo, media e massimo, riempito dalla cronologia",
+        "es": "Gráfico en vivo de un valor con mínimo, promedio y máximo, rellenado desde el historial",
+        "pl": "Wykres na żywo wartości z minimum, średnią i maksimum, uzupełniany z historii",
+        "uk": "Графік значення в реальному часі з мінімумом, середнім і максимумом, заповнений з історії",
+        "zh-cn": "数值实时图表，含最小值、平均值和最大值，并从历史记录填充"
+    },
+    "icon": "../dm-widgets/chart.png",
+    "module": "history-chart.js",
+    "size": {
+        "width": 400,
+        "height": 200
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "stateId": {
+                "type": "objectId",
+                "types": "state",
+                "root": "nmea",
+                "default": "nmea.0.windData.windSpeedApparent",
+                "label": {
+                    "en": "State",
+                    "de": "Datenpunkt",
+                    "ru": "Состояние",
+                    "pt": "Estado",
+                    "nl": "Status",
+                    "fr": "État",
+                    "it": "Stato",
+                    "es": "Estado",
+                    "pl": "Stan",
+                    "uk": "Стан",
+                    "zh-cn": "状态"
+                }
+            },
+            "label": {
+                "type": "text",
+                "label": {
+                    "en": "Header label",
+                    "de": "Überschrift",
+                    "ru": "Заголовок",
+                    "pt": "Título",
+                    "nl": "Kop",
+                    "fr": "Titre",
+                    "it": "Titolo",
+                    "es": "Título",
+                    "pl": "Nagłówek",
+                    "uk": "Заголовок",
+                    "zh-cn": "标题"
+                },
+                "help": {
+                    "en": "Empty: the name of the state",
+                    "de": "Leer: der Name des Datenpunkts",
+                    "ru": "Пусто: имя состояния",
+                    "pt": "Vazio: o nome do estado",
+                    "nl": "Leeg: de naam van de status",
+                    "fr": "Vide : le nom de l'état",
+                    "it": "Vuoto: il nome dello stato",
+                    "es": "Vacío: el nombre del estado",
+                    "pl": "Puste: nazwa stanu",
+                    "uk": "Порожньо: назва стану",
+                    "zh-cn": "留空：使用状态名称"
+                }
+            },
+            "unit": {
+                "type": "text",
+                "label": {
+                    "en": "Unit",
+                    "de": "Einheit",
+                    "ru": "Единица",
+                    "pt": "Unidade",
+                    "nl": "Eenheid",
+                    "fr": "Unité",
+                    "it": "Unità",
+                    "es": "Unidad",
+                    "pl": "Jednostka",
+                    "uk": "Одиниця",
+                    "zh-cn": "单位"
+                },
+                "help": {
+                    "en": "Empty: the unit of the state",
+                    "de": "Leer: die Einheit des Datenpunkts",
+                    "ru": "Пусто: единица состояния",
+                    "pt": "Vazio: a unidade do estado",
+                    "nl": "Leeg: de eenheid van de status",
+                    "fr": "Vide : l'unité de l'état",
+                    "it": "Vuoto: l'unità dello stato",
+                    "es": "Vacío: la unidad del estado",
+                    "pl": "Puste: jednostka stanu",
+                    "uk": "Порожньо: одиниця стану",
+                    "zh-cn": "留空：使用状态单位"
+                }
+            },
+            "historySeconds": {
+                "type": "number",
+                "min": 10,
+                "max": 3600,
+                "default": 60,
+                "label": {
+                    "en": "History window (s)",
+                    "de": "Zeitfenster (s)",
+                    "ru": "Окно истории (с)",
+                    "pt": "Janela de histórico (s)",
+                    "nl": "Geschiedenisvenster (s)",
+                    "fr": "Fenêtre d'historique (s)",
+                    "it": "Finestra cronologia (s)",
+                    "es": "Ventana de historial (s)",
+                    "pl": "Okno historii (s)",
+                    "uk": "Вікно історії (с)",
+                    "zh-cn": "历史窗口（秒）"
+                },
+                "help": {
+                    "en": "How many seconds the chart shows",
+                    "de": "Wie viele Sekunden das Diagramm zeigt",
+                    "ru": "Сколько секунд показывает график",
+                    "pt": "Quantos segundos o gráfico mostra",
+                    "nl": "Hoeveel seconden de grafiek toont",
+                    "fr": "Combien de secondes le graphique affiche",
+                    "it": "Quanti secondi mostra il grafico",
+                    "es": "Cuántos segundos muestra el gráfico",
+                    "pl": "Ile sekund pokazuje wykres",
+                    "uk": "Скільки секунд показує графік",
+                    "zh-cn": "图表显示的秒数"
+                }
+            },
+            "autoScale": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Auto-scale Y-axis",
+                    "de": "Y-Achse automatisch skalieren",
+                    "ru": "Автомасштаб оси Y",
+                    "pt": "Escala automática do eixo Y",
+                    "nl": "Y-as automatisch schalen",
+                    "fr": "Mise à l'échelle automatique de l'axe Y",
+                    "it": "Scala automatica dell'asse Y",
+                    "es": "Escala automática del eje Y",
+                    "pl": "Autoskalowanie osi Y",
+                    "uk": "Автомасштаб осі Y",
+                    "zh-cn": "Y 轴自动缩放"
+                },
+                "help": {
+                    "en": "The axis grows to fit the data",
+                    "de": "Die Achse wächst mit den Daten",
+                    "ru": "Ось расширяется под данные",
+                    "pt": "O eixo cresce para caber os dados",
+                    "nl": "De as groeit mee met de gegevens",
+                    "fr": "L'axe s'agrandit pour contenir les données",
+                    "it": "L'asse si estende per contenere i dati",
+                    "es": "El eje crece para ajustarse a los datos",
+                    "pl": "Oś rośnie, aby zmieścić dane",
+                    "uk": "Вісь розширюється під дані",
+                    "zh-cn": "坐标轴随数据扩展"
+                }
+            },
+            "yMin": {
+                "type": "number",
+                "default": 0,
+                "label": {
+                    "en": "Y-axis minimum",
+                    "de": "Minimum der Y-Achse",
+                    "ru": "Минимум оси Y",
+                    "pt": "Mínimo do eixo Y",
+                    "nl": "Minimum Y-as",
+                    "fr": "Minimum de l'axe Y",
+                    "it": "Minimo dell'asse Y",
+                    "es": "Mínimo del eje Y",
+                    "pl": "Minimum osi Y",
+                    "uk": "Мінімум осі Y",
+                    "zh-cn": "Y 轴最小值"
+                }
+            },
+            "yMax": {
+                "type": "number",
+                "default": 0,
+                "label": {
+                    "en": "Y-axis maximum",
+                    "de": "Maximum der Y-Achse",
+                    "ru": "Максимум оси Y",
+                    "pt": "Máximo do eixo Y",
+                    "nl": "Maximum Y-as",
+                    "fr": "Maximum de l'axe Y",
+                    "it": "Massimo dell'asse Y",
+                    "es": "Máximo del eje Y",
+                    "pl": "Maksimum osi Y",
+                    "uk": "Максимум осі Y",
+                    "zh-cn": "Y 轴最大值"
+                },
+                "help": {
+                    "en": "Exact with auto scale off, otherwise a suggestion; not above the minimum: none",
+                    "de": "Genau ohne automatische Skalierung, sonst ein Vorschlag; nicht über dem Minimum: keines",
+                    "ru": "Точно при выключенном автомасштабе, иначе как предложение; не выше минимума: нет",
+                    "pt": "Exato sem escala automática, caso contrário uma sugestão; não acima do mínimo: nenhum",
+                    "nl": "Exact zonder automatisch schalen, anders een suggestie; niet boven het minimum: geen",
+                    "fr": "Exact sans mise à l'échelle automatique, sinon une suggestion ; pas au-dessus du minimum : aucun",
+                    "it": "Esatto senza scala automatica, altrimenti un suggerimento; non sopra il minimo: nessuno",
+                    "es": "Exacto sin escala automática, si no una sugerencia; no por encima del mínimo: ninguno",
+                    "pl": "Dokładnie bez autoskalowania, w przeciwnym razie sugestia; nie powyżej minimum: brak",
+                    "uk": "Точно без автомасштабу, інакше як пропозиція; не вище мінімуму: немає",
+                    "zh-cn": "关闭自动缩放时为精确值，否则为建议值；不大于最小值：无"
+                }
+            },
+            "showMin": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show minimum line",
+                    "de": "Minimum-Linie anzeigen",
+                    "ru": "Показывать линию минимума",
+                    "pt": "Mostrar linha do mínimo",
+                    "nl": "Minimumlijn tonen",
+                    "fr": "Afficher la ligne du minimum",
+                    "it": "Mostra la linea del minimo",
+                    "es": "Mostrar línea del mínimo",
+                    "pl": "Pokaż linię minimum",
+                    "uk": "Показувати лінію мінімуму",
+                    "zh-cn": "显示最小值线"
+                }
+            },
+            "showAvg": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show average line",
+                    "de": "Mittelwert-Linie anzeigen",
+                    "ru": "Показывать линию среднего",
+                    "pt": "Mostrar linha da média",
+                    "nl": "Gemiddeldelijn tonen",
+                    "fr": "Afficher la ligne de la moyenne",
+                    "it": "Mostra la linea della media",
+                    "es": "Mostrar línea del promedio",
+                    "pl": "Pokaż linię średniej",
+                    "uk": "Показувати лінію середнього",
+                    "zh-cn": "显示平均值线"
+                }
+            },
+            "showMax": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show maximum line",
+                    "de": "Maximum-Linie anzeigen",
+                    "ru": "Показывать линию максимума",
+                    "pt": "Mostrar linha do máximo",
+                    "nl": "Maximumlijn tonen",
+                    "fr": "Afficher la ligne du maximum",
+                    "it": "Mostra la linea del massimo",
+                    "es": "Mostrar línea del máximo",
+                    "pl": "Pokaż linię maksimum",
+                    "uk": "Показувати лінію максимуму",
+                    "zh-cn": "显示最大值线"
+                }
+            },
+            "decimals": {
+                "type": "number",
+                "min": 0,
+                "max": 3,
+                "default": 1,
+                "label": {
+                    "en": "Decimal places",
+                    "de": "Nachkommastellen",
+                    "ru": "Знаков после запятой",
+                    "pt": "Casas decimais",
+                    "nl": "Decimalen",
+                    "fr": "Décimales",
+                    "it": "Cifre decimali",
+                    "es": "Decimales",
+                    "pl": "Miejsca po przecinku",
+                    "uk": "Знаків після коми",
+                    "zh-cn": "小数位数"
+                }
+            },
+            "color": {
+                "type": "color",
+                "label": {
+                    "en": "Line color",
+                    "de": "Linienfarbe",
+                    "ru": "Цвет линии",
+                    "pt": "Cor da linha",
+                    "nl": "Lijnkleur",
+                    "fr": "Couleur de la ligne",
+                    "it": "Colore della linea",
+                    "es": "Color de la línea",
+                    "pl": "Kolor linii",
+                    "uk": "Колір лінії",
+                    "zh-cn": "线条颜色"
+                },
+                "help": {
+                    "en": "Empty: the primary color of the theme",
+                    "de": "Leer: die Primärfarbe des Themes",
+                    "ru": "Пусто: основной цвет темы",
+                    "pt": "Vazio: a cor primária do tema",
+                    "nl": "Leeg: de primaire kleur van het thema",
+                    "fr": "Vide : la couleur primaire du thème",
+                    "it": "Vuoto: il colore primario del tema",
+                    "es": "Vacío: el color primario del tema",
+                    "pl": "Puste: kolor podstawowy motywu",
+                    "uk": "Порожньо: основний колір теми",
+                    "zh-cn": "留空：使用主题主色"
+                }
+            }
+        }
+    }
+}

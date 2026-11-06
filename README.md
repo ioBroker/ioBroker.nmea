@@ -107,6 +107,23 @@ It shows the angle exactly the way the Raymarine pilot head does:
 
 Use `windDatumDisplay` for visualization and `windDatum` for calculations/automation.
 
+## Web components
+Besides the vis-2 widgets and the devices widgets, the adapter offers web components for Aura and other hosts
+(`common.webComponents`, `admin/webcomponents/`). Each one is a single module and shows the same as its native widget:
+
+| Tag | Shows | Settings |
+|-----|-------|----------|
+| `iob-nmea-wind` | Wind instrument: apparent and true wind, heading, COG, set and drift, AWS, TWS, STW, SOG | instance, wind shift history, close-hauled zone, speed unit, sail trim |
+| `iob-nmea-history-chart` | Live chart of a state with min/avg/max lines, filled from the default history instance | state, label, unit, time window, Y-axis, lines, decimals, color |
+| `iob-nmea-autopilot` | Autopilot mode, locked heading, rudder and the buttons to steer (large changes ask for confirmation) | instance, AWA, rudder bar |
+| `iob-nmea-ais-radar` | AIS targets around the own boat on a sea chart, with trails and COG vectors | instance, range, hide after, vectors, course up, own MMSI |
+| `iob-nmea-anchor-position` | Anchor, boat, swing circle, track and anchor alarm on a map; the dialog sets the anchor and the alarm | instance, anchor/boat position states, chain length, depth at drop, map style |
+| `iob-nmea-instrument` | Up to four values as on a marine instrument, one at a time | per value: state, name, unit, digits, color, plus sign, change flash |
+| `iob-nmea-compass` | Compass with course over ground, true wind direction and rudder (the "Navigation" window of the vis-2 widget "Complex") | instance, rudder |
+| `iob-nmea-rudder` | Rudder angle indicator that zooms in on small angles (the "Rudder" window of the vis-2 widget "Complex") | instance, full range, zoom threshold, hysteresis |
+
+The sources are in `src-webcomponents/`; `npm run build:wc` builds them.
+
 ## Acknowledgements
 NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using the [CANboat](https://github.com/canboat/canboat) PGN database (Apache License 2.0).
 
@@ -114,6 +131,9 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+- (@GermanBluefox) Added the web components `iob-nmea-wind`, `iob-nmea-history-chart`, `iob-nmea-autopilot`, `iob-nmea-ais-radar`, `iob-nmea-anchor-position`, `iob-nmea-instrument`, `iob-nmea-compass` and `iob-nmea-rudder` for Aura and other hosts (`common.webComponents`)
+
 ### 3.0.2 (2026-10-27)
 - (@GermanBluefox) Deleted the states without object at the start, e.g. the AIS data of old vessels left by versions before 1.0.0 (needs js-controller 7.2.3 or newer)
 
