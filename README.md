@@ -17,6 +17,11 @@ PiCAN-M could work with Raspberry 4 and [5](https://copperhilltech.com/blog/test
 
 ![Widgets](img/widgetExamples.png)
 
+The widget "NMEA Complex" four times in one vis-2 view, every instance shows one display: wind, compass,
+rudder and autopilot.
+
+![vis-2 widgets: wind, compass, rudder, autopilot](img/vis2-widget-instruments.png)
+
 [YouTube explanation](https://youtu.be/flp_-mypbRU?si=k0lp95OukQ88LBxj)
 
 ## How to use it on Raspberry PI with PiCAN-M
@@ -132,6 +137,7 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 -->
 ## Changelog
 ### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22.19.0 now
 - (@GermanBluefox) The maps of the AIS radar and the anchor position work again: CARTO asks for an API key now, they use Esri Dark Gray and OpenStreetMap
 - (@GermanBluefox) Added the web components `iob-nmea-wind`, `iob-nmea-history-chart`, `iob-nmea-autopilot`, `iob-nmea-ais-radar`, `iob-nmea-anchor-position`, `iob-nmea-instrument`, `iob-nmea-compass` and `iob-nmea-rudder` for Aura and other hosts (`common.webComponents`)
 - (@GermanBluefox) The switch of the anchor position widget now arms the anchor watch instead of showing the alarm, which turns the alarm circle red; the widget "Instrument" is no longer a musical instrument in Chinese
