@@ -1,1 +1,0 @@
-import{a as e,i as t,n,r,t as i}from"./NmeaAnchorPositionComponent-_Nda8FHZ.js";var a={NmeaWindComponent:t,NmeaHistoryChartComponent:r,NmeaAutopilotComponent:e,NmeaAisRadarComponent:n,NmeaAnchorPositionComponent:i};export{a as default};

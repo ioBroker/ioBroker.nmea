@@ -702,8 +702,7 @@ class NmeaAisRadarElement extends NmeaElement<AisRadarSettings> {
                     className="count"
                     x={30}
                     y={VIEWBOX - 30}
-                    fontSize={14}
-                    opacity={0.7}
+                    fontSize={16}
                 >
                     {haveOwn ? TILE_SOURCES.dark.attribution : ''}
                 </text>

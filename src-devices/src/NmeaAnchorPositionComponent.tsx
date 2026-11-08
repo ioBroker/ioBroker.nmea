@@ -12,7 +12,7 @@
 //   - Optional initial depth (depth at a drop) and current depth are shown numerically alongside
 //     the live distance from anchor.
 //
-// Map base layer is user-selectable: a clean OSM/Voyager style for general use, or Esri
+// Map base layer is user-selectable: OpenStreetMap for general use, or Esri
 // WorldImagery satellite imagery for a more visual reference.
 
 import WidgetGeneric, {
@@ -710,6 +710,8 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
             zoomSnap: 0,
             zoomDelta: 0.5,
         });
+        // The credits of the current tile layer must stay visible: the tile policy of OpenStreetMap asks for it.
+        L.control.attribution({ prefix: false }).addTo(map);
         const tile = this.buildTileLayer(this.props.settings.mapStyle ?? 'osm');
         tile.addTo(map);
 
@@ -757,19 +759,17 @@ export class NmeaAnchorPositionComponent extends WidgetGeneric<AnchorPositionSta
                 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                 {
                     maxZoom: 19,
-                    attribution:
-                        'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                    // Short: the credits are always visible now, the full text would cover half of a small tile
+                    attribution: 'Tiles © Esri',
                     detectRetina: true,
                 },
             );
         }
-        // CartoDB Voyager — a clean, low-saturation OSM-style basemap that works as a "normal"
-        // chart background. It looks good in light or dark UI without overpowering the markers.
-        return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            subdomains: ['a', 'b', 'c', 'd'],
+        // OpenStreetMap — no API key; its tile policy asks for this attribution and link.
+        return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '© OpenStreetMap, © CARTO',
-            detectRetina: true,
+            attribution:
+                '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
         });
     }
 

@@ -492,7 +492,7 @@ class NmeaAnchorPositionElement extends NmeaElement<AnchorPositionSettings> {
         const swing = chain !== null && chain > 0 ? swingRadius(chain, depthAtDrop) : null;
         const distance = anchor && boat ? haversine(anchor.lat, anchor.lon, boat.lat, boat.lon) : null;
         const style = (dialog && this.#mapStyle) || this.settings.mapStyle || 'osm';
-        const source = style === 'satellite' ? TILE_SOURCES.satellite : TILE_SOURCES.voyager;
+        const source = style === 'satellite' ? TILE_SOURCES.satellite : TILE_SOURCES.street;
 
         const center =
             anchor && boat ? { lat: (anchor.lat + boat.lat) / 2, lon: (anchor.lon + boat.lon) / 2 } : anchor || boat;

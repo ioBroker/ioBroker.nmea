@@ -27,23 +27,24 @@ export interface TileSource {
     attribution: string;
 }
 
-const CARTO_HOSTS = ['a', 'b', 'c', 'd'];
-
-function carto(style: string): TileSource {
-    return {
-        url: (z, x, y) =>
-            `https://${CARTO_HOSTS[(x + y) % CARTO_HOSTS.length]}.basemaps.cartocdn.com/${style}/${z}/${x}/${y}@2x.png`,
-        maxZoom: 20,
-        attribution: '© OpenStreetMap © CARTO',
-    };
-}
-
-/** The tile servers of the native widgets */
-export const TILE_SOURCES: Record<'dark' | 'voyager' | 'satellite', TileSource> = {
-    /** The AIS radar: CartoDB Dark Matter */
-    dark: carto('dark_all'),
-    /** The anchor position, "Map": CartoDB Voyager */
-    voyager: carto('rastertiles/voyager'),
+/**
+ * The tile servers of the native widgets. All of them work without an API key (CARTO answers every tile with
+ * "API KEY REQUIRED" now).
+ */
+export const TILE_SOURCES: Record<'dark' | 'street' | 'satellite', TileSource> = {
+    /** The AIS radar: Esri Dark Gray. Above zoom 16 it has no tiles, only "Map data not yet available" */
+    dark: {
+        url: (z: number, x: number, y: number): string =>
+            `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/${z}/${y}/${x}`,
+        maxZoom: 16,
+        attribution: '© Esri, HERE, Garmin, © OpenStreetMap contributors',
+    },
+    /** The anchor position, "Map": OpenStreetMap, whose tile policy asks for this attribution to be visible */
+    street: {
+        url: (z: number, x: number, y: number): string => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+    },
     /** The anchor position, "Satellite": Esri World Imagery */
     satellite: {
         url: (z: number, x: number, y: number): string =>
