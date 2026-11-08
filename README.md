@@ -136,7 +136,7 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 3.1.0 (2026-11-08)
 - (copilot) Adapter requires node.js >= 22.19.0 now
 - (@GermanBluefox) The maps of the AIS radar and the anchor position work again: CARTO asks for an API key now, they use Esri Dark Gray and OpenStreetMap
 - (@GermanBluefox) Added the web components `iob-nmea-wind`, `iob-nmea-history-chart`, `iob-nmea-autopilot`, `iob-nmea-ais-radar`, `iob-nmea-anchor-position`, `iob-nmea-instrument`, `iob-nmea-compass` and `iob-nmea-rudder` for Aura and other hosts (`common.webComponents`)
@@ -155,12 +155,6 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 
 ### 1.0.3 (2026-07-08)
 - (bluefox) Better decoding of motor PGNs
-
-### 1.0.2 (2026-06-30)
-- (copilot) Adapter requires node.js >= 22 now
-- (bluefox) Added `seatalkPilotWindDatum.windDatumDisplay` state with the Raymarine-style port/starboard wind-angle display
-- (bluefox) The autopilot device-manager widget now shows the wind datum the Raymarine way (e.g. `130°P`) with a language-dependent port/starboard letter
-- (bluefox) Added the custom icon set
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 

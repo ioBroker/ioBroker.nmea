@@ -1,4 +1,10 @@
 # Older changes
+## 1.0.2 (2026-06-30)
+- (copilot) Adapter requires node.js >= 22 now
+- (bluefox) Added `seatalkPilotWindDatum.windDatumDisplay` state with the Raymarine-style port/starboard wind-angle display
+- (bluefox) The autopilot device-manager widget now shows the wind datum the Raymarine way (e.g. `130°P`) with a language-dependent port/starboard letter
+- (bluefox) Added the custom icon set
+
 ## 1.0.1 (2026-06-26)
 * (bluefox) Implemented Raymarine autopilot support
 * (bluefox) Corrected values simulation for yacht devices gateways
