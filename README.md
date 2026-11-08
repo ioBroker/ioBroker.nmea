@@ -122,6 +122,7 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22.19.0 now
+- (@GermanBluefox) The maps of the AIS radar and the anchor position work again: CARTO asks for an API key now, they use Esri Dark Gray and OpenStreetMap
 ### 3.0.2 (2026-10-27)
 - (@GermanBluefox) Deleted the states without object at the start, e.g. the AIS data of old vessels left by versions before 1.0.0 (needs js-controller 7.2.3 or newer)
 

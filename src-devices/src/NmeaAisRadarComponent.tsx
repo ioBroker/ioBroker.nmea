@@ -160,6 +160,7 @@ const COLORS = {
 
 // Square viewBox.
 const VIEWBOX = 1000;
+const MAP_ATTRIBUTION = '© Esri, HERE, Garmin, © OpenStreetMap contributors';
 const CENTER = VIEWBOX / 2;
 const R_OUTER = 470; // outermost ring radius
 const RING_FRACTIONS = [0.25, 0.5, 0.75, 1.0];
@@ -712,7 +713,7 @@ export class NmeaAisRadarComponent extends WidgetGeneric<AisRadarComponentState,
                                   transition: 'transform 0.4s linear',
                               }
                             : {}),
-                        // CartoDB Dark Matter tiles look almost monochrome; bump saturation a hair
+                        // The dark base map is almost monochrome; bump saturation a hair
                         // so the small landmasses stand out against the water without becoming
                         // distracting under the SVG overlay.
                         filter: 'saturate(1.2) brightness(0.95)',
@@ -773,14 +774,12 @@ export class NmeaAisRadarComponent extends WidgetGeneric<AisRadarComponentState,
             zoomSnap: 0,
             zoomDelta: 0.25,
         });
-        // CartoDB Dark Matter — desaturated dark base, free, ideal under a marine overlay.
-        // Subdomain rotation prevents browser per-host TCP throttling.
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            subdomains: ['a', 'b', 'c', 'd'],
-            maxZoom: 19,
-            attribution: '© OpenStreetMap, © CARTO',
-            detectRetina: true,
-        }).addTo(map);
+        // Esri Dark Gray — desaturated dark base, no API key, ideal under a marine overlay. Above zoom 16
+        // it has no tiles, only "Map data not yet available", so Leaflet scales the tiles of zoom 16 up.
+        L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+            { maxNativeZoom: 16, maxZoom: 19 },
+        ).addTo(map);
         this.maps.set(key, map);
         // Initial centring — even before the first state arrives, set a placeholder so Leaflet
         // pre-loads tiles. Updated on the next state change.
@@ -1222,6 +1221,18 @@ export class NmeaAisRadarComponent extends WidgetGeneric<AisRadarComponentState,
                     fontFamily="Roboto, Arial, sans-serif"
                 >
                     {courseUp ? 'C-Up' : 'N-Up'}
+                </text>
+
+                {/* Credits of the base map (bottom-left): here and not in Leaflet, whose controls would be cut off
+                    by the oversized map div and turn with it in Course-Up. */}
+                <text
+                    x={30}
+                    y={VIEWBOX - 30}
+                    fill={COLORS.dim}
+                    fontSize={16}
+                    fontFamily="Roboto, Arial, sans-serif"
+                >
+                    {MAP_ATTRIBUTION}
                 </text>
 
                 {/* Target counter (bottom-right). */}
