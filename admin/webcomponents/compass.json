@@ -1,0 +1,77 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-compass",
+    "name": {
+        "en": "NMEA Compass",
+        "de": "NMEA-Kompass",
+        "ru": "NMEA Компас",
+        "pt": "Bússola NMEA",
+        "nl": "NMEA-kompas",
+        "fr": "Compas NMEA",
+        "it": "Bussola NMEA",
+        "es": "Compás NMEA",
+        "pl": "Kompas NMEA",
+        "uk": "NMEA Компас",
+        "zh-cn": "NMEA 罗经"
+    },
+    "description": {
+        "en": "Compass with course over ground, true wind direction and rudder",
+        "de": "Kompass mit Kurs über Grund, wahrer Windrichtung und Ruder",
+        "ru": "Компас с курсом над грунтом, истинным направлением ветра и рулём",
+        "pt": "Bússola com rumo sobre o fundo, direção do vento real e leme",
+        "nl": "Kompas met koers over de grond, ware windrichting en roer",
+        "fr": "Compas avec route fond, direction du vent réel et gouvernail",
+        "it": "Bussola con rotta sul fondo, direzione del vento reale e timone",
+        "es": "Compás con rumbo sobre el fondo, dirección del viento real y timón",
+        "pl": "Kompas z kursem nad dnem, kierunkiem wiatru rzeczywistego i sterem",
+        "uk": "Компас із курсом відносно ґрунту, істинним напрямком вітру та кермом",
+        "zh-cn": "显示对地航向、真风向和舵角的罗经"
+    },
+    "icon": "../nmea.png",
+    "module": "compass.js",
+    "size": {
+        "width": 320,
+        "height": 320
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "nmea",
+                "default": "nmea.0",
+                "label": {
+                    "en": "NMEA adapter instance",
+                    "de": "NMEA-Adapterinstanz",
+                    "ru": "Экземпляр адаптера NMEA",
+                    "pt": "Instância do adaptador NMEA",
+                    "nl": "NMEA-adapterinstantie",
+                    "fr": "Instance de l'adaptateur NMEA",
+                    "it": "Istanza dell'adattatore NMEA",
+                    "es": "Instancia del adaptador NMEA",
+                    "pl": "Instancja adaptera NMEA",
+                    "uk": "Екземпляр адаптера NMEA",
+                    "zh-cn": "NMEA 适配器实例"
+                }
+            },
+            "showRudder": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show rudder",
+                    "de": "Ruder anzeigen",
+                    "ru": "Показывать руль",
+                    "pt": "Mostrar leme",
+                    "nl": "Roer tonen",
+                    "fr": "Afficher le gouvernail",
+                    "it": "Mostra il timone",
+                    "es": "Mostrar timón",
+                    "pl": "Pokaż ster",
+                    "uk": "Показувати кермо",
+                    "zh-cn": "显示舵"
+                }
+            }
+        }
+    }
+}

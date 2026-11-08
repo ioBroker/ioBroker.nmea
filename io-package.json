@@ -173,7 +173,19 @@
       "components": [
         {
           "name": "NmeaWindComponent",
-          "label": "NMEA Wind",
+          "label": {
+            "en": "NMEA Wind",
+            "de": "NMEA-Wind",
+            "ru": "NMEA Ветер",
+            "pt": "Vento NMEA",
+            "nl": "NMEA-wind",
+            "fr": "Vent NMEA",
+            "it": "Vento NMEA",
+            "es": "Viento NMEA",
+            "pl": "Wiatr NMEA",
+            "uk": "NMEA Вітер",
+            "zh-cn": "NMEA 风"
+          },
           "description": {
             "en": "Shows wind information for sailing",
             "de": "Zeigt Windinformationen für das Segeln"
@@ -182,7 +194,19 @@
         },
         {
           "name": "NmeaHistoryChartComponent",
-          "label": "NMEA Chart",
+          "label": {
+            "en": "NMEA Chart",
+            "de": "NMEA-Diagramm",
+            "ru": "NMEA График",
+            "pt": "Gráfico NMEA",
+            "nl": "NMEA-grafiek",
+            "fr": "Graphique NMEA",
+            "it": "Grafico NMEA",
+            "es": "Gráfico NMEA",
+            "pl": "Wykres NMEA",
+            "uk": "NMEA Графік",
+            "zh-cn": "NMEA 图表"
+          },
           "description": {
             "en": "Shows history of values in a chart",
             "de": "Zeigt die Historie von Werten in einem Diagramm"
@@ -191,7 +215,19 @@
         },
         {
           "name": "NmeaAutopilotComponent",
-          "label": "NMEA Autopilot",
+          "label": {
+            "en": "NMEA Autopilot",
+            "de": "NMEA-Autopilot",
+            "ru": "NMEA Автопилот",
+            "pt": "Piloto automático NMEA",
+            "nl": "NMEA-stuurautomaat",
+            "fr": "Pilote automatique NMEA",
+            "it": "Autopilota NMEA",
+            "es": "Piloto automático NMEA",
+            "pl": "Autopilot NMEA",
+            "uk": "NMEA Автопілот",
+            "zh-cn": "NMEA 自动驾驶仪"
+          },
           "description": {
             "en": "Autopilot control for NMEA",
             "de": "Autopilotsteuerung für NMEA"
@@ -200,7 +236,19 @@
         },
         {
           "name": "NmeaAisRadarComponent",
-          "label": "NMEA AIS Radar",
+          "label": {
+            "en": "NMEA AIS Radar",
+            "de": "NMEA-AIS-Radar",
+            "ru": "NMEA AIS-радар",
+            "pt": "Radar AIS NMEA",
+            "nl": "NMEA AIS-radar",
+            "fr": "Radar AIS NMEA",
+            "it": "Radar AIS NMEA",
+            "es": "Radar AIS NMEA",
+            "pl": "Radar AIS NMEA",
+            "uk": "NMEA AIS-радар",
+            "zh-cn": "NMEA AIS 雷达"
+          },
           "description": {
             "en": "AIS Radar",
             "de": "AIS Radar"
@@ -209,7 +257,19 @@
         },
         {
           "name": "NmeaAnchorPositionComponent",
-          "label": "NMEA Anchor Position",
+          "label": {
+            "en": "NMEA Anchor Position",
+            "de": "NMEA-Ankerposition",
+            "ru": "NMEA Позиция якоря",
+            "pt": "Posição da âncora NMEA",
+            "nl": "NMEA-ankerpositie",
+            "fr": "Position d'ancre NMEA",
+            "it": "Posizione dell'ancora NMEA",
+            "es": "Posición del ancla NMEA",
+            "pl": "Pozycja kotwicy NMEA",
+            "uk": "NMEA Позиція якоря",
+            "zh-cn": "NMEA 锚位"
+          },
           "description": {
             "en": "AIS Anchor Position",
             "de": "AIS Anker Position"
@@ -218,6 +278,16 @@
         }
       ]
     },
+    "webComponents": [
+      "webcomponents/wind.json",
+      "webcomponents/history-chart.json",
+      "webcomponents/autopilot.json",
+      "webcomponents/ais-radar.json",
+      "webcomponents/anchor-position.json",
+      "webcomponents/instrument.json",
+      "webcomponents/compass.json",
+      "webcomponents/rudder.json"
+    ],
     "tier": 3,
     "connectionType": "local",
     "dataSource": "push",

@@ -1,0 +1,324 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-anchor-position",
+    "name": {
+        "en": "NMEA Anchor Position",
+        "de": "NMEA-Ankerposition",
+        "ru": "NMEA Позиция якоря",
+        "pt": "Posição da âncora NMEA",
+        "nl": "NMEA-ankerpositie",
+        "fr": "Position d'ancre NMEA",
+        "it": "Posizione dell'ancora NMEA",
+        "es": "Posición del ancla NMEA",
+        "pl": "Pozycja kotwicy NMEA",
+        "uk": "NMEA Позиція якоря",
+        "zh-cn": "NMEA 锚位"
+    },
+    "description": {
+        "en": "Anchor, boat, swing circle and track on a map, with the anchor alarm",
+        "de": "Anker, Boot, Schwojkreis und Spur auf einer Karte, mit dem Ankeralarm",
+        "ru": "Якорь, судно, круг циркуляции и след на карте, с якорной тревогой",
+        "pt": "Âncora, barco, círculo de rotação e rasto num mapa, com o alarme de âncora",
+        "nl": "Anker, boot, zwaaicirkel en spoor op een kaart, met het ankeralarm",
+        "fr": "Ancre, bateau, cercle d'évitage et trace sur une carte, avec l'alarme de mouillage",
+        "it": "Ancora, barca, cerchio di brandeggio e traccia su una mappa, con l'allarme ancora",
+        "es": "Ancla, barco, círculo de borneo y estela en un mapa, con la alarma de fondeo",
+        "pl": "Kotwica, łódź, okrąg zataczania i ślad na mapie, z alarmem kotwicznym",
+        "uk": "Якір, судно, коло розвороту та слід на карті, з якірною тривогою",
+        "zh-cn": "地图上的锚、船、回转圆和航迹，含锚警报"
+    },
+    "icon": "../nmea.png",
+    "module": "anchor-position.js",
+    "size": {
+        "width": 400,
+        "height": 300
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "nmea",
+                "default": "nmea.0",
+                "label": {
+                    "en": "NMEA adapter instance",
+                    "de": "NMEA-Adapterinstanz",
+                    "ru": "Экземпляр адаптера NMEA",
+                    "pt": "Instância do adaptador NMEA",
+                    "nl": "NMEA-adapterinstantie",
+                    "fr": "Instance de l'adaptateur NMEA",
+                    "it": "Istanza dell'adattatore NMEA",
+                    "es": "Instancia del adaptador NMEA",
+                    "pl": "Instancja adaptera NMEA",
+                    "uk": "Екземпляр адаптера NMEA",
+                    "zh-cn": "NMEA 适配器实例"
+                }
+            },
+            "anchorPosition": {
+                "type": "objectId",
+                "types": "state",
+                "hidden": "!!data.anchorLat || !!data.anchorLon",
+                "label": {
+                    "en": "Anchor position (lat;lon)",
+                    "de": "Ankerposition (Breite;Länge)",
+                    "ru": "Позиция якоря (шир;долг)",
+                    "pt": "Posição da âncora (lat;lon)",
+                    "nl": "Ankerpositie (lat;lon)",
+                    "fr": "Position de l'ancre (lat;lon)",
+                    "it": "Posizione dell'ancora (lat;lon)",
+                    "es": "Posición del ancla (lat;lon)",
+                    "pl": "Pozycja kotwicy (szer;dł)",
+                    "uk": "Позиція якоря (шир;довг)",
+                    "zh-cn": "锚位（纬度;经度）"
+                },
+                "help": {
+                    "en": "A state with \"latitude;longitude\". Empty: the anchor position of the anchor alarm of the instance (anchorAlarm.anchorPosition), unless latitude and longitude are chosen below.",
+                    "de": "Ein Datenpunkt mit \"Breite;Länge\". Leer: die Ankerposition des Ankeralarms der Instanz (anchorAlarm.anchorPosition), sofern unten nicht Breite und Länge gewählt sind.",
+                    "ru": "Состояние с \"широта;долгота\". Пусто: позиция якоря якорной тревоги экземпляра (anchorAlarm.anchorPosition), если ниже не выбраны широта и долгота.",
+                    "pt": "Um estado com \"latitude;longitude\". Vazio: a posição da âncora do alarme de âncora da instância (anchorAlarm.anchorPosition), a menos que latitude e longitude sejam escolhidas abaixo.",
+                    "nl": "Een status met \"breedte;lengte\". Leeg: de ankerpositie van het ankeralarm van de instantie (anchorAlarm.anchorPosition), tenzij hieronder breedte en lengte zijn gekozen.",
+                    "fr": "Un état avec « latitude;longitude ». Vide : la position d'ancre de l'alarme de mouillage de l'instance (anchorAlarm.anchorPosition), sauf si latitude et longitude sont choisies ci-dessous.",
+                    "it": "Uno stato con \"latitudine;longitudine\". Vuoto: la posizione dell'ancora dell'allarme ancora dell'istanza (anchorAlarm.anchorPosition), a meno che latitudine e longitudine non siano scelte sotto.",
+                    "es": "Un estado con \"latitud;longitud\". Vacío: la posición del ancla de la alarma de fondeo de la instancia (anchorAlarm.anchorPosition), salvo que se elijan latitud y longitud abajo.",
+                    "pl": "Stan z \"szerokość;długość\". Puste: pozycja kotwicy alarmu kotwicznego instancji (anchorAlarm.anchorPosition), chyba że poniżej wybrano szerokość i długość.",
+                    "uk": "Стан із \"широта;довгота\". Порожньо: позиція якоря якірної тривоги екземпляра (anchorAlarm.anchorPosition), якщо нижче не вибрано широту й довготу.",
+                    "zh-cn": "包含\"纬度;经度\"的状态。留空：使用实例锚警报的锚位（anchorAlarm.anchorPosition），除非在下方选择了纬度和经度。"
+                }
+            },
+            "anchorLat": {
+                "type": "objectId",
+                "types": "state",
+                "hidden": "!!data.anchorPosition",
+                "label": {
+                    "en": "Anchor latitude",
+                    "de": "Breitengrad des Ankers",
+                    "ru": "Широта якоря",
+                    "pt": "Latitude da âncora",
+                    "nl": "Breedtegraad van het anker",
+                    "fr": "Latitude de l'ancre",
+                    "it": "Latitudine dell'ancora",
+                    "es": "Latitud del ancla",
+                    "pl": "Szerokość geograficzna kotwicy",
+                    "uk": "Широта якоря",
+                    "zh-cn": "锚纬度"
+                },
+                "help": {
+                    "en": "Decimal degrees",
+                    "de": "Dezimalgrad",
+                    "ru": "Десятичные градусы",
+                    "pt": "Graus decimais",
+                    "nl": "Decimale graden",
+                    "fr": "Degrés décimaux",
+                    "it": "Gradi decimali",
+                    "es": "Grados decimales",
+                    "pl": "Stopnie dziesiętne",
+                    "uk": "Десяткові градуси",
+                    "zh-cn": "十进制度"
+                }
+            },
+            "anchorLon": {
+                "type": "objectId",
+                "types": "state",
+                "hidden": "!!data.anchorPosition",
+                "label": {
+                    "en": "Anchor longitude",
+                    "de": "Längengrad des Ankers",
+                    "ru": "Долгота якоря",
+                    "pt": "Longitude da âncora",
+                    "nl": "Lengtegraad van het anker",
+                    "fr": "Longitude de l'ancre",
+                    "it": "Longitudine dell'ancora",
+                    "es": "Longitud del ancla",
+                    "pl": "Długość geograficzna kotwicy",
+                    "uk": "Довгота якоря",
+                    "zh-cn": "锚经度"
+                },
+                "help": {
+                    "en": "Decimal degrees",
+                    "de": "Dezimalgrad",
+                    "ru": "Десятичные градусы",
+                    "pt": "Graus decimais",
+                    "nl": "Decimale graden",
+                    "fr": "Degrés décimaux",
+                    "it": "Gradi decimali",
+                    "es": "Grados decimales",
+                    "pl": "Stopnie dziesiętne",
+                    "uk": "Десяткові градуси",
+                    "zh-cn": "十进制度"
+                }
+            },
+            "positionLat": {
+                "type": "objectId",
+                "types": "state",
+                "label": {
+                    "en": "Boat latitude",
+                    "de": "Breitengrad des Boots",
+                    "ru": "Широта судна",
+                    "pt": "Latitude do barco",
+                    "nl": "Breedtegraad van de boot",
+                    "fr": "Latitude du bateau",
+                    "it": "Latitudine della barca",
+                    "es": "Latitud del barco",
+                    "pl": "Szerokość geograficzna łodzi",
+                    "uk": "Широта судна",
+                    "zh-cn": "船纬度"
+                },
+                "help": {
+                    "en": "Empty: gnssPositionData.latitude of the instance",
+                    "de": "Leer: gnssPositionData.latitude der Instanz",
+                    "ru": "Пусто: gnssPositionData.latitude экземпляра",
+                    "pt": "Vazio: gnssPositionData.latitude da instância",
+                    "nl": "Leeg: gnssPositionData.latitude van de instantie",
+                    "fr": "Vide : gnssPositionData.latitude de l'instance",
+                    "it": "Vuoto: gnssPositionData.latitude dell'istanza",
+                    "es": "Vacío: gnssPositionData.latitude de la instancia",
+                    "pl": "Puste: gnssPositionData.latitude instancji",
+                    "uk": "Порожньо: gnssPositionData.latitude екземпляра",
+                    "zh-cn": "留空：使用实例的 gnssPositionData.latitude"
+                }
+            },
+            "positionLon": {
+                "type": "objectId",
+                "types": "state",
+                "label": {
+                    "en": "Boat longitude",
+                    "de": "Längengrad des Boots",
+                    "ru": "Долгота судна",
+                    "pt": "Longitude do barco",
+                    "nl": "Lengtegraad van de boot",
+                    "fr": "Longitude du bateau",
+                    "it": "Longitudine della barca",
+                    "es": "Longitud del barco",
+                    "pl": "Długość geograficzna łodzi",
+                    "uk": "Довгота судна",
+                    "zh-cn": "船经度"
+                },
+                "help": {
+                    "en": "Empty: gnssPositionData.longitude of the instance",
+                    "de": "Leer: gnssPositionData.longitude der Instanz",
+                    "ru": "Пусто: gnssPositionData.longitude экземпляра",
+                    "pt": "Vazio: gnssPositionData.longitude da instância",
+                    "nl": "Leeg: gnssPositionData.longitude van de instantie",
+                    "fr": "Vide : gnssPositionData.longitude de l'instance",
+                    "it": "Vuoto: gnssPositionData.longitude dell'istanza",
+                    "es": "Vacío: gnssPositionData.longitude de la instancia",
+                    "pl": "Puste: gnssPositionData.longitude instancji",
+                    "uk": "Порожньо: gnssPositionData.longitude екземпляра",
+                    "zh-cn": "留空：使用实例的 gnssPositionData.longitude"
+                }
+            },
+            "chainLength": {
+                "type": "objectId",
+                "types": "state",
+                "label": {
+                    "en": "Chain length (m)",
+                    "de": "Kettenlänge (m)",
+                    "ru": "Длина цепи (м)",
+                    "pt": "Comprimento da corrente (m)",
+                    "nl": "Kettinglengte (m)",
+                    "fr": "Longueur de chaîne (m)",
+                    "it": "Lunghezza della catena (m)",
+                    "es": "Longitud de la cadena (m)",
+                    "pl": "Długość łańcucha (m)",
+                    "uk": "Довжина ланцюга (м)",
+                    "zh-cn": "锚链长度（米）"
+                },
+                "help": {
+                    "en": "A state with the deployed length of chain or rode: the radius of the swing circle",
+                    "de": "Ein Datenpunkt mit der gesteckten Ketten- oder Leinenlänge: der Radius des Schwojkreises",
+                    "ru": "Состояние с вытравленной длиной цепи или троса: радиус круга циркуляции",
+                    "pt": "Um estado com o comprimento de corrente ou cabo largado: o raio do círculo de rotação",
+                    "nl": "Een status met de uitgestoken ketting- of lijnlengte: de straal van de zwaaicirkel",
+                    "fr": "Un état avec la longueur de chaîne ou de câblot filée : le rayon du cercle d'évitage",
+                    "it": "Uno stato con la lunghezza di catena o cima filata: il raggio del cerchio di brandeggio",
+                    "es": "Un estado con la longitud de cadena o cabo largada: el radio del círculo de borneo",
+                    "pl": "Stan z długością wydanego łańcucha lub liny: promień okręgu zataczania",
+                    "uk": "Стан із витравленою довжиною ланцюга або троса: радіус кола розвороту",
+                    "zh-cn": "包含已放出锚链或锚缆长度的状态：即回转圆半径"
+                }
+            },
+            "depthAtDrop": {
+                "type": "objectId",
+                "types": "state",
+                "label": {
+                    "en": "Depth at drop (m)",
+                    "de": "Tiefe beim Ankern (m)",
+                    "ru": "Глубина при отдаче якоря (м)",
+                    "pt": "Profundidade ao fundear (m)",
+                    "nl": "Diepte bij ankeren (m)",
+                    "fr": "Profondeur au mouillage (m)",
+                    "it": "Profondità all'ancoraggio (m)",
+                    "es": "Profundidad al fondear (m)",
+                    "pl": "Głębokość przy kotwiczeniu (m)",
+                    "uk": "Глибина при віддачі якоря (м)",
+                    "zh-cn": "抛锚时水深（米）"
+                },
+                "help": {
+                    "en": "A state with the water depth where the anchor touched the ground",
+                    "de": "Ein Datenpunkt mit der Wassertiefe, an der der Anker den Grund berührte",
+                    "ru": "Состояние с глубиной, на которой якорь коснулся дна",
+                    "pt": "Um estado com a profundidade onde a âncora tocou o fundo",
+                    "nl": "Een status met de waterdiepte waar het anker de bodem raakte",
+                    "fr": "Un état avec la profondeur où l'ancre a touché le fond",
+                    "it": "Uno stato con la profondità dove l'ancora ha toccato il fondo",
+                    "es": "Un estado con la profundidad donde el ancla tocó el fondo",
+                    "pl": "Stan z głębokością, na której kotwica dotknęła dna",
+                    "uk": "Стан із глибиною, на якій якір торкнувся дна",
+                    "zh-cn": "包含锚触底处水深的状态"
+                }
+            },
+            "mapStyle": {
+                "type": "select",
+                "default": "osm",
+                "label": {
+                    "en": "Map style",
+                    "de": "Kartenstil",
+                    "ru": "Стиль карты",
+                    "pt": "Estilo do mapa",
+                    "nl": "Kaartstijl",
+                    "fr": "Style de carte",
+                    "it": "Stile della mappa",
+                    "es": "Estilo del mapa",
+                    "pl": "Styl mapy",
+                    "uk": "Стиль карти",
+                    "zh-cn": "地图样式"
+                },
+                "options": [
+                    {
+                        "value": "osm",
+                        "label": {
+                            "en": "Map",
+                            "de": "Karte",
+                            "ru": "Карта",
+                            "pt": "Mapa",
+                            "nl": "Kaart",
+                            "fr": "Carte",
+                            "it": "Mappa",
+                            "es": "Mapa",
+                            "pl": "Mapa",
+                            "uk": "Карта",
+                            "zh-cn": "地图"
+                        }
+                    },
+                    {
+                        "value": "satellite",
+                        "label": {
+                            "en": "Satellite",
+                            "de": "Satellit",
+                            "ru": "Спутник",
+                            "pt": "Satélite",
+                            "nl": "Satelliet",
+                            "fr": "Satellite",
+                            "it": "Satellite",
+                            "es": "Satélite",
+                            "pl": "Satelita",
+                            "uk": "Супутник",
+                            "zh-cn": "卫星"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

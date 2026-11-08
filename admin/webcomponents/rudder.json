@@ -1,0 +1,155 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-rudder",
+    "name": {
+        "en": "NMEA Rudder",
+        "de": "NMEA-Ruder",
+        "ru": "NMEA Руль",
+        "pt": "Leme NMEA",
+        "nl": "NMEA-roer",
+        "fr": "Gouvernail NMEA",
+        "it": "Timone NMEA",
+        "es": "Timón NMEA",
+        "pl": "Ster NMEA",
+        "uk": "NMEA Кермо",
+        "zh-cn": "NMEA 舵"
+    },
+    "description": {
+        "en": "Rudder angle indicator that zooms in on small angles",
+        "de": "Ruderlagenanzeiger, der kleine Winkel vergrößert",
+        "ru": "Указатель положения руля с увеличением малых углов",
+        "pt": "Indicador do ângulo do leme que amplia ângulos pequenos",
+        "nl": "Roerstandaanwijzer die inzoomt op kleine hoeken",
+        "fr": "Indicateur d'angle de barre qui zoome sur les petits angles",
+        "it": "Indicatore dell'angolo del timone che ingrandisce gli angoli piccoli",
+        "es": "Indicador del ángulo del timón que amplía los ángulos pequeños",
+        "pl": "Wskaźnik wychylenia steru powiększający małe kąty",
+        "uk": "Покажчик положення керма зі збільшенням малих кутів",
+        "zh-cn": "可放大小角度的舵角指示器"
+    },
+    "icon": "../nmea.png",
+    "module": "rudder.js",
+    "size": {
+        "width": 300,
+        "height": 300
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "nmea",
+                "default": "nmea.0",
+                "label": {
+                    "en": "NMEA adapter instance",
+                    "de": "NMEA-Adapterinstanz",
+                    "ru": "Экземпляр адаптера NMEA",
+                    "pt": "Instância do adaptador NMEA",
+                    "nl": "NMEA-adapterinstantie",
+                    "fr": "Instance de l'adaptateur NMEA",
+                    "it": "Istanza dell'adattatore NMEA",
+                    "es": "Instancia del adaptador NMEA",
+                    "pl": "Instancja adaptera NMEA",
+                    "uk": "Екземпляр адаптера NMEA",
+                    "zh-cn": "NMEA 适配器实例"
+                }
+            },
+            "rudderMinMax": {
+                "type": "slider",
+                "min": 1,
+                "max": 90,
+                "label": {
+                    "en": "Full range (°)",
+                    "de": "Voller Bereich (°)",
+                    "ru": "Полный диапазон (°)",
+                    "pt": "Amplitude total (°)",
+                    "nl": "Volledig bereik (°)",
+                    "fr": "Plage complète (°)",
+                    "it": "Escursione completa (°)",
+                    "es": "Rango completo (°)",
+                    "pl": "Pełny zakres (°)",
+                    "uk": "Повний діапазон (°)",
+                    "zh-cn": "全量程（°）"
+                },
+                "help": {
+                    "en": "Empty: min/max of the state, else 50°",
+                    "de": "Leer: Min/Max des Datenpunkts, sonst 50°",
+                    "ru": "Пусто: мин/макс состояния, иначе 50°",
+                    "pt": "Vazio: mín/máx do estado, caso contrário 50°",
+                    "nl": "Leeg: min/max van de status, anders 50°",
+                    "fr": "Vide : min/max de l'état, sinon 50°",
+                    "it": "Vuoto: min/max dello stato, altrimenti 50°",
+                    "es": "Vacío: mín/máx del estado, si no 50°",
+                    "pl": "Puste: min/maks stanu, w przeciwnym razie 50°",
+                    "uk": "Порожньо: мін/макс стану, інакше 50°",
+                    "zh-cn": "留空：使用状态的最小/最大值，否则为 50°"
+                }
+            },
+            "rudderZoomAt": {
+                "type": "slider",
+                "min": 1,
+                "max": 45,
+                "default": 12,
+                "label": {
+                    "en": "Zoom in below (°)",
+                    "de": "Vergrößern unter (°)",
+                    "ru": "Увеличивать ниже (°)",
+                    "pt": "Ampliar abaixo de (°)",
+                    "nl": "Inzoomen onder (°)",
+                    "fr": "Zoomer en dessous de (°)",
+                    "it": "Ingrandisci sotto (°)",
+                    "es": "Ampliar por debajo de (°)",
+                    "pl": "Powiększ poniżej (°)",
+                    "uk": "Збільшувати нижче (°)",
+                    "zh-cn": "低于此角度时放大（°）"
+                },
+                "help": {
+                    "en": "Small angles get a finer scale",
+                    "de": "Kleine Winkel erhalten eine feinere Skala",
+                    "ru": "Малые углы получают более мелкую шкалу",
+                    "pt": "Ângulos pequenos recebem uma escala mais fina",
+                    "nl": "Kleine hoeken krijgen een fijnere schaal",
+                    "fr": "Les petits angles ont une échelle plus fine",
+                    "it": "Gli angoli piccoli hanno una scala più fine",
+                    "es": "Los ángulos pequeños tienen una escala más fina",
+                    "pl": "Małe kąty otrzymują dokładniejszą skalę",
+                    "uk": "Малі кути отримують дрібнішу шкалу",
+                    "zh-cn": "小角度使用更精细的刻度"
+                }
+            },
+            "rudderZoomDelay": {
+                "type": "slider",
+                "min": 1,
+                "max": 10,
+                "default": 4,
+                "label": {
+                    "en": "Zoom hysteresis (°)",
+                    "de": "Zoom-Hysterese (°)",
+                    "ru": "Гистерезис масштаба (°)",
+                    "pt": "Histerese do zoom (°)",
+                    "nl": "Zoomhysterese (°)",
+                    "fr": "Hystérésis du zoom (°)",
+                    "it": "Isteresi dello zoom (°)",
+                    "es": "Histéresis del zoom (°)",
+                    "pl": "Histereza powiększenia (°)",
+                    "uk": "Гістерезис масштабу (°)",
+                    "zh-cn": "缩放滞后（°）"
+                },
+                "help": {
+                    "en": "Keeps the scale from switching back and forth",
+                    "de": "Verhindert ein ständiges Hin- und Herschalten der Skala",
+                    "ru": "Не даёт шкале переключаться туда-обратно",
+                    "pt": "Evita que a escala alterne constantemente",
+                    "nl": "Voorkomt dat de schaal heen en weer schakelt",
+                    "fr": "Évite que l'échelle bascule sans cesse",
+                    "it": "Evita che la scala cambi continuamente",
+                    "es": "Evita que la escala cambie de un lado a otro",
+                    "pl": "Zapobiega ciągłemu przełączaniu skali",
+                    "uk": "Не дає шкалі перемикатися туди-сюди",
+                    "zh-cn": "防止刻度来回切换"
+                }
+            }
+        }
+    }
+}

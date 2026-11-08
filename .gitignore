@@ -23,3 +23,5 @@ iob_npm.done
 /src-devices/.__mf__temp/
 /src-admin/build/
 /src-admin/.__mf__temp/
+# web components: the sources are built with vite and the result in admin/webcomponents/ is committed
+/src-webcomponents/build/

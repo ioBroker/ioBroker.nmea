@@ -2,6 +2,7 @@ import { deleteFoldersRecursive, buildReact, npmInstall, copyFiles } from '@iobr
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { exec } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -88,6 +89,34 @@ function copyAllFiles() {
     );
 }
 
+// The web components (`<iob-nmea-wind>`, ...): one vite build per component, so that each is ONE module
+// file - see src-webcomponents/vite.config.ts. `npm run build` there runs all of them.
+function buildWebComponents(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const child = exec('npm run build', { cwd: `${__dirname}/src-webcomponents/` }, error =>
+            error ? reject(new Error(`Cannot build the web components: ${error.message}`)) : resolve(),
+        );
+        child.stdout?.pipe(process.stdout);
+        child.stderr?.pipe(process.stderr);
+    });
+}
+
+function cleanWebComponents(): void {
+    deleteFoldersRecursive(`${__dirname}/admin/webcomponents`);
+    deleteFoldersRecursive(`${__dirname}/src-webcomponents/build`);
+}
+
+function copyAllWebComponentsFiles(): void {
+    copyFiles(['src-webcomponents/build/*.js', 'src-webcomponents/build/*.json'], 'admin/webcomponents/');
+}
+
+function webComponents(): Promise<void> {
+    cleanWebComponents();
+    return npmInstall(`${__dirname}/src-webcomponents/`)
+        .then(() => buildWebComponents())
+        .then(() => copyAllWebComponentsFiles());
+}
+
 if (process.argv.includes('--admin-0-clean')) {
     cleanAdmin();
 } else if (process.argv.includes('--admin-1-npm')) {
@@ -110,6 +139,11 @@ if (process.argv.includes('--admin-0-clean')) {
     buildReact(`${__dirname}/src-widgets`, { rootDir: __dirname, vite: true }).catch(() =>
         console.error('Error by build'),
     );
+} else if (process.argv.includes('--wc')) {
+    webComponents().catch(e => {
+        console.error(e);
+        process.exit(2);
+    });
 } else if (process.argv.includes('--copy-i18n')) {
     copyFiles(['src/i18n/**/*'], 'build/i18n/');
 } else {
@@ -126,5 +160,6 @@ if (process.argv.includes('--admin-0-clean')) {
         .then(() => npmInstall(src))
         .then(() => buildReact(src, { rootDir: src, vite: true }))
         .then(() => copyAllFilesDevices())
+        .then(() => webComponents())
         .catch(e => console.error(`Cannot build: ${e}`));
 }

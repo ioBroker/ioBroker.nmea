@@ -1,0 +1,197 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-wind",
+    "name": {
+        "en": "NMEA Wind",
+        "de": "NMEA-Wind",
+        "ru": "NMEA Ветер",
+        "pt": "Vento NMEA",
+        "nl": "NMEA-wind",
+        "fr": "Vent NMEA",
+        "it": "Vento NMEA",
+        "es": "Viento NMEA",
+        "pl": "Wiatr NMEA",
+        "uk": "NMEA Вітер",
+        "zh-cn": "NMEA 风"
+    },
+    "description": {
+        "en": "Wind instrument: apparent and true wind, heading, COG, set and drift, AWS, TWS, STW and SOG",
+        "de": "Windinstrument: scheinbarer und wahrer Wind, Kurs, COG, Strom und Drift, AWS, TWS, STW und SOG",
+        "ru": "Ветровой прибор: кажущийся и истинный ветер, курс, COG, течение и дрейф, AWS, TWS, STW и SOG",
+        "pt": "Instrumento de vento: vento aparente e real, rumo, COG, corrente e deriva, AWS, TWS, STW e SOG",
+        "nl": "Windinstrument: schijnbare en ware wind, koers, COG, stroom en drift, AWS, TWS, STW en SOG",
+        "fr": "Instrument de vent : vent apparent et réel, cap, COG, courant et dérive, AWS, TWS, STW et SOG",
+        "it": "Strumento del vento: vento apparente e reale, prua, COG, corrente e deriva, AWS, TWS, STW e SOG",
+        "es": "Instrumento de viento: viento aparente y real, rumbo, COG, corriente y deriva, AWS, TWS, STW y SOG",
+        "pl": "Przyrząd wiatrowy: wiatr pozorny i rzeczywisty, kurs, COG, prąd i dryf, AWS, TWS, STW i SOG",
+        "uk": "Вітровий прилад: уявний та істинний вітер, курс, COG, течія та дрейф, AWS, TWS, STW і SOG",
+        "zh-cn": "风力仪表：视风和真风、航向、COG、流向与漂移、AWS、TWS、STW 和 SOG"
+    },
+    "icon": "../dm-widgets/wind.png",
+    "module": "wind.js",
+    "size": {
+        "width": 320,
+        "height": 320
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "nmea",
+                "default": "nmea.0",
+                "label": {
+                    "en": "NMEA adapter instance",
+                    "de": "NMEA-Adapterinstanz",
+                    "ru": "Экземпляр адаптера NMEA",
+                    "pt": "Instância do adaptador NMEA",
+                    "nl": "NMEA-adapterinstantie",
+                    "fr": "Instance de l'adaptateur NMEA",
+                    "it": "Istanza dell'adattatore NMEA",
+                    "es": "Instancia del adaptador NMEA",
+                    "pl": "Instancja adaptera NMEA",
+                    "uk": "Екземпляр адаптера NMEA",
+                    "zh-cn": "NMEA 适配器实例"
+                }
+            },
+            "historySeconds": {
+                "type": "number",
+                "min": 0,
+                "max": 600,
+                "default": 60,
+                "label": {
+                    "en": "Wind shift history (s)",
+                    "de": "Winddreher-Verlauf (s)",
+                    "ru": "История сдвига ветра (с)",
+                    "pt": "Histórico de rotação do vento (s)",
+                    "nl": "Windshift-geschiedenis (s)",
+                    "fr": "Historique des bascules de vent (s)",
+                    "it": "Storico dei salti di vento (s)",
+                    "es": "Historial de roles de viento (s)",
+                    "pl": "Historia skrętów wiatru (s)",
+                    "uk": "Історія зсуву вітру (с)",
+                    "zh-cn": "风向变化历史（秒）"
+                },
+                "help": {
+                    "en": "Seconds of apparent wind shown as a heat map in the dial. 0 hides it.",
+                    "de": "Sekunden des scheinbaren Windes, die als Heatmap im Instrument erscheinen. 0 blendet sie aus.",
+                    "ru": "Секунды кажущегося ветра, показываемые на шкале как тепловая карта. 0 скрывает её.",
+                    "pt": "Segundos de vento aparente mostrados como mapa de calor no mostrador. 0 oculta-o.",
+                    "nl": "Seconden schijnbare wind die als heatmap in de wijzerplaat worden getoond. 0 verbergt deze.",
+                    "fr": "Secondes de vent apparent affichées en carte thermique sur le cadran. 0 la masque.",
+                    "it": "Secondi di vento apparente mostrati come mappa di calore nel quadrante. 0 la nasconde.",
+                    "es": "Segundos de viento aparente mostrados como mapa de calor en la esfera. 0 lo oculta.",
+                    "pl": "Sekundy wiatru pozornego pokazywane jako mapa cieplna na tarczy. 0 ją ukrywa.",
+                    "uk": "Секунди уявного вітру, показані на шкалі як теплова карта. 0 приховує її.",
+                    "zh-cn": "以热图显示在表盘上的视风秒数。0 表示隐藏。"
+                }
+            },
+            "closeHauledAngle": {
+                "type": "number",
+                "min": 0,
+                "max": 90,
+                "default": 60,
+                "label": {
+                    "en": "Close-hauled zone (°)",
+                    "de": "Am-Wind-Bereich (°)",
+                    "ru": "Зона бейдевинда (°)",
+                    "pt": "Zona de bolina (°)",
+                    "nl": "Aan-de-windzone (°)",
+                    "fr": "Zone de près (°)",
+                    "it": "Zona di bolina (°)",
+                    "es": "Zona de ceñida (°)",
+                    "pl": "Strefa bajdewindu (°)",
+                    "uk": "Зона бейдевінду (°)",
+                    "zh-cn": "迎风区（°）"
+                },
+                "help": {
+                    "en": "Half angle of the red and green bands at the bow",
+                    "de": "Halber Winkel der roten und grünen Bänder am Bug",
+                    "ru": "Половина угла красной и зелёной полос у носа",
+                    "pt": "Metade do ângulo das faixas vermelha e verde na proa",
+                    "nl": "Halve hoek van de rode en groene banden bij de boeg",
+                    "fr": "Demi-angle des bandes rouge et verte à la proue",
+                    "it": "Semiangolo delle bande rossa e verde a prua",
+                    "es": "Semiángulo de las bandas roja y verde en la proa",
+                    "pl": "Połowa kąta czerwonego i zielonego pasa na dziobie",
+                    "uk": "Половина кута червоної та зеленої смуг біля носа",
+                    "zh-cn": "船首红色和绿色区域的半角"
+                }
+            },
+            "speedUnit": {
+                "type": "select",
+                "default": "knots",
+                "label": {
+                    "en": "Speed unit",
+                    "de": "Geschwindigkeitseinheit",
+                    "ru": "Единица скорости",
+                    "pt": "Unidade de velocidade",
+                    "nl": "Snelheidseenheid",
+                    "fr": "Unité de vitesse",
+                    "it": "Unità di velocità",
+                    "es": "Unidad de velocidad",
+                    "pl": "Jednostka prędkości",
+                    "uk": "Одиниця швидкості",
+                    "zh-cn": "速度单位"
+                },
+                "options": [
+                    {
+                        "value": "knots",
+                        "label": {
+                            "en": "Knots (kn)",
+                            "de": "Knoten (kn)",
+                            "ru": "Узлы (kn)",
+                            "pt": "Nós (kn)",
+                            "nl": "Knopen (kn)",
+                            "fr": "Nœuds (kn)",
+                            "it": "Nodi (kn)",
+                            "es": "Nudos (kn)",
+                            "pl": "Węzły (kn)",
+                            "uk": "Вузли (kn)",
+                            "zh-cn": "节 (kn)"
+                        }
+                    },
+                    {
+                        "value": "m/s",
+                        "label": "m/s"
+                    },
+                    {
+                        "value": "km/h",
+                        "label": "km/h"
+                    }
+                ]
+            },
+            "showSail": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show optimal sail trim",
+                    "de": "Optimale Segelstellung anzeigen",
+                    "ru": "Показывать оптимальную настройку паруса",
+                    "pt": "Mostrar a regulação ideal da vela",
+                    "nl": "Optimale zeilstand tonen",
+                    "fr": "Afficher le réglage optimal de la voile",
+                    "it": "Mostra la regolazione ottimale della vela",
+                    "es": "Mostrar el trimado óptimo de la vela",
+                    "pl": "Pokaż optymalne ustawienie żagla",
+                    "uk": "Показувати оптимальне налаштування вітрила",
+                    "zh-cn": "显示最佳帆位"
+                },
+                "help": {
+                    "en": "Shows the main sail at its best angle to the apparent wind: the boom at half the wind angle, flat close-hauled and fuller downwind.",
+                    "de": "Zeigt das Großsegel im besten Winkel zum scheinbaren Wind: der Baum im halben Windwinkel, am Wind flach und raumschots bauchiger.",
+                    "ru": "Показывает грот под лучшим углом к кажущемуся ветру: гик на половине угла ветра, плоский в бейдевинд и более пузатый на полных курсах.",
+                    "pt": "Mostra a vela grande no melhor ângulo em relação ao vento aparente: a retranca a metade do ângulo do vento, plana à bolina e mais cheia a favor do vento.",
+                    "nl": "Toont het grootzeil in de beste hoek ten opzichte van de schijnbare wind: de giek op de halve windhoek, vlak aan de wind en boller voor de wind.",
+                    "fr": "Affiche la grand-voile à son meilleur angle par rapport au vent apparent : la bôme à la moitié de l'angle du vent, plate au près et plus creuse au portant.",
+                    "it": "Mostra la randa al suo angolo migliore rispetto al vento apparente: il boma a metà dell'angolo del vento, piatta di bolina e più grassa nelle andature portanti.",
+                    "es": "Muestra la vela mayor en su mejor ángulo respecto al viento aparente: la botavara a la mitad del ángulo del viento, plana en ceñida y más embolsada con viento de popa.",
+                    "pl": "Pokazuje grot pod najlepszym kątem do wiatru pozornego: bom w połowie kąta wiatru, płaski w bajdewindzie i pełniejszy z wiatrem.",
+                    "uk": "Показує грот під найкращим кутом до уявного вітру: гік на половині кута вітру, плаский у бейдевінд і повніший на повних курсах.",
+                    "zh-cn": "以相对视风的最佳角度显示主帆：帆杆位于风角的一半，迎风时平坦，顺风时更饱满。"
+                }
+            }
+        }
+    }
+}

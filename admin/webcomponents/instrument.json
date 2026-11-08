@@ -1,0 +1,846 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-nmea-instrument",
+    "name": {
+        "en": "Instrument",
+        "de": "Instrument",
+        "ru": "Прибор",
+        "pt": "Instrumento",
+        "nl": "Instrument",
+        "fr": "Instrument",
+        "it": "Strumento",
+        "es": "Instrumento",
+        "pl": "Przyrząd",
+        "uk": "Прилад",
+        "zh-cn": "仪表"
+    },
+    "description": {
+        "en": "One or more values as on a marine instrument, one at a time",
+        "de": "Ein oder mehrere Werte wie auf einem Bordinstrument, einer nach dem anderen",
+        "ru": "Одно или несколько значений, как на судовом приборе, по одному",
+        "pt": "Um ou mais valores como num instrumento náutico, um de cada vez",
+        "nl": "Een of meer waarden zoals op een scheepsinstrument, één tegelijk",
+        "fr": "Une ou plusieurs valeurs comme sur un instrument de bord, une à la fois",
+        "it": "Uno o più valori come su uno strumento di bordo, uno alla volta",
+        "es": "Uno o más valores como en un instrumento náutico, uno a la vez",
+        "pl": "Jedna lub więcej wartości jak na przyrządzie pokładowym, po jednej",
+        "uk": "Одне або кілька значень, як на судновому приладі, по одному",
+        "zh-cn": "像船用仪表一样逐个显示一个或多个数值"
+    },
+    "icon": "../nmea.png",
+    "module": "instrument.js",
+    "size": {
+        "width": 240,
+        "height": 160
+    },
+    "settings": {
+        "type": "tabs",
+        "items": {
+            "value1": {
+                "type": "panel",
+                "label": {
+                    "en": "Value 1",
+                    "de": "Wert 1",
+                    "ru": "Значение 1",
+                    "pt": "Valor 1",
+                    "nl": "Waarde 1",
+                    "fr": "Valeur 1",
+                    "it": "Valore 1",
+                    "es": "Valor 1",
+                    "pl": "Wartość 1",
+                    "uk": "Значення 1",
+                    "zh-cn": "值 1"
+                },
+                "items": {
+                    "oid1": {
+                        "type": "objectId",
+                        "types": "state",
+                        "label": {
+                            "en": "State",
+                            "de": "Datenpunkt",
+                            "ru": "Состояние",
+                            "pt": "Estado",
+                            "nl": "Status",
+                            "fr": "État",
+                            "it": "Stato",
+                            "es": "Estado",
+                            "pl": "Stan",
+                            "uk": "Стан",
+                            "zh-cn": "状态"
+                        }
+                    },
+                    "name1": {
+                        "type": "text",
+                        "hidden": "!data.oid1",
+                        "label": {
+                            "en": "Name",
+                            "de": "Name",
+                            "ru": "Имя",
+                            "pt": "Nome",
+                            "nl": "Naam",
+                            "fr": "Nom",
+                            "it": "Nome",
+                            "es": "Nombre",
+                            "pl": "Nazwa",
+                            "uk": "Назва",
+                            "zh-cn": "名称"
+                        },
+                        "help": {
+                            "en": "Empty: the name of the state",
+                            "de": "Leer: der Name des Datenpunkts",
+                            "ru": "Пусто: имя состояния",
+                            "pt": "Vazio: o nome do estado",
+                            "nl": "Leeg: de naam van de status",
+                            "fr": "Vide : le nom de l'état",
+                            "it": "Vuoto: il nome dello stato",
+                            "es": "Vacío: el nombre del estado",
+                            "pl": "Puste: nazwa stanu",
+                            "uk": "Порожньо: назва стану",
+                            "zh-cn": "留空：使用状态名称"
+                        }
+                    },
+                    "unit1": {
+                        "type": "text",
+                        "hidden": "!data.oid1",
+                        "label": {
+                            "en": "Unit",
+                            "de": "Einheit",
+                            "ru": "Единица",
+                            "pt": "Unidade",
+                            "nl": "Eenheid",
+                            "fr": "Unité",
+                            "it": "Unità",
+                            "es": "Unidad",
+                            "pl": "Jednostka",
+                            "uk": "Одиниця",
+                            "zh-cn": "单位"
+                        },
+                        "help": {
+                            "en": "Empty: the unit of the state",
+                            "de": "Leer: die Einheit des Datenpunkts",
+                            "ru": "Пусто: единица состояния",
+                            "pt": "Vazio: a unidade do estado",
+                            "nl": "Leeg: de eenheid van de status",
+                            "fr": "Vide : l'unité de l'état",
+                            "it": "Vuoto: l'unità dello stato",
+                            "es": "Vacío: la unidad del estado",
+                            "pl": "Puste: jednostka stanu",
+                            "uk": "Порожньо: одиниця стану",
+                            "zh-cn": "留空：使用状态单位"
+                        }
+                    },
+                    "beforeComma1": {
+                        "type": "number",
+                        "hidden": "!data.oid1",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits before the decimal separator",
+                            "de": "Stellen vor dem Komma",
+                            "ru": "Цифр до запятой",
+                            "pt": "Dígitos antes do separador decimal",
+                            "nl": "Cijfers voor het decimaalteken",
+                            "fr": "Chiffres avant la virgule",
+                            "it": "Cifre prima del separatore decimale",
+                            "es": "Dígitos antes del separador decimal",
+                            "pl": "Cyfry przed przecinkiem",
+                            "uk": "Цифр до коми",
+                            "zh-cn": "小数点前位数"
+                        },
+                        "help": {
+                            "en": "Filled with leading zeros",
+                            "de": "Mit führenden Nullen aufgefüllt",
+                            "ru": "Дополняется ведущими нулями",
+                            "pt": "Preenchido com zeros à esquerda",
+                            "nl": "Aangevuld met voorloopnullen",
+                            "fr": "Complété par des zéros en tête",
+                            "it": "Riempito con zeri iniziali",
+                            "es": "Rellenado con ceros a la izquierda",
+                            "pl": "Uzupełniane zerami wiodącymi",
+                            "uk": "Доповнюється провідними нулями",
+                            "zh-cn": "用前导零填充"
+                        }
+                    },
+                    "afterComma1": {
+                        "type": "number",
+                        "hidden": "!data.oid1",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits after the decimal separator",
+                            "de": "Nachkommastellen",
+                            "ru": "Цифр после запятой",
+                            "pt": "Dígitos após o separador decimal",
+                            "nl": "Cijfers na het decimaalteken",
+                            "fr": "Chiffres après la virgule",
+                            "it": "Cifre dopo il separatore decimale",
+                            "es": "Dígitos después del separador decimal",
+                            "pl": "Cyfry po przecinku",
+                            "uk": "Цифр після коми",
+                            "zh-cn": "小数点后位数"
+                        }
+                    },
+                    "color1": {
+                        "type": "color",
+                        "hidden": "!data.oid1",
+                        "label": {
+                            "en": "Color",
+                            "de": "Farbe",
+                            "ru": "Цвет",
+                            "pt": "Cor",
+                            "nl": "Kleur",
+                            "fr": "Couleur",
+                            "it": "Colore",
+                            "es": "Color",
+                            "pl": "Kolor",
+                            "uk": "Колір",
+                            "zh-cn": "颜色"
+                        }
+                    },
+                    "showPlus1": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid1",
+                        "default": false,
+                        "label": {
+                            "en": "Show plus at positive numbers",
+                            "de": "Plus bei positiven Zahlen anzeigen",
+                            "ru": "Показывать плюс у положительных чисел",
+                            "pt": "Mostrar mais em números positivos",
+                            "nl": "Plus tonen bij positieve getallen",
+                            "fr": "Afficher le plus pour les nombres positifs",
+                            "it": "Mostra il più per i numeri positivi",
+                            "es": "Mostrar más en números positivos",
+                            "pl": "Pokaż plus przy liczbach dodatnich",
+                            "uk": "Показувати плюс у додатних чисел",
+                            "zh-cn": "正数显示加号"
+                        }
+                    },
+                    "changes1": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid1",
+                        "default": false,
+                        "label": {
+                            "en": "Indicate changes with color",
+                            "de": "Änderungen farblich kennzeichnen",
+                            "ru": "Выделять изменения цветом",
+                            "pt": "Indicar alterações com cor",
+                            "nl": "Wijzigingen met kleur aangeven",
+                            "fr": "Signaler les changements par une couleur",
+                            "it": "Indica le modifiche con il colore",
+                            "es": "Indicar cambios con color",
+                            "pl": "Oznaczaj zmiany kolorem",
+                            "uk": "Позначати зміни кольором",
+                            "zh-cn": "用颜色标示变化"
+                        }
+                    }
+                }
+            },
+            "value2": {
+                "type": "panel",
+                "label": {
+                    "en": "Value 2",
+                    "de": "Wert 2",
+                    "ru": "Значение 2",
+                    "pt": "Valor 2",
+                    "nl": "Waarde 2",
+                    "fr": "Valeur 2",
+                    "it": "Valore 2",
+                    "es": "Valor 2",
+                    "pl": "Wartość 2",
+                    "uk": "Значення 2",
+                    "zh-cn": "值 2"
+                },
+                "items": {
+                    "oid2": {
+                        "type": "objectId",
+                        "types": "state",
+                        "label": {
+                            "en": "State",
+                            "de": "Datenpunkt",
+                            "ru": "Состояние",
+                            "pt": "Estado",
+                            "nl": "Status",
+                            "fr": "État",
+                            "it": "Stato",
+                            "es": "Estado",
+                            "pl": "Stan",
+                            "uk": "Стан",
+                            "zh-cn": "状态"
+                        }
+                    },
+                    "name2": {
+                        "type": "text",
+                        "hidden": "!data.oid2",
+                        "label": {
+                            "en": "Name",
+                            "de": "Name",
+                            "ru": "Имя",
+                            "pt": "Nome",
+                            "nl": "Naam",
+                            "fr": "Nom",
+                            "it": "Nome",
+                            "es": "Nombre",
+                            "pl": "Nazwa",
+                            "uk": "Назва",
+                            "zh-cn": "名称"
+                        },
+                        "help": {
+                            "en": "Empty: the name of the state",
+                            "de": "Leer: der Name des Datenpunkts",
+                            "ru": "Пусто: имя состояния",
+                            "pt": "Vazio: o nome do estado",
+                            "nl": "Leeg: de naam van de status",
+                            "fr": "Vide : le nom de l'état",
+                            "it": "Vuoto: il nome dello stato",
+                            "es": "Vacío: el nombre del estado",
+                            "pl": "Puste: nazwa stanu",
+                            "uk": "Порожньо: назва стану",
+                            "zh-cn": "留空：使用状态名称"
+                        }
+                    },
+                    "unit2": {
+                        "type": "text",
+                        "hidden": "!data.oid2",
+                        "label": {
+                            "en": "Unit",
+                            "de": "Einheit",
+                            "ru": "Единица",
+                            "pt": "Unidade",
+                            "nl": "Eenheid",
+                            "fr": "Unité",
+                            "it": "Unità",
+                            "es": "Unidad",
+                            "pl": "Jednostka",
+                            "uk": "Одиниця",
+                            "zh-cn": "单位"
+                        },
+                        "help": {
+                            "en": "Empty: the unit of the state",
+                            "de": "Leer: die Einheit des Datenpunkts",
+                            "ru": "Пусто: единица состояния",
+                            "pt": "Vazio: a unidade do estado",
+                            "nl": "Leeg: de eenheid van de status",
+                            "fr": "Vide : l'unité de l'état",
+                            "it": "Vuoto: l'unità dello stato",
+                            "es": "Vacío: la unidad del estado",
+                            "pl": "Puste: jednostka stanu",
+                            "uk": "Порожньо: одиниця стану",
+                            "zh-cn": "留空：使用状态单位"
+                        }
+                    },
+                    "beforeComma2": {
+                        "type": "number",
+                        "hidden": "!data.oid2",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits before the decimal separator",
+                            "de": "Stellen vor dem Komma",
+                            "ru": "Цифр до запятой",
+                            "pt": "Dígitos antes do separador decimal",
+                            "nl": "Cijfers voor het decimaalteken",
+                            "fr": "Chiffres avant la virgule",
+                            "it": "Cifre prima del separatore decimale",
+                            "es": "Dígitos antes del separador decimal",
+                            "pl": "Cyfry przed przecinkiem",
+                            "uk": "Цифр до коми",
+                            "zh-cn": "小数点前位数"
+                        },
+                        "help": {
+                            "en": "Filled with leading zeros",
+                            "de": "Mit führenden Nullen aufgefüllt",
+                            "ru": "Дополняется ведущими нулями",
+                            "pt": "Preenchido com zeros à esquerda",
+                            "nl": "Aangevuld met voorloopnullen",
+                            "fr": "Complété par des zéros en tête",
+                            "it": "Riempito con zeri iniziali",
+                            "es": "Rellenado con ceros a la izquierda",
+                            "pl": "Uzupełniane zerami wiodącymi",
+                            "uk": "Доповнюється провідними нулями",
+                            "zh-cn": "用前导零填充"
+                        }
+                    },
+                    "afterComma2": {
+                        "type": "number",
+                        "hidden": "!data.oid2",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits after the decimal separator",
+                            "de": "Nachkommastellen",
+                            "ru": "Цифр после запятой",
+                            "pt": "Dígitos após o separador decimal",
+                            "nl": "Cijfers na het decimaalteken",
+                            "fr": "Chiffres après la virgule",
+                            "it": "Cifre dopo il separatore decimale",
+                            "es": "Dígitos después del separador decimal",
+                            "pl": "Cyfry po przecinku",
+                            "uk": "Цифр після коми",
+                            "zh-cn": "小数点后位数"
+                        }
+                    },
+                    "color2": {
+                        "type": "color",
+                        "hidden": "!data.oid2",
+                        "label": {
+                            "en": "Color",
+                            "de": "Farbe",
+                            "ru": "Цвет",
+                            "pt": "Cor",
+                            "nl": "Kleur",
+                            "fr": "Couleur",
+                            "it": "Colore",
+                            "es": "Color",
+                            "pl": "Kolor",
+                            "uk": "Колір",
+                            "zh-cn": "颜色"
+                        }
+                    },
+                    "showPlus2": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid2",
+                        "default": false,
+                        "label": {
+                            "en": "Show plus at positive numbers",
+                            "de": "Plus bei positiven Zahlen anzeigen",
+                            "ru": "Показывать плюс у положительных чисел",
+                            "pt": "Mostrar mais em números positivos",
+                            "nl": "Plus tonen bij positieve getallen",
+                            "fr": "Afficher le plus pour les nombres positifs",
+                            "it": "Mostra il più per i numeri positivi",
+                            "es": "Mostrar más en números positivos",
+                            "pl": "Pokaż plus przy liczbach dodatnich",
+                            "uk": "Показувати плюс у додатних чисел",
+                            "zh-cn": "正数显示加号"
+                        }
+                    },
+                    "changes2": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid2",
+                        "default": false,
+                        "label": {
+                            "en": "Indicate changes with color",
+                            "de": "Änderungen farblich kennzeichnen",
+                            "ru": "Выделять изменения цветом",
+                            "pt": "Indicar alterações com cor",
+                            "nl": "Wijzigingen met kleur aangeven",
+                            "fr": "Signaler les changements par une couleur",
+                            "it": "Indica le modifiche con il colore",
+                            "es": "Indicar cambios con color",
+                            "pl": "Oznaczaj zmiany kolorem",
+                            "uk": "Позначати зміни кольором",
+                            "zh-cn": "用颜色标示变化"
+                        }
+                    }
+                }
+            },
+            "value3": {
+                "type": "panel",
+                "label": {
+                    "en": "Value 3",
+                    "de": "Wert 3",
+                    "ru": "Значение 3",
+                    "pt": "Valor 3",
+                    "nl": "Waarde 3",
+                    "fr": "Valeur 3",
+                    "it": "Valore 3",
+                    "es": "Valor 3",
+                    "pl": "Wartość 3",
+                    "uk": "Значення 3",
+                    "zh-cn": "值 3"
+                },
+                "items": {
+                    "oid3": {
+                        "type": "objectId",
+                        "types": "state",
+                        "label": {
+                            "en": "State",
+                            "de": "Datenpunkt",
+                            "ru": "Состояние",
+                            "pt": "Estado",
+                            "nl": "Status",
+                            "fr": "État",
+                            "it": "Stato",
+                            "es": "Estado",
+                            "pl": "Stan",
+                            "uk": "Стан",
+                            "zh-cn": "状态"
+                        }
+                    },
+                    "name3": {
+                        "type": "text",
+                        "hidden": "!data.oid3",
+                        "label": {
+                            "en": "Name",
+                            "de": "Name",
+                            "ru": "Имя",
+                            "pt": "Nome",
+                            "nl": "Naam",
+                            "fr": "Nom",
+                            "it": "Nome",
+                            "es": "Nombre",
+                            "pl": "Nazwa",
+                            "uk": "Назва",
+                            "zh-cn": "名称"
+                        },
+                        "help": {
+                            "en": "Empty: the name of the state",
+                            "de": "Leer: der Name des Datenpunkts",
+                            "ru": "Пусто: имя состояния",
+                            "pt": "Vazio: o nome do estado",
+                            "nl": "Leeg: de naam van de status",
+                            "fr": "Vide : le nom de l'état",
+                            "it": "Vuoto: il nome dello stato",
+                            "es": "Vacío: el nombre del estado",
+                            "pl": "Puste: nazwa stanu",
+                            "uk": "Порожньо: назва стану",
+                            "zh-cn": "留空：使用状态名称"
+                        }
+                    },
+                    "unit3": {
+                        "type": "text",
+                        "hidden": "!data.oid3",
+                        "label": {
+                            "en": "Unit",
+                            "de": "Einheit",
+                            "ru": "Единица",
+                            "pt": "Unidade",
+                            "nl": "Eenheid",
+                            "fr": "Unité",
+                            "it": "Unità",
+                            "es": "Unidad",
+                            "pl": "Jednostka",
+                            "uk": "Одиниця",
+                            "zh-cn": "单位"
+                        },
+                        "help": {
+                            "en": "Empty: the unit of the state",
+                            "de": "Leer: die Einheit des Datenpunkts",
+                            "ru": "Пусто: единица состояния",
+                            "pt": "Vazio: a unidade do estado",
+                            "nl": "Leeg: de eenheid van de status",
+                            "fr": "Vide : l'unité de l'état",
+                            "it": "Vuoto: l'unità dello stato",
+                            "es": "Vacío: la unidad del estado",
+                            "pl": "Puste: jednostka stanu",
+                            "uk": "Порожньо: одиниця стану",
+                            "zh-cn": "留空：使用状态单位"
+                        }
+                    },
+                    "beforeComma3": {
+                        "type": "number",
+                        "hidden": "!data.oid3",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits before the decimal separator",
+                            "de": "Stellen vor dem Komma",
+                            "ru": "Цифр до запятой",
+                            "pt": "Dígitos antes do separador decimal",
+                            "nl": "Cijfers voor het decimaalteken",
+                            "fr": "Chiffres avant la virgule",
+                            "it": "Cifre prima del separatore decimale",
+                            "es": "Dígitos antes del separador decimal",
+                            "pl": "Cyfry przed przecinkiem",
+                            "uk": "Цифр до коми",
+                            "zh-cn": "小数点前位数"
+                        },
+                        "help": {
+                            "en": "Filled with leading zeros",
+                            "de": "Mit führenden Nullen aufgefüllt",
+                            "ru": "Дополняется ведущими нулями",
+                            "pt": "Preenchido com zeros à esquerda",
+                            "nl": "Aangevuld met voorloopnullen",
+                            "fr": "Complété par des zéros en tête",
+                            "it": "Riempito con zeri iniziali",
+                            "es": "Rellenado con ceros a la izquierda",
+                            "pl": "Uzupełniane zerami wiodącymi",
+                            "uk": "Доповнюється провідними нулями",
+                            "zh-cn": "用前导零填充"
+                        }
+                    },
+                    "afterComma3": {
+                        "type": "number",
+                        "hidden": "!data.oid3",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits after the decimal separator",
+                            "de": "Nachkommastellen",
+                            "ru": "Цифр после запятой",
+                            "pt": "Dígitos após o separador decimal",
+                            "nl": "Cijfers na het decimaalteken",
+                            "fr": "Chiffres après la virgule",
+                            "it": "Cifre dopo il separatore decimale",
+                            "es": "Dígitos después del separador decimal",
+                            "pl": "Cyfry po przecinku",
+                            "uk": "Цифр після коми",
+                            "zh-cn": "小数点后位数"
+                        }
+                    },
+                    "color3": {
+                        "type": "color",
+                        "hidden": "!data.oid3",
+                        "label": {
+                            "en": "Color",
+                            "de": "Farbe",
+                            "ru": "Цвет",
+                            "pt": "Cor",
+                            "nl": "Kleur",
+                            "fr": "Couleur",
+                            "it": "Colore",
+                            "es": "Color",
+                            "pl": "Kolor",
+                            "uk": "Колір",
+                            "zh-cn": "颜色"
+                        }
+                    },
+                    "showPlus3": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid3",
+                        "default": false,
+                        "label": {
+                            "en": "Show plus at positive numbers",
+                            "de": "Plus bei positiven Zahlen anzeigen",
+                            "ru": "Показывать плюс у положительных чисел",
+                            "pt": "Mostrar mais em números positivos",
+                            "nl": "Plus tonen bij positieve getallen",
+                            "fr": "Afficher le plus pour les nombres positifs",
+                            "it": "Mostra il più per i numeri positivi",
+                            "es": "Mostrar más en números positivos",
+                            "pl": "Pokaż plus przy liczbach dodatnich",
+                            "uk": "Показувати плюс у додатних чисел",
+                            "zh-cn": "正数显示加号"
+                        }
+                    },
+                    "changes3": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid3",
+                        "default": false,
+                        "label": {
+                            "en": "Indicate changes with color",
+                            "de": "Änderungen farblich kennzeichnen",
+                            "ru": "Выделять изменения цветом",
+                            "pt": "Indicar alterações com cor",
+                            "nl": "Wijzigingen met kleur aangeven",
+                            "fr": "Signaler les changements par une couleur",
+                            "it": "Indica le modifiche con il colore",
+                            "es": "Indicar cambios con color",
+                            "pl": "Oznaczaj zmiany kolorem",
+                            "uk": "Позначати зміни кольором",
+                            "zh-cn": "用颜色标示变化"
+                        }
+                    }
+                }
+            },
+            "value4": {
+                "type": "panel",
+                "label": {
+                    "en": "Value 4",
+                    "de": "Wert 4",
+                    "ru": "Значение 4",
+                    "pt": "Valor 4",
+                    "nl": "Waarde 4",
+                    "fr": "Valeur 4",
+                    "it": "Valore 4",
+                    "es": "Valor 4",
+                    "pl": "Wartość 4",
+                    "uk": "Значення 4",
+                    "zh-cn": "值 4"
+                },
+                "items": {
+                    "oid4": {
+                        "type": "objectId",
+                        "types": "state",
+                        "label": {
+                            "en": "State",
+                            "de": "Datenpunkt",
+                            "ru": "Состояние",
+                            "pt": "Estado",
+                            "nl": "Status",
+                            "fr": "État",
+                            "it": "Stato",
+                            "es": "Estado",
+                            "pl": "Stan",
+                            "uk": "Стан",
+                            "zh-cn": "状态"
+                        }
+                    },
+                    "name4": {
+                        "type": "text",
+                        "hidden": "!data.oid4",
+                        "label": {
+                            "en": "Name",
+                            "de": "Name",
+                            "ru": "Имя",
+                            "pt": "Nome",
+                            "nl": "Naam",
+                            "fr": "Nom",
+                            "it": "Nome",
+                            "es": "Nombre",
+                            "pl": "Nazwa",
+                            "uk": "Назва",
+                            "zh-cn": "名称"
+                        },
+                        "help": {
+                            "en": "Empty: the name of the state",
+                            "de": "Leer: der Name des Datenpunkts",
+                            "ru": "Пусто: имя состояния",
+                            "pt": "Vazio: o nome do estado",
+                            "nl": "Leeg: de naam van de status",
+                            "fr": "Vide : le nom de l'état",
+                            "it": "Vuoto: il nome dello stato",
+                            "es": "Vacío: el nombre del estado",
+                            "pl": "Puste: nazwa stanu",
+                            "uk": "Порожньо: назва стану",
+                            "zh-cn": "留空：使用状态名称"
+                        }
+                    },
+                    "unit4": {
+                        "type": "text",
+                        "hidden": "!data.oid4",
+                        "label": {
+                            "en": "Unit",
+                            "de": "Einheit",
+                            "ru": "Единица",
+                            "pt": "Unidade",
+                            "nl": "Eenheid",
+                            "fr": "Unité",
+                            "it": "Unità",
+                            "es": "Unidad",
+                            "pl": "Jednostka",
+                            "uk": "Одиниця",
+                            "zh-cn": "单位"
+                        },
+                        "help": {
+                            "en": "Empty: the unit of the state",
+                            "de": "Leer: die Einheit des Datenpunkts",
+                            "ru": "Пусто: единица состояния",
+                            "pt": "Vazio: a unidade do estado",
+                            "nl": "Leeg: de eenheid van de status",
+                            "fr": "Vide : l'unité de l'état",
+                            "it": "Vuoto: l'unità dello stato",
+                            "es": "Vacío: la unidad del estado",
+                            "pl": "Puste: jednostka stanu",
+                            "uk": "Порожньо: одиниця стану",
+                            "zh-cn": "留空：使用状态单位"
+                        }
+                    },
+                    "beforeComma4": {
+                        "type": "number",
+                        "hidden": "!data.oid4",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits before the decimal separator",
+                            "de": "Stellen vor dem Komma",
+                            "ru": "Цифр до запятой",
+                            "pt": "Dígitos antes do separador decimal",
+                            "nl": "Cijfers voor het decimaalteken",
+                            "fr": "Chiffres avant la virgule",
+                            "it": "Cifre prima del separatore decimale",
+                            "es": "Dígitos antes del separador decimal",
+                            "pl": "Cyfry przed przecinkiem",
+                            "uk": "Цифр до коми",
+                            "zh-cn": "小数点前位数"
+                        },
+                        "help": {
+                            "en": "Filled with leading zeros",
+                            "de": "Mit führenden Nullen aufgefüllt",
+                            "ru": "Дополняется ведущими нулями",
+                            "pt": "Preenchido com zeros à esquerda",
+                            "nl": "Aangevuld met voorloopnullen",
+                            "fr": "Complété par des zéros en tête",
+                            "it": "Riempito con zeri iniziali",
+                            "es": "Rellenado con ceros a la izquierda",
+                            "pl": "Uzupełniane zerami wiodącymi",
+                            "uk": "Доповнюється провідними нулями",
+                            "zh-cn": "用前导零填充"
+                        }
+                    },
+                    "afterComma4": {
+                        "type": "number",
+                        "hidden": "!data.oid4",
+                        "min": 0,
+                        "max": 6,
+                        "default": 0,
+                        "label": {
+                            "en": "Digits after the decimal separator",
+                            "de": "Nachkommastellen",
+                            "ru": "Цифр после запятой",
+                            "pt": "Dígitos após o separador decimal",
+                            "nl": "Cijfers na het decimaalteken",
+                            "fr": "Chiffres après la virgule",
+                            "it": "Cifre dopo il separatore decimale",
+                            "es": "Dígitos después del separador decimal",
+                            "pl": "Cyfry po przecinku",
+                            "uk": "Цифр після коми",
+                            "zh-cn": "小数点后位数"
+                        }
+                    },
+                    "color4": {
+                        "type": "color",
+                        "hidden": "!data.oid4",
+                        "label": {
+                            "en": "Color",
+                            "de": "Farbe",
+                            "ru": "Цвет",
+                            "pt": "Cor",
+                            "nl": "Kleur",
+                            "fr": "Couleur",
+                            "it": "Colore",
+                            "es": "Color",
+                            "pl": "Kolor",
+                            "uk": "Колір",
+                            "zh-cn": "颜色"
+                        }
+                    },
+                    "showPlus4": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid4",
+                        "default": false,
+                        "label": {
+                            "en": "Show plus at positive numbers",
+                            "de": "Plus bei positiven Zahlen anzeigen",
+                            "ru": "Показывать плюс у положительных чисел",
+                            "pt": "Mostrar mais em números positivos",
+                            "nl": "Plus tonen bij positieve getallen",
+                            "fr": "Afficher le plus pour les nombres positifs",
+                            "it": "Mostra il più per i numeri positivi",
+                            "es": "Mostrar más en números positivos",
+                            "pl": "Pokaż plus przy liczbach dodatnich",
+                            "uk": "Показувати плюс у додатних чисел",
+                            "zh-cn": "正数显示加号"
+                        }
+                    },
+                    "changes4": {
+                        "type": "checkbox",
+                        "hidden": "!data.oid4",
+                        "default": false,
+                        "label": {
+                            "en": "Indicate changes with color",
+                            "de": "Änderungen farblich kennzeichnen",
+                            "ru": "Выделять изменения цветом",
+                            "pt": "Indicar alterações com cor",
+                            "nl": "Wijzigingen met kleur aangeven",
+                            "fr": "Signaler les changements par une couleur",
+                            "it": "Indica le modifiche con il colore",
+                            "es": "Indicar cambios con color",
+                            "pl": "Oznaczaj zmiany kolorem",
+                            "uk": "Позначати зміни кольором",
+                            "zh-cn": "用颜色标示变化"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
