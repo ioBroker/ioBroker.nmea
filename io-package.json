@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "nmea",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "news": {
+      "3.1.1": {
+        "en": "Web components: the heading of the wind display no longer covers a compass label, and the label of the outer ring of the AIS radar no longer sits on the \"N\"",
+        "de": "Webkomponenten: Die Richtung der Windanzeige bedeckt kein Kompassetikett mehr, und der Außenring des AIS-Radars sitzt nicht mehr auf dem „N“",
+        "ru": "Веб-компоненты: заголовок дисплея ветра больше не покрывает этикетку компаса, а метка внешнего кольца радара AIS больше не находится на букве «N»",
+        "pt": "Componentes Web: o indicador de direção do vento não cobre mais o rótulo da bússola e o rótulo do anel externo do radar AIS não fica mais no “N”",
+        "nl": "Webcomponenten: de kop van het windscherm bedekt niet langer een kompaslabel, en het label van de buitenring van de AIS-radar staat niet langer op de „N”",
+        "fr": "Composants Web : le titre de l'écran du vent ne couvre plus l'étiquette d'une boussole, et l'étiquette de l'anneau extérieur du radar AIS ne figure plus sur le « N »",
+        "it": "Componenti web: la rubrica del display del vento non copre più l'etichetta di una bussola e l'etichetta dell'anello esterno del radar AIS non è più sulla «N»",
+        "es": "Componentes web: la dirección del visor de viento ya no cubre la etiqueta de la brújula y la etiqueta del anillo exterior del radar AIS ya no está en la «N»",
+        "pl": "Komponenty sieci: nagłówek wyświetlacza wiatru nie obejmuje już etykiety kompasu, a etykieta zewnętrznego pierścienia radaru AIS nie znajduje się już na „N”",
+        "uk": "Веб-компоненти: заголовок вітрового дисплея більше не охоплює мітку компаса, а мітка зовнішнього кільця радара AIS більше не стоїть на «N»",
+        "zh-cn": "Web 组件：风向显示屏的航向不再覆盖罗盘标签，AIS 雷达外圈的标签不再位于 “N” 上"
+      },
       "3.1.0": {
         "en": "Adapter requires node.js >= 22.19.0 now\nThe maps of the AIS radar and the anchor position work again: CARTO asks for an API key now, they use Esri Dark Gray and OpenStreetMap\nAdded the web components `iob-nmea-wind`, `iob-nmea-history-chart`, `iob-nmea-autopilot`, `iob-nmea-ais-radar`, `iob-nmea-anchor-position`, `iob-nmea-instrument`, `iob-nmea-compass` and `iob-nmea-rudder` for Aura and other hosts (`common.webComponents`)\nThe switch of the anchor position widget now arms the anchor watch instead of showing the alarm, which turns the alarm circle red; the widget \"Instrument\" is no longer a musical instrument in Chinese\nThe anchor position widget can be given the chain length and the depth at drop for its swing circle; its settings show proper labels and help texts\nThe anchor position widget speaks all languages, shows the anchor of the anchor alarm when no anchor position is chosen and loads the track from the history also for the own GNSS position; the settings \"split view\" and \"sail trim\" of the wind and autopilot widgets are translated into all languages",
         "de": "Adapter benötigt jetzt node.js >= 22.19.0\nDie Karten von AIS-Radar und Anker funktionieren wieder: CARTO fragt jetzt nach API Key, Esri Dark Gray und OpenStreetMap\nWebkomponenten `iob-nmea-wind`, `iob-nmea-history-chart`, `iob-nmea-autopilot`, `iob-nmea-ais-radar`, `iob-nmea-anchor-position`, `iob-nmea-instrument`, `iob-nmea-compass` und `iob-nmea-ru` hinzugefügt für Aura und andere Hosts (common.WebComponents)\nDer Schalter des Ankerpositions-Widgets aktiviert jetzt die Ankeruhr und zeigt keinen Alarm an, wodurch der Alarmkreis rot wird; das Widget „Instrument“ ist kein Musikinstrument mehr auf Chinesisch\nDas Ankerpositions-Widget kann Kettenlänge und Falltiefe für den Schwungkreis angeben; die Einstellungen zeigen Labels und Hilfetexte\nDas Widget spricht alle Sprachen, zeigt den Anker des Ankeralarms, wenn keine Ankerposition gewählt ist, und lädt den Track aus der Historie auch für die eigene GNSS-Position; die Einstellungen „Split View“ und „Sail Trim“ der Wind- und Autopilot-Widgets sind in alle Sprachen übersetzt",
@@ -80,19 +93,6 @@
         "pl": "Adapter wymaga teraz node.js >= 22\nDodano stan `seatalkPilotWindDatum.windDatumDisplay` z wyświetlaczem kąta wiatru lewej/prawej burty w stylu Raymarine\nWidget menedżera urządzeń autopilota wyświetla teraz dane dotyczące wiatru zgodnie z trasą Raymarine (np. `130°P`) z literą określającą kierunek wiatru (lewy/prawy) zależną od języka\nDodano zestaw niestandardowych ikon",
         "uk": "Адаптер тепер вимагає node.js >= 22\nДодано стан `seatalkPilotWindDatum.windDatumDisplay` з відображенням кута вітру по лівому/правому борту в стилі Raymarine.\nВіджет менеджера пристроїв автопілота тепер показує координати вітру у стилі Raymarine (наприклад, `130°P`) із літерою лівого/правого борту, що залежить від мови.\nДодано набір власних іконок",
         "zh-cn": "适配器现在需要 node.js 版本 >= 22。\n添加了带有 Raymarine 式左舷/右舷风角显示的 `seatalkPilotWindDatum.windDatumDisplay` 状态\n自动驾驶仪设备管理器小部件现在以 Raymarine 的方式显示风向基准（例如 `130°P`），并带有与语言相关的左舷/右舷字母。\n添加了自定义图标集"
-      },
-      "1.0.1": {
-        "en": "Implemented Raymarine autopilot support\nCorrected values simulation for yacht devices gateways\nAdded support of Fusion player",
-        "de": "Raymarine-Autopilotunterstützung implementiert\nSimulation korrigierter Werte für Yachtgeräte-Gateways\nUnterstützung für Fusion-Spieler hinzugefügt",
-        "ru": "Внедрена поддержка автопилота Raymarine.\nМоделирование скорректированных значений для шлюзов яхтенных устройств\nДобавлена поддержка Fusion Player.",
-        "pt": "Implementado suporte para piloto automático Raymarine\nSimulação de valores corrigidos para gateways de dispositivos de iates\nAdicionado suporte para o jogador Fusion",
-        "nl": "Ondersteuning voor Raymarine-autopiloten geïmplementeerd.\nSimulatie van gecorrigeerde waarden voor gateways van jachtapparaten\nOndersteuning voor Fusion-speler toegevoegd.",
-        "fr": "Prise en charge du pilote automatique Raymarine implémentée\nSimulation de valeurs corrigées pour les passerelles des appareils de yacht\nAjout de la prise en charge du lecteur Fusion",
-        "it": "Implementato il supporto per l'autopilota Raymarine.\nSimulazione dei valori corretti per i gateway dei dispositivi per yacht\nAggiunto il supporto per Fusion Player",
-        "es": "Implementación del soporte para piloto automático Raymarine\nSimulación de valores corregidos para pasarelas de dispositivos de yates\nSe agregó compatibilidad con el jugador Fusion.",
-        "pl": "Wprowadzono obsługę autopilota Raymarine\nSkorygowana symulacja wartości dla bramek urządzeń jachtowych\nDodano obsługę odtwarzacza Fusion",
-        "uk": "Реалізовано підтримку автопілота Raymarine\nМоделювання скоригованих значень для шлюзів пристроїв яхт\nДодана підтримка плеєра Fusion.",
-        "zh-cn": "实现了 Raymarine 自动驾驶仪支持\n游艇设备网关的修正值模拟\n新增对Fusion播放器的支持"
       }
     },
     "titleLang": {

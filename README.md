@@ -136,7 +136,7 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 3.1.1 (2026-11-09)
 - (@GermanBluefox) Web components: the heading of the wind display no longer covers a compass label, and the label of the outer ring of the AIS radar no longer sits on the "N"
 
 ### 3.1.0 (2026-11-08)
@@ -155,9 +155,6 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 
 ### 2.0.0 (2026-08-04)
 - (bluefox) Migrated to devices V3
-
-### 1.0.3 (2026-07-08)
-- (bluefox) Better decoding of motor PGNs
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 

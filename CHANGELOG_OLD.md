@@ -1,4 +1,7 @@
 # Older changes
+## 1.0.3 (2026-07-08)
+- (bluefox) Better decoding of motor PGNs
+
 ## 1.0.2 (2026-06-30)
 - (copilot) Adapter requires node.js >= 22 now
 - (bluefox) Added `seatalkPilotWindDatum.windDatumDisplay` state with the Raymarine-style port/starboard wind-angle display
