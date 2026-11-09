@@ -30,6 +30,9 @@ const R_OUTER = 451;
 const R_RING_STROKE = 25;
 const R_INNER = R_OUTER - R_RING_STROKE;
 const R_LABEL = 390;
+/** The box of the heading at the top of the dial */
+const HEADING_BOX_HALF_WIDTH = 128;
+const HEADING_BOX_BOTTOM = 118;
 const R_TICK_OUT = R_OUTER - 4;
 const R_TICK_MAJOR_IN = R_INNER + 4;
 const R_TICK_MINOR_IN = R_INNER + 35;
@@ -500,6 +503,17 @@ function WindDial(props: DialProps): JSX.Element {
                         const cardinal = a % 90 === 0;
                         const label = a === 0 ? 'N' : a === 90 ? 'E' : a === 180 ? 'S' : a === 270 ? 'W' : String(a);
                         const pos = polar(CX, CY, R_LABEL, a);
+                        const fontSize = a === 0 || a === 180 ? 62 : cardinal ? 54 : 44;
+                        if (heading !== null) {
+                            // the label that the rose has turned under the box of the heading would only be half seen
+                            const shown = polar(CX, CY, R_LABEL, a - heading);
+                            if (
+                                shown.y - fontSize / 2 < HEADING_BOX_BOTTOM &&
+                                Math.abs(shown.x - CX) < HEADING_BOX_HALF_WIDTH + fontSize
+                            ) {
+                                return null;
+                            }
+                        }
                         return (
                             <text
                                 key={`l${a}`}
@@ -507,7 +521,7 @@ function WindDial(props: DialProps): JSX.Element {
                                 y={pos.y}
                                 textAnchor="middle"
                                 dominantBaseline="central"
-                                fontSize={a === 0 || a === 180 ? 62 : cardinal ? 54 : 44}
+                                fontSize={fontSize}
                                 fontWeight={cardinal ? 700 : 400}
                                 fill={a === 0 ? COLORS.north : a === 180 ? COLORS.south : COLORS.contrast}
                                 transform={`rotate(${a} ${pos.x} ${pos.y})`}
@@ -654,10 +668,10 @@ function WindDial(props: DialProps): JSX.Element {
 
             {/* the heading at the top */}
             <rect
-                x={CX - 128}
+                x={CX - HEADING_BOX_HALF_WIDTH}
                 y={10}
-                width={256}
-                height={108}
+                width={HEADING_BOX_HALF_WIDTH * 2}
+                height={HEADING_BOX_BOTTOM - 10}
                 rx={24}
                 fill={COLORS.face}
                 stroke={COLORS.grey}

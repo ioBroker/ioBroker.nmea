@@ -575,15 +575,18 @@ class NmeaAisRadarElement extends NmeaElement<AisRadarSettings> {
                                 strokeDasharray="4 6"
                                 opacity={0.7}
                             />
-                            <text
-                                x={CENTER}
-                                y={CENTER - R_OUTER * f + 18}
-                                fill={COLORS.dim}
-                                fontSize={20}
-                                textAnchor="middle"
-                            >
-                                {`${formatNum(rangeNm * f, f === 1 ? 0 : 1, comma)} NM`}
-                            </text>
+                            {/* the outer ring is the range of the toolbar, and its label would sit on the "N" */}
+                            {f === 1 ? null : (
+                                <text
+                                    x={CENTER}
+                                    y={CENTER - R_OUTER * f + 18}
+                                    fill={COLORS.dim}
+                                    fontSize={20}
+                                    textAnchor="middle"
+                                >
+                                    {`${formatNum(rangeNm * f, 1, comma)} NM`}
+                                </text>
+                            )}
                         </g>
                     ))}
                     <line
