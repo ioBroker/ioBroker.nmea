@@ -136,6 +136,9 @@ NMEA 2000 decoding by [canboatjs](https://github.com/canboat/canboatjs), using t
 	### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+- (@GermanBluefox) Web components: the heading of the wind display no longer covers a compass label, and the label of the outer ring of the AIS radar no longer sits on the "N"
+
 ### 3.1.0 (2026-11-08)
 - (copilot) Adapter requires node.js >= 22.19.0 now
 - (@GermanBluefox) The maps of the AIS radar and the anchor position work again: CARTO asks for an API key now, they use Esri Dark Gray and OpenStreetMap
