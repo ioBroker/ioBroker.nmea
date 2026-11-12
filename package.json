@@ -33,7 +33,8 @@
     "@iobroker/vis-2-widgets-testing": "^2.0.1",
     "@types/node": "^22.20.5",
     "@types/ws": "^8.18.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "@iobroker/web-components": "^0.8.0"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.nmea/issues"
@@ -64,7 +65,7 @@
     "npm": "npm i && cd src-widgets && npm i -f && cd ../src-devices && npm i -f && cd ../src-admin && npm i && cd ../src-webcomponents && npm i",
     "test": "mocha ./test/*.engine.js --exit",
     "lint": "eslint -c eslint.config.mjs && cd src-widgets && npm run lint && cd ../src-devices && npm run lint && cd ../src-admin && npm run lint && cd ../src-webcomponents && npm run lint",
-    "build": "npm run build:ts && npm run build:gui",
+    "build": "npm run build:ts && npm run build:gui && iob-web-components sync-io-package",
     "build:gui": "node tasks.mts",
     "build:ts": "tsc -p tsconfig.build.json && node tasks.mts --copy-i18n"
   },
